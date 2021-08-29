@@ -6,13 +6,14 @@ import Length
 import List.Extra
 import Maybe.Extra
 import Pixels
-import Plane3d
+import Plane3d exposing (Plane3d)
 import Point2d exposing (Point2d)
 import Point3d exposing (Point3d)
 import Quantity
 import Result.Extra
 import Scene3d
 import Scene3d.Material as Material
+import Scene3dHelpers exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Types exposing (..)
@@ -45,28 +46,52 @@ makeNymEntity nym =
 
         copiedSymmetryGroup =
             copySymmetryGroup
-                |> Scene3d.mirrorAcross
-                    Plane3d.yz
+                |> mirrorGroup
+
+        noseBridge : Scene3d.Entity ()
+        noseBridge =
+            Scene3d.group
+                [ Scene3d.quad
+                    (Material.color nym.coloring.noseBridge)
+                    nym.structure.innerBrow
+                    nym.structure.eyenose
+                    (nym.structure.eyenose |> mirrorPoint)
+                    (nym.structure.innerBrow |> mirrorPoint)
+                , Scene3d.quad
+                    (Material.color nym.coloring.noseBridge)
+                    nym.structure.eyenose
+                    nym.structure.nosetop
+                    (nym.structure.nosetop |> mirrorPoint)
+                    (nym.structure.eyenose |> mirrorPoint)
+                ]
+
+        centerFeatures : Scene3d.Entity ()
+        centerFeatures =
+            Scene3d.group
+                [ noseBridge ]
     in
     Scene3d.group
         [ copySymmetryGroup
         , copiedSymmetryGroup
+        , centerFeatures
         ]
 
 
 testStructure : Structure
 testStructure =
-    Structure
-        (Point3d.meters 0.1 0.2 0.5)
-        (Point3d.meters 0.5 0.15 0.4)
-        (Point3d.meters 0.4 0 0.3)
-        (Point3d.meters 0.2 0 0.4)
+    { innerBrow = Point3d.meters 0.1 0.2 0.5
+    , outerBrow = Point3d.meters 0.5 0.15 0.4
+    , eyecheek = Point3d.meters 0.4 0 0.3
+    , eyenose = Point3d.meters 0.2 0 0.4
+    , nosetop = Point3d.meters 0.05 -0.4 1
+    }
 
 
 testColoring : Coloring
 testColoring =
     Coloring
         Color.darkOrange
+        Color.red
 
 
 testNym : Nym
