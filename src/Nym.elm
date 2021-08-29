@@ -23,7 +23,8 @@ makeNymEntity nym =
     let
         -- todo: rather build a list here and fold? or maybe do this elsewhere to consume features?
         eyeSquare =
-            Scene3d.quad (Material.color Color.blue)
+            Scene3d.quad
+                (Material.color nym.coloring.eyequad)
                 nym.structure.innerBrow
                 nym.structure.outerBrow
                 nym.structure.eyecheek
@@ -62,12 +63,18 @@ testStructure =
         (Point3d.meters 0.2 0 0.4)
 
 
+testColoring : Coloring
+testColoring =
+    Coloring
+        Color.darkOrange
+
+
 testNym : Nym
 testNym =
     Nym
         testStructure
         (Point3d.meters 0.3 0.05 0.5)
-        0
+        testColoring
 
 
 binaryStringToNym : BinarySource -> Nym

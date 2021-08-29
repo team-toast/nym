@@ -1,5 +1,6 @@
 module Types exposing (..)
 
+import Color exposing (Color)
 import Length
 import Point2d exposing (Point2d)
 import Point3d exposing (Point3d)
@@ -18,7 +19,7 @@ type alias Eye =
 
 
 type alias Coloring =
-    Int
+    { eyequad : Color }
 
 
 type alias Nym =
