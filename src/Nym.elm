@@ -5,6 +5,8 @@ import Html exposing (Html)
 import Length
 import List.Extra
 import Maybe.Extra
+import Pixels
+import Plane3d
 import Point2d exposing (Point2d)
 import Point3d exposing (Point3d)
 import Quantity
@@ -19,14 +21,36 @@ import Types exposing (..)
 makeNymEntity : Nym -> Scene3d.Entity ()
 makeNymEntity nym =
     let
+        -- todo: rather build a list here and fold? or maybe do this elsewhere to consume features?
         eyeSquare =
             Scene3d.quad (Material.color Color.blue)
                 nym.structure.innerBrow
                 nym.structure.outerBrow
                 nym.structure.eyecheek
                 nym.structure.eyenose
+
+        eyePoint : Scene3d.Entity ()
+        eyePoint =
+            Scene3d.point
+                { radius = Pixels.pixels 3 }
+                (Material.color Color.black)
+                nym.eye
+
+        copySymmetryGroup =
+            Scene3d.group
+                [ eyeSquare
+                , eyePoint
+                ]
+
+        copiedSymmetryGroup =
+            copySymmetryGroup
+                |> Scene3d.mirrorAcross
+                    Plane3d.yz
     in
-    Scene3d.group [ eyeSquare ]
+    Scene3d.group
+        [ copySymmetryGroup
+        , copiedSymmetryGroup
+        ]
 
 
 testStructure : Structure
@@ -42,7 +66,7 @@ testNym : Nym
 testNym =
     Nym
         testStructure
-        (Point2d.meters 0 0)
+        (Point3d.meters 0.3 0.05 0.5)
         0
 
 

@@ -14,7 +14,7 @@ type alias Structure =
 
 
 type alias Eye =
-    Point2d Length.Meters ()
+    Point3d Length.Meters ()
 
 
 type alias Coloring =
