@@ -1,13 +1,42 @@
 module Nym exposing (..)
 
 import Html exposing (Html)
+import Length
 import List.Extra
 import Maybe.Extra
-import Nym.Types exposing (..)
+import Point2d exposing (Point2d)
+import Point3d exposing (Point3d)
+import Quantity
 import Result.Extra
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
-import Point3d
+
+
+type alias Structure =
+    { innerBrow : Point3d Length.Meters ()
+    , outerBrow : Point3d Length.Meters ()
+    , eyecheek : Point3d Length.Meters ()
+    , eyenose : Point3d Length.Meters ()
+    }
+
+
+type alias Eye =
+    Point2d Length.Meters ()
+
+
+type alias Coloring =
+    Int
+
+
+type alias Nym =
+    { structure : Structure
+    , eye : Eye
+    , coloring : Coloring
+    }
+
+
+type alias BinarySource =
+    String
 
 
 testStructure : Structure
@@ -42,13 +71,6 @@ consumeStructure =
     Debug.todo ""
 
 
-
--- innerBrow
--- outerBrow
--- eyecheek
--- eyenose
-
-
 consumeEye : BinarySource -> ( Eye, BinarySource )
 consumeEye =
     Debug.todo ""
@@ -57,51 +79,3 @@ consumeEye =
 consumeColoring : BinarySource -> ( Coloring, BinarySource )
 consumeColoring =
     Debug.todo ""
-
-
-
--- fromHexString : String -> Int -> Int -> Result Error (Html msg)
--- fromHexString src phaceWidth phaceHeight =
---     let
---         stringIsAllHex =
---             src
---                 |> String.toList
---                 |> List.map Features.hexCharToFloat
---                 |> List.all (\f -> f <= 1)
---     in
---     if stringIsAllHex then
---         src
---             |> Features.generatePhaceFromString
---             |> Maybe.map
---                 (svg
---                     [ width <| String.fromInt phaceWidth
---                     , height <| String.fromInt phaceHeight
---                     , viewBox "-100 -100 200 200"
---                     ]
---                 )
---             |> Result.fromMaybe SourceTooSmall
---     else
---         Err NotHexString
--- addressToRelevantString : Address -> String
--- addressToRelevantString =
---     Eth.Utils.addressToString
---         >> String.dropLeft 2
--- {-| Just get the primary color of the Phace. Can be used to make a unique "character color" that matches the Phace.
--- -}
--- faceColorFromAddress : Address -> Result Error ( Float, Float, Float )
--- faceColorFromAddress address =
---     let
---         maybeFeature =
---             Features.consumeFeatureFromString 0
---                 (addressToRelevantString address)
---                 |> Maybe.map Tuple.first
---     in
---     case maybeFeature of
---         Just (Features.FaceColor ( r, g, b )) ->
---             Ok <|
---                 ( Features.hexCharToFloat r
---                 , Features.hexCharToFloat g
---                 , Features.hexCharToFloat b
---                 )
---         _ ->
---             Err SourceTooSmall
