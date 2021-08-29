@@ -15,6 +15,10 @@ type alias Structure =
     , nosetop : Point3dM
     , outerTemple : Point3dM
     , innerTemple : Point3dM
+    , earTip  : Point3dM
+    , highCheek : Point3dM
+    , midCheek : Point3dM
+    , lowCheek : Point3dM
     }
 
 
@@ -26,6 +30,9 @@ type alias Coloring =
     { eyequad : Color
     , noseBridge : Color
     , temple : Color
+    , earFront : Color
+    , earBack : Color
+    , cheek : Color
     }
 
 
