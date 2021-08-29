@@ -13,6 +13,8 @@ type alias Structure =
     , eyecheek : Point3dM
     , eyenose : Point3dM
     , nosetop : Point3dM
+    , outerTemple : Point3dM
+    , innerTemple : Point3dM
     }
 
 
@@ -23,6 +25,7 @@ type alias Eye =
 type alias Coloring =
     { eyequad : Color
     , noseBridge : Color
+    , temple : Color
     }
 
 

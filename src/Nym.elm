@@ -38,10 +38,20 @@ makeNymEntity nym =
                 (Material.color Color.black)
                 nym.eye
 
+        temple : Scene3d.Entity ()
+        temple =
+            Scene3d.quad
+                (Material.color nym.coloring.temple)
+                nym.structure.outerTemple
+                nym.structure.outerBrow
+                nym.structure.innerBrow
+                nym.structure.innerTemple
+
         copySymmetryGroup =
             Scene3d.group
                 [ eyeSquare
                 , eyePoint
+                , temple
                 ]
 
         copiedSymmetryGroup =
@@ -68,7 +78,8 @@ makeNymEntity nym =
         centerFeatures : Scene3d.Entity ()
         centerFeatures =
             Scene3d.group
-                [ noseBridge ]
+                [ noseBridge
+                ]
     in
     Scene3d.group
         [ copySymmetryGroup
@@ -84,6 +95,8 @@ testStructure =
     , eyecheek = Point3d.meters 0.4 0 0.3
     , eyenose = Point3d.meters 0.2 0 0.4
     , nosetop = Point3d.meters 0.05 -0.4 1
+    , innerTemple = Point3d.meters 0.2 0.4 0.3
+    , outerTemple = Point3d.meters 0.4 0.4 0.2
     }
 
 
@@ -92,6 +105,7 @@ testColoring =
     Coloring
         Color.darkOrange
         Color.red
+        Color.lightOrange
 
 
 testNym : Nym
