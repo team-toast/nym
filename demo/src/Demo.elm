@@ -7,6 +7,7 @@ import Camera3d
 import Color
 import Direction3d
 import Element exposing (Element)
+import Element.Border as Border
 import Element.Events
 import Eth.Types exposing (Address)
 import Eth.Utils
@@ -94,29 +95,38 @@ view model =
     Element.layout
         [ Element.width Element.fill
         , Element.height Element.fill
-        , Element.htmlAttribute <|
-            Html.Events.on
-                "mousemove"
-                (Decode.map MouseMove Mouse.moveDecoder)
         ]
     <|
-        Element.el [ Element.centerX, Element.centerY ] <|
+        Element.el
+            [ Element.centerX
+            , Element.centerY
+            , Border.width 1
+            , Border.color <| Element.rgb 0.8 0.8 1
+            ]
+        <|
             Element.html <|
-                Scene3d.unlit
-                    { -- Our scene has a single 'entity' in it
-                      entities = [ Nym.makeNymEntity Nym.testNym ]
+                Html.div
+                    [ Html.Events.on
+                        "mousemove"
+                        (Decode.map MouseMove Mouse.moveDecoder)
+                    ]
+                <|
+                    List.singleton <|
+                        Scene3d.unlit
+                            { -- Our scene has a single 'entity' in it
+                              entities = [ Nym.makeNymEntity Nym.testNym ]
 
-                    -- Provide the camera to be used when rendering the scene
-                    , camera = camera
+                            -- Provide the camera to be used when rendering the scene
+                            , camera = camera
 
-                    -- Anything closer than 1 meter to the camera will be clipped away
-                    -- (this is necessary because of the internals of how WebGL works)
-                    , clipDepth = Length.meters 1
+                            -- Anything closer than 1 meter to the camera will be clipped away
+                            -- (this is necessary because of the internals of how WebGL works)
+                            , clipDepth = Length.meters 1
 
-                    -- Using a transparent background means that the HTML underneath the
-                    -- scene will show through
-                    , background = Scene3d.transparentBackground
+                            -- Using a transparent background means that the HTML underneath the
+                            -- scene will show through
+                            , background = Scene3d.transparentBackground
 
-                    -- Size in pixels of the generated HTML element
-                    , dimensions = ( Pixels.int 400, Pixels.int 300 )
-                    }
+                            -- Size in pixels of the generated HTML element
+                            , dimensions = ( Pixels.int 400, Pixels.int 300 )
+                            }
