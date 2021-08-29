@@ -7,6 +7,7 @@ import Camera3d
 import Color
 import Direction3d
 import Element exposing (Element)
+import Element.Background as Background
 import Element.Border as Border
 import Element.Events
 import Eth.Types exposing (Address)
@@ -80,7 +81,7 @@ view model =
                             Point3d.xyz
                                 (Length.meters 0)
                                 (Length.meters 0)
-                                (Length.meters 3)
+                                (Length.meters 6)
                                 |> Point3d.rotateAround
                                     Axis3d.y
                                     (Angle.degrees (-model.mouseInput.x * 120))
@@ -100,8 +101,9 @@ view model =
         Element.el
             [ Element.centerX
             , Element.centerY
+            , Background.color <| Element.rgb 0.9 0.9 1
             , Border.width 1
-            , Border.color <| Element.rgb 0.8 0.8 1
+            , Border.color <| Element.rgb 0.7 0.7 1
             ]
         <|
             Element.html <|
@@ -128,5 +130,5 @@ view model =
                             , background = Scene3d.transparentBackground
 
                             -- Size in pixels of the generated HTML element
-                            , dimensions = ( Pixels.int 400, Pixels.int 300 )
+                            , dimensions = ( Pixels.int 800, Pixels.int 500 )
                             }
