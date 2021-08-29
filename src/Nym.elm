@@ -1,5 +1,6 @@
 module Nym exposing (..)
 
+import Color
 import Html exposing (Html)
 import Length
 import List.Extra
@@ -8,35 +9,24 @@ import Point2d exposing (Point2d)
 import Point3d exposing (Point3d)
 import Quantity
 import Result.Extra
+import Scene3d
+import Scene3d.Material as Material
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
+import Types exposing (..)
 
 
-type alias Structure =
-    { innerBrow : Point3d Length.Meters ()
-    , outerBrow : Point3d Length.Meters ()
-    , eyecheek : Point3d Length.Meters ()
-    , eyenose : Point3d Length.Meters ()
-    }
-
-
-type alias Eye =
-    Point2d Length.Meters ()
-
-
-type alias Coloring =
-    Int
-
-
-type alias Nym =
-    { structure : Structure
-    , eye : Eye
-    , coloring : Coloring
-    }
-
-
-type alias BinarySource =
-    String
+makeNymEntity : Nym -> Scene3d.Entity ()
+makeNymEntity nym =
+    let
+        eyeSquare =
+            Scene3d.quad (Material.color Color.blue)
+                nym.structure.innerBrow
+                nym.structure.outerBrow
+                nym.structure.eyecheek
+                nym.structure.eyenose
+    in
+    Scene3d.group [ eyeSquare ]
 
 
 testStructure : Structure
@@ -46,6 +36,14 @@ testStructure =
         (Point3d.meters 0.5 0.15 0.4)
         (Point3d.meters 0.4 0 0.3)
         (Point3d.meters 0.2 0 0.4)
+
+
+testNym : Nym
+testNym =
+    Nym
+        testStructure
+        (Point2d.meters 0 0)
+        0
 
 
 binaryStringToNym : BinarySource -> Nym

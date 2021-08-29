@@ -70,13 +70,6 @@ update msg model =
 view : Model -> Html Msg
 view model =
     let
-        square =
-            Scene3d.quad (Material.color Color.blue)
-                Nym.testStructure.innerBrow
-                Nym.testStructure.outerBrow
-                Nym.testStructure.eyecheek
-                Nym.testStructure.eyenose
-
         camera =
             Camera3d.perspective
                 { viewpoint =
@@ -111,7 +104,7 @@ view model =
             Element.html <|
                 Scene3d.unlit
                     { -- Our scene has a single 'entity' in it
-                      entities = [ square ]
+                      entities = [ Nym.makeNymEntity Nym.testNym ]
 
                     -- Provide the camera to be used when rendering the scene
                     , camera = camera
