@@ -20,6 +20,10 @@ import Triangle3d exposing (Triangle3d)
 import Types exposing (..)
 
 
+testNym =
+    Types.testNym
+
+
 makeNymEntity : Nym -> Scene3d.Entity ()
 makeNymEntity nym =
     let
@@ -35,6 +39,8 @@ makeNymEntity nym =
         centerFeatures =
             Scene3d.group
                 [ noseBridge
+                , forehead
+                , crown
                 ]
 
         noseBridge : Scene3d.Entity ()
@@ -43,21 +49,40 @@ makeNymEntity nym =
                 [ Scene3d.quad
                     (Material.color nym.coloring.noseBridge)
                     nym.structure.innerBrow
-                    nym.structure.eyenose
-                    (nym.structure.eyenose |> mirrorPoint)
+                    nym.structure.noseBridge
+                    (nym.structure.noseBridge |> mirrorPoint)
                     (nym.structure.innerBrow |> mirrorPoint)
                 , Scene3d.quad
                     (Material.color nym.coloring.noseBridge)
-                    nym.structure.eyenose
+                    nym.structure.noseBridge
                     nym.structure.nosetop
                     (nym.structure.nosetop |> mirrorPoint)
-                    (nym.structure.eyenose |> mirrorPoint)
+                    (nym.structure.noseBridge |> mirrorPoint)
                 ]
+
+        forehead : Scene3d.Entity ()
+        forehead =
+            Scene3d.quad
+                (Material.color nym.coloring.forehead)
+                nym.structure.innerTemple
+                nym.structure.innerBrow
+                (nym.structure.innerBrow |> mirrorPoint)
+                (nym.structure.innerTemple |> mirrorPoint)
+
+        crown : Scene3d.Entity ()
+        crown =
+            Scene3d.quad
+                (Material.color nym.coloring.crown)
+                nym.structure.crown
+                nym.structure.innerTemple
+                (nym.structure.innerTemple |> mirrorPoint)
+                (nym.structure.crown |> mirrorPoint)
 
         copySymmetryGroup =
             Scene3d.group
                 [ eyeSquare
                 , eyePoint
+                , noseSide
                 , temple
                 , ear
                 , cheek
@@ -82,6 +107,24 @@ makeNymEntity nym =
                 (Material.color Color.black)
                 nym.eye
 
+        noseSide : Scene3d.Entity ()
+        noseSide =
+            Scene3d.group <|
+                List.map
+                    (Scene3d.triangle
+                        (Material.color nym.coloring.noseSide)
+                        << Triangle3d.fromVertices
+                    )
+                    [ ( nym.structure.innerBrow
+                      , nym.structure.noseBridge
+                      , nym.structure.eyenose
+                      )
+                    , ( nym.structure.noseBridge
+                      , nym.structure.nosetop
+                      , nym.structure.eyenose
+                      )
+                    ]
+
         temple : Scene3d.Entity ()
         temple =
             Scene3d.quad
@@ -93,12 +136,22 @@ makeNymEntity nym =
 
         ear : Scene3d.Entity ()
         ear =
-            Scene3d.quad
-                (Material.color nym.coloring.earFront)
-                nym.structure.outerTemple
-                nym.structure.innerTemple
-                nym.structure.earTip
-                nym.structure.highCheek
+            Scene3d.group
+                [ Scene3d.quad
+                    (Material.color nym.coloring.earFront)
+                    nym.structure.outerTemple
+                    nym.structure.innerTemple
+                    nym.structure.earTip
+                    nym.structure.highCheek
+                , Scene3d.triangle
+                    (Material.color nym.coloring.earBack)
+                  <|
+                    Triangle3d.fromVertices
+                        ( nym.structure.innerTemple
+                        , nym.structure.crown
+                        , nym.structure.earTip
+                        )
+                ]
 
         cheek : Scene3d.Entity ()
         cheek =
@@ -116,44 +169,25 @@ makeNymEntity nym =
                       , nym.structure.highCheek
                       , nym.structure.midCheek
                       )
+                    , ( nym.structure.outerBrow
+                      , nym.structure.midCheek
+                      , nym.structure.outerTopSnout
+                      )
+                    , ( nym.structure.outerBrow
+                      , nym.structure.outerTopSnout
+                      , nym.structure.eyecheek
+                      )
+                    , ( nym.structure.eyecheek
+                      , nym.structure.eyenose
+                      , nym.structure.outerTopSnout
+                      )
+                    , ( nym.structure.eyenose
+                      , nym.structure.nosetop
+                      , nym.structure.outerTopSnout
+                      )
                     ]
     in
     allFeatures
-
-
-testStructure : Structure
-testStructure =
-    { innerBrow = Point3d.meters 0.1 0.2 0.3
-    , outerBrow = Point3d.meters 0.5 0.15 0.4
-    , eyecheek = Point3d.meters 0.4 0 0.3
-    , eyenose = Point3d.meters 0.2 0 0.4
-    , nosetop = Point3d.meters 0.05 -0.4 1
-    , innerTemple = Point3d.meters 0.13 0.4 0.3
-    , outerTemple = Point3d.meters 0.4 0.4 0.2
-    , earTip = Point3d.meters 0.4 0.8 0.2
-    , highCheek = Point3d.meters 0.6 0.5 0
-    , midCheek = Point3d.meters 0.7 0 0
-    , lowCheek = Point3d.meters 0.7 -0.7 0
-    }
-
-
-testColoring : Coloring
-testColoring =
-    { eyequad = Color.darkOrange
-    , noseBridge = Color.brown
-    , temple = Color.lightOrange
-    , earFront = Color.black
-    , earBack = Color.lightRed
-    , cheek = Color.brown
-    }
-
-
-testNym : Nym
-testNym =
-    Nym
-        testStructure
-        (Point3d.meters 0.3 0.05 0.4)
-        testColoring
 
 
 binaryStringToNym : BinarySource -> Nym
