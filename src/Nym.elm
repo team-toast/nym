@@ -206,14 +206,13 @@ makeNymEntity nym =
                     nym.structure.innerTemple
                     nym.structure.earTip
                     nym.structure.highCheek
-                , Scene3d.triangle
+                , Scene3d.quad
                     (Material.color nym.coloring.earBack)
-                  <|
-                    Triangle3d.fromVertices
-                        ( nym.structure.innerTemple
-                        , nym.structure.crown
-                        , nym.structure.earTip
-                        )
+                    nym.structure.crown
+                    nym.structure.innerTemple
+                    nym.structure.earTip
+                    nym.structure.highCheek
+                    
                 ]
 
         cheek : Scene3d.Entity ()
