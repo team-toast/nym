@@ -101,10 +101,10 @@ makeNymEntity nym =
                 nym.structure.innerTemple
                 (nym.structure.innerTemple |> mirrorPoint)
                 (nym.structure.crown |> mirrorPoint)
-        
+
         chinStrip : Scene3d.Entity ()
         chinStrip =
-            Scene3d.group 
+            Scene3d.group
                 [ Scene3d.quad
                     (Material.color Color.lightGray)
                     nym.structure.noseTop
@@ -124,7 +124,6 @@ makeNymEntity nym =
                     (mirrorPoint nym.structure.outerBottomSnout)
                     (mirrorPoint nym.structure.noseBottom)
                 ]
-
 
         copySymmetryGroup =
             Scene3d.group
@@ -177,7 +176,7 @@ makeNymEntity nym =
                       , nym.structure.outerBottomSnout
                       )
                     ]
-        
+
         lowerSnout : Scene3d.Entity ()
         lowerSnout =
             Scene3d.quad
@@ -186,7 +185,6 @@ makeNymEntity nym =
                 nym.structure.noseBottom
                 nym.structure.noseMid
                 nym.structure.noseTop
-
 
         temple : Scene3d.Entity ()
         temple =
@@ -212,7 +210,6 @@ makeNymEntity nym =
                     nym.structure.innerTemple
                     nym.structure.earTip
                     nym.structure.highCheek
-                    
                 ]
 
         cheek : Scene3d.Entity ()
@@ -233,6 +230,10 @@ makeNymEntity nym =
                       )
                     , ( nym.structure.outerBrow
                       , nym.structure.midCheek
+                      , nym.structure.cheekbone
+                      )
+                    , ( nym.structure.outerBrow
+                      , nym.structure.cheekbone
                       , nym.structure.outerTopSnout
                       )
                     , ( nym.structure.outerBrow
@@ -248,6 +249,21 @@ makeNymEntity nym =
                       , nym.structure.outerTopSnout
                       )
                     ]
+                    ++ [ Scene3d.quad
+                            (Material.color nym.coloring.cheek)
+                            nym.structure.midCheek
+                            nym.structure.lowCheek
+                            nym.structure.outerBottomSnout
+                            nym.structure.cheekbone
+                       , Scene3d.triangle
+                            (Material.color nym.coloring.cheekSpot)
+                         <|
+                            Triangle3d.fromVertices
+                                ( nym.structure.cheekbone
+                                , nym.structure.outerBottomSnout
+                                , nym.structure.outerTopSnout
+                                )
+                       ]
     in
     allFeatures
 

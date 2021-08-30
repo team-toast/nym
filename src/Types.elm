@@ -13,6 +13,7 @@ type alias Point3dM =
 type alias Structure =
     { innerBrow : Point3dM
     , outerBrow : Point3dM
+    , cheekbone : Point3dM
     , eyecheek : Point3dM
     , eyenose : Point3dM
     , noseTop : Point3dM
@@ -35,6 +36,7 @@ testStructure : Structure
 testStructure =
     { innerBrow = Point3d.meters 0.1 0.2 0.3
     , outerBrow = Point3d.meters 0.5 0.15 0.4
+    , cheekbone = Point3d.meters 0.5 -0.2 0.2
     , eyecheek = Point3d.meters 0.4 0 0.3
     , eyenose = Point3d.meters 0.2 0 0.4
     , noseTop = Point3d.meters 0.05 -0.4 1
@@ -63,6 +65,7 @@ type alias Coloring =
     , earFront : Color
     , earBack : Color
     , cheek : Color
+    , cheekSpot : Color
     }
 
 
@@ -77,6 +80,7 @@ testColoring =
     , earFront = Color.black
     , earBack = Color.lightRed
     , cheek = Color.brown
+    , cheekSpot = Color.darkOrange
     }
 
 
