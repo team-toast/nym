@@ -33,14 +33,29 @@ makeNymEntity nym =
                 [ centerFeatures
                 , copySymmetryGroup
                 , copiedSymmetryGroup
+                , testEntity
                 ]
 
+        testEntity =
+            Scene3d.nothing
+
+        -- Scene3d.group <|
+        --     List.map
+        --         (Scene3d.point
+        --             { radius = Pixels.pixels 3 }
+        --             (Material.color Color.red)
+        --         )
+        --         [ nym.structure.noseMid
+        --         , nym.structure.noseBottom
+        --         ]
         centerFeatures : Scene3d.Entity ()
         centerFeatures =
             Scene3d.group
                 [ noseBridge
+                , noseFront
                 , forehead
                 , crown
+                , chinStrip
                 ]
 
         noseBridge : Scene3d.Entity ()
@@ -55,10 +70,19 @@ makeNymEntity nym =
                 , Scene3d.quad
                     (Material.color nym.coloring.noseBridge)
                     nym.structure.noseBridge
-                    nym.structure.nosetop
-                    (nym.structure.nosetop |> mirrorPoint)
+                    nym.structure.noseTop
+                    (nym.structure.noseTop |> mirrorPoint)
                     (nym.structure.noseBridge |> mirrorPoint)
                 ]
+
+        noseFront : Scene3d.Entity ()
+        noseFront =
+            Scene3d.quad
+                (Material.color Color.black)
+                nym.structure.noseTop
+                nym.structure.noseMid
+                (mirrorPoint nym.structure.noseMid)
+                (mirrorPoint nym.structure.noseTop)
 
         forehead : Scene3d.Entity ()
         forehead =
@@ -77,12 +101,37 @@ makeNymEntity nym =
                 nym.structure.innerTemple
                 (nym.structure.innerTemple |> mirrorPoint)
                 (nym.structure.crown |> mirrorPoint)
+        
+        chinStrip : Scene3d.Entity ()
+        chinStrip =
+            Scene3d.group 
+                [ Scene3d.quad
+                    (Material.color Color.lightGray)
+                    nym.structure.noseTop
+                    nym.structure.noseMid
+                    (mirrorPoint nym.structure.noseMid)
+                    (mirrorPoint nym.structure.noseTop)
+                , Scene3d.quad
+                    (Material.color Color.lightGray)
+                    nym.structure.noseMid
+                    nym.structure.noseBottom
+                    (mirrorPoint nym.structure.noseBottom)
+                    (mirrorPoint nym.structure.noseMid)
+                , Scene3d.quad
+                    (Material.color Color.lightGray)
+                    nym.structure.noseBottom
+                    nym.structure.outerBottomSnout
+                    (mirrorPoint nym.structure.outerBottomSnout)
+                    (mirrorPoint nym.structure.noseBottom)
+                ]
+
 
         copySymmetryGroup =
             Scene3d.group
                 [ eyeSquare
                 , eyePoint
                 , noseSide
+                , lowerSnout
                 , temple
                 , ear
                 , cheek
@@ -120,10 +169,24 @@ makeNymEntity nym =
                       , nym.structure.eyenose
                       )
                     , ( nym.structure.noseBridge
-                      , nym.structure.nosetop
+                      , nym.structure.noseTop
                       , nym.structure.eyenose
                       )
+                    , ( nym.structure.outerTopSnout
+                      , nym.structure.noseTop
+                      , nym.structure.outerBottomSnout
+                      )
                     ]
+        
+        lowerSnout : Scene3d.Entity ()
+        lowerSnout =
+            Scene3d.quad
+                (Material.color Color.white)
+                nym.structure.outerBottomSnout
+                nym.structure.noseBottom
+                nym.structure.noseMid
+                nym.structure.noseTop
+
 
         temple : Scene3d.Entity ()
         temple =
@@ -182,7 +245,7 @@ makeNymEntity nym =
                       , nym.structure.outerTopSnout
                       )
                     , ( nym.structure.eyenose
-                      , nym.structure.nosetop
+                      , nym.structure.noseTop
                       , nym.structure.outerTopSnout
                       )
                     ]

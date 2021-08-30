@@ -15,7 +15,9 @@ type alias Structure =
     , outerBrow : Point3dM
     , eyecheek : Point3dM
     , eyenose : Point3dM
-    , nosetop : Point3dM
+    , noseTop : Point3dM
+    , noseMid : Point3dM
+    , noseBottom : Point3dM
     , noseBridge : Point3dM
     , outerTemple : Point3dM
     , innerTemple : Point3dM
@@ -35,16 +37,18 @@ testStructure =
     , outerBrow = Point3d.meters 0.5 0.15 0.4
     , eyecheek = Point3d.meters 0.4 0 0.3
     , eyenose = Point3d.meters 0.2 0 0.4
-    , nosetop = Point3d.meters 0.05 -0.4 1
+    , noseTop = Point3d.meters 0.05 -0.4 1
+    , noseMid = Point3d.meters 0.05 -0.5 1
+    , noseBottom = Point3d.meters  0.05 -0.55 0.9
     , noseBridge = Point3d.meters 0.15 0.08 0.45
     , innerTemple = Point3d.meters 0.13 0.4 0.3
     , outerTemple = Point3d.meters 0.4 0.4 0.2
     , earTip = Point3d.meters 0.4 0.8 0.2
     , highCheek = Point3d.meters 0.6 0.5 0
-    , midCheek = Point3d.meters 0.7 0.2 0
+    , midCheek = Point3d.meters 0.7 0 0
     , lowCheek = Point3d.meters 0.7 -0.3 0
     , outerTopSnout = Point3d.meters 0.4 -0.2 0.3
-    , outerBottomSnout = Point3d.meters 0.4 -0.25 0.3
+    , outerBottomSnout = Point3d.meters 0.4 -0.4 0.3
     , crown = Point3d.meters 0.15 0.6 0
     }
 
