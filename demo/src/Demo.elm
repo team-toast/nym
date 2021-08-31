@@ -57,22 +57,46 @@ demoNymSources seed =
            )
 
 
+randomSourceLength : Int
+randomSourceLength =
+    24
+
+
 randomBinarySources : Int -> List BinarySource
 randomBinarySources masterSeed =
     let
-        generator : Random.Generator Char
-        generator =
-            Random.uniform '0' ['1']
+        bitGenerator : Random.Generator Char
+        bitGenerator =
+            Random.uniform '0' [ '1' ]
 
         initFunc : Int -> BinarySource
         initFunc partialSeed =
             let
-                seed = masterSeed + partialSeed
+                initialSeed =
+                    Random.initialSeed <| masterSeed + partialSeed
+
+                unfoldFunc : ( Int, Random.Seed ) -> Maybe ( Char, ( Int, Random.Seed ) )
+                unfoldFunc ( count, seed ) =
+                    if count < randomSourceLength then
+                        Just <|
+                            let
+                                ( bit, newSeed ) =
+                                    Random.step bitGenerator seed
+                            in
+                            ( bit
+                            , ( count + 1
+                              , newSeed
+                              )
+                            )
+
+                    else
+                        Nothing
             in
-            BinarySource.empty
-            -- unfold seed to generate binarySource?
-            -- (bit, newSeed) =
-            --     Random.step generator currentSeed
+            List.Extra.unfoldr
+                unfoldFunc
+                ( 0, initialSeed )
+                |> String.fromList
+                |> BinarySource.unsafeFromBitsString
     in
     List.Extra.initialize 8 initFunc
 

@@ -1,4 +1,4 @@
-module BinarySource exposing (BinaryChunk, BinarySource, consumeBits, fromBitsString, empty)
+module BinarySource exposing (BinaryChunk, BinarySource, consumeBits, empty, fromBitsString, unsafeFromBitsString)
 
 import String
 
@@ -19,10 +19,15 @@ empty =
 fromBitsString : String -> Maybe BinarySource
 fromBitsString str =
     if str |> String.all (\c -> c == '1' || c == '0') then
-        Just <| BinarySource str
+        Just <| unsafeFromBitsString str
 
     else
         Nothing
+
+
+unsafeFromBitsString : String -> BinarySource
+unsafeFromBitsString str =
+    BinarySource str
 
 
 consumeBits : Int -> BinarySource -> Maybe ( BinaryChunk, BinarySource )
