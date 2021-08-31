@@ -41,7 +41,7 @@ testStructure =
     , eyenose = Point3d.meters 0.2 0 0.4
     , noseTop = Point3d.meters 0.05 -0.4 1
     , noseMid = Point3d.meters 0.05 -0.5 1
-    , noseBottom = Point3d.meters  0.05 -0.55 0.9
+    , noseBottom = Point3d.meters 0.05 -0.55 0.9
     , noseBridge = Point3d.meters 0.15 0.08 0.45
     , innerTemple = Point3d.meters 0.13 0.4 0.3
     , outerTemple = Point3d.meters 0.4 0.4 0.2
@@ -88,11 +88,15 @@ type alias Eye =
     Point3dM
 
 
+testEye =
+    Point3d.meters 0.3 0.05 0.4
+
+
 testNym : Nym
 testNym =
     Nym
         testStructure
-        (Point3d.meters 0.3 0.05 0.4)
+        testEye
         testColoring
 
 
@@ -101,7 +105,3 @@ type alias Nym =
     , eye : Eye
     , coloring : Coloring
     }
-
-
-type alias BinarySource =
-    String

@@ -2,6 +2,7 @@ module Demo exposing (main)
 
 import Angle
 import Axis3d
+import BinarySource exposing (BinarySource)
 import Browser
 import Camera3d
 import Color
@@ -18,8 +19,9 @@ import Html.Events
 import Json.Decode as Decode
 import Length
 import List.Extra
+import Maybe.Extra
 import Mouse
-import Nym
+import Nym exposing (..)
 import Pixels
 import Point2d exposing (Point2d, xCoordinate, yCoordinate)
 import Point3d
@@ -29,7 +31,55 @@ import Scene3d
 import Scene3d.Material as Material
 import Svg
 import Svg.Attributes as SvgA
+import Types exposing (..)
+import Vector3d
 import Viewpoint3d
+
+
+demoNymSources : Int -> List BinarySource
+demoNymSources seed =
+    (List.map BinarySource.fromBitsString
+        [ "111111111111111111111111"
+        , "000000000000000000000000"
+        , "101010101010101010101010"
+        , "010101010101010101010101"
+        ]
+        |> Maybe.Extra.values
+    )
+        ++ randomBinarySources seed
+        ++ (List.map BinarySource.fromBitsString
+                [ "111111111111000000000000"
+                , "000000000000111111111111"
+                , "000000111111000000111111"
+                , "111111000000111111000000"
+                ]
+                |> Maybe.Extra.values
+           )
+
+
+randomBinarySources : Int -> List BinarySource
+randomBinarySources masterSeed =
+    let
+        generator : Random.Generator Char
+        generator =
+            Random.uniform '0' ['1']
+
+        initFunc : Int -> BinarySource
+        initFunc partialSeed =
+            let
+                seed = masterSeed + partialSeed
+            in
+            BinarySource.empty
+            -- unfold seed to generate binarySource?
+            -- (bit, newSeed) =
+            --     Random.step generator currentSeed
+    in
+    List.Extra.initialize 8 initFunc
+
+
+demoNyms : Int -> List Nym
+demoNyms seed =
+    List.map binarySourceToNym (demoNymSources seed)
 
 
 type Msg
@@ -43,15 +93,18 @@ type alias MouseInput =
 
 
 type alias Model =
-    { mouseInput : MouseInput }
+    { mouseInput : MouseInput
+    , seed : Int
+    }
 
 
 main : Program () Model Msg
 main =
     Browser.sandbox
         { init =
-            Model
-                (MouseInput 0 0)
+            { mouseInput = MouseInput 0 0
+            , seed = 0
+            }
         , view = view
         , update = update
         }
@@ -71,28 +124,6 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    let
-        camera =
-            Camera3d.perspective
-                { viewpoint =
-                    Viewpoint3d.lookAt
-                        { focalPoint = Point3d.origin
-                        , eyePoint =
-                            Point3d.xyz
-                                (Length.meters 0)
-                                (Length.meters 0)
-                                (Length.meters 6)
-                                |> Point3d.rotateAround
-                                    Axis3d.y
-                                    (Angle.degrees (-model.mouseInput.x * 120))
-                                |> Point3d.rotateAround
-                                    Axis3d.x
-                                    (Angle.degrees (-model.mouseInput.y * 120))
-                        , upDirection = Direction3d.positiveY
-                        }
-                , verticalFieldOfView = Angle.degrees 30
-                }
-    in
     Element.layout
         [ Element.width Element.fill
         , Element.height Element.fill
@@ -115,11 +146,40 @@ view model =
                 <|
                     List.singleton <|
                         Scene3d.unlit
-                            { -- Our scene has a single 'entity' in it
-                              entities = [ Nym.makeNymEntity Nym.testNym ]
+                            { entities =
+                                demoNyms model.seed
+                                    |> List.indexedMap
+                                        (\i nym ->
+                                            Nym.makeNymEntity nym
+                                                |> Scene3d.translateBy
+                                                    (let
+                                                        xFactor =
+                                                            ((i |> modBy 4 |> toFloat) / 3.0) - 0.5
+
+                                                        yFactor =
+                                                            ((i // 4 |> toFloat) / 3.0) - 0.5
+
+                                                        ( x, y ) =
+                                                            ( xFactor * 6
+                                                            , yFactor * 6
+                                                            )
+                                                     in
+                                                     Vector3d.meters x y 0
+                                                    )
+                                        )
 
                             -- Provide the camera to be used when rendering the scene
-                            , camera = camera
+                            , camera =
+                                Camera3d.perspective
+                                    { viewpoint =
+                                        Viewpoint3d.lookAt
+                                            { focalPoint = Point3d.origin
+                                            , eyePoint =
+                                                Point3d.meters 0 0 16
+                                            , upDirection = Direction3d.positiveY
+                                            }
+                                    , verticalFieldOfView = Angle.degrees 30
+                                    }
 
                             -- Anything closer than 1 meter to the camera will be clipped away
                             -- (this is necessary because of the internals of how WebGL works)
@@ -130,5 +190,5 @@ view model =
                             , background = Scene3d.transparentBackground
 
                             -- Size in pixels of the generated HTML element
-                            , dimensions = ( Pixels.int 800, Pixels.int 500 )
+                            , dimensions = ( Pixels.int 1200, Pixels.int 800 )
                             }

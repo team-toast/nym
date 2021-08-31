@@ -1,5 +1,6 @@
 module Nym exposing (..)
 
+import BinarySource exposing (BinarySource)
 import Color
 import Html exposing (Html)
 import Length
@@ -18,10 +19,6 @@ import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Triangle3d exposing (Triangle3d)
 import Types exposing (..)
-
-
-testNym =
-    Types.testNym
 
 
 makeNymEntity : Nym -> Scene3d.Entity ()
@@ -268,8 +265,8 @@ makeNymEntity nym =
     allFeatures
 
 
-binaryStringToNym : BinarySource -> Nym
-binaryStringToNym source =
+binarySourceToNym : BinarySource -> Nym
+binarySourceToNym source =
     let
         ( structure, rSource1 ) =
             consumeStructure source
@@ -287,15 +284,15 @@ binaryStringToNym source =
 
 
 consumeStructure : BinarySource -> ( Structure, BinarySource )
-consumeStructure =
-    Debug.todo ""
+consumeStructure source =
+    ( testStructure, source )
 
 
 consumeEye : BinarySource -> ( Eye, BinarySource )
-consumeEye =
-    Debug.todo ""
+consumeEye source =
+    ( testEye, source )
 
 
 consumeColoring : BinarySource -> ( Coloring, BinarySource )
-consumeColoring =
-    Debug.todo ""
+consumeColoring source =
+    ( testColoring, source )
