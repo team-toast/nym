@@ -162,7 +162,7 @@ genNymEntities seed focusPoint =
 
                             ( x, y ) =
                                 ( xFactor * 6
-                                , yFactor * 6
+                                , yFactor * -6
                                 )
                         in
                         Point3d.meters x y 0
@@ -173,13 +173,11 @@ genNymEntities seed focusPoint =
                             focusPoint
                             |> Maybe.withDefault Direction3d.z
 
-                    
-
                     xAngle =
                         Angle.asin <| Direction3d.xComponent lookDir
 
                     yAngle =
-                        (Angle.asin <| -(Direction3d.yComponent lookDir))
+                        Angle.asin <| -(Direction3d.yComponent lookDir)
                 in
                 Nym.makeNymEntity nym
                     |> Scene3d.rotateAround
