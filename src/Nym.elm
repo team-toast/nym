@@ -315,7 +315,7 @@ consumeColoring fullSource =
         --     -- change me manually!
         --     source1
     in
-    consumeColor fullSource
+    consumeColorFromPallette fullSource
         |> Maybe.map
             (\( color, remainingSource ) ->
                 ( { testColoring
@@ -326,8 +326,8 @@ consumeColoring fullSource =
             )
 
 
-consumeColor : BinarySource -> Maybe ( Color, BinarySource )
-consumeColor source =
+consumeColorFromPallette : BinarySource -> Maybe ( Color, BinarySource )
+consumeColorFromPallette source =
     BinarySource.consumeIntWithMax (List.length allColors - 1) source
         |> Maybe.map
             (Tuple.mapFirst

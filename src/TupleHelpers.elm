@@ -43,7 +43,6 @@ mapTuple2 f =
     Tuple.mapBoth f f
 
 
-
 tuple3First : ( a, a, a ) -> a
 tuple3First ( a, b, c ) =
     a
