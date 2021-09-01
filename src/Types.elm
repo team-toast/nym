@@ -157,3 +157,17 @@ type alias Nym =
     , eye : Eye
     , coloring : Coloring
     }
+
+
+squashMaybe : String -> a -> Maybe a -> a
+squashMaybe warning default maybeVal =
+    case maybeVal of
+        Just a ->
+            a
+
+        Nothing ->
+            let
+                _ =
+                    Debug.log "maybe squashed:" warning
+            in
+            default

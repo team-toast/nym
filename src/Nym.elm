@@ -276,8 +276,6 @@ binarySourceToNym source =
 
         ( coloring, rSource3 ) =
             consumeColoring rSource2
-                |> Maybe.withDefault
-                    ( allBlackColoring, source )
     in
     Nym
         structure
@@ -295,35 +293,26 @@ consumeEye source =
     ( testEye, source )
 
 
-consumeColoring : BinarySource -> Maybe ( Coloring, BinarySource )
+consumeColoring : BinarySource -> ( Coloring, BinarySource )
 consumeColoring fullSource =
     let
         source0 =
             -- just for consistency in the following lines
             fullSource
 
-        -- ( color, source1 ) =
-        --     consumeColor source0
-        --         |> Maybe.withDefault
-        --             (let
-        --                 _ =
-        --                     Debug.log "failed to consume color"
-        --              in
-        --              ( Color.black, source0 )
-        --             )
-        -- remainingSource =
-        --     -- change me manually!
-        --     source1
+        ( color0, source1 ) =
+            consumeColorFromPallette source0
+                |> squashMaybe "failed to consume color" ( Color.black, source0 )
+
+        remainingSource =
+            -- change me manually!
+            source1
     in
-    consumeColorFromPallette fullSource
-        |> Maybe.map
-            (\( color, remainingSource ) ->
-                ( { testColoring
-                    | eyequad = color
-                  }
-                , remainingSource
-                )
-            )
+    ( { testColoring
+        | eyequad = color0
+      }
+    , remainingSource
+    )
 
 
 consumeColorFromPallette : BinarySource -> Maybe ( Color, BinarySource )
