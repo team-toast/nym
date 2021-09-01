@@ -23,6 +23,7 @@
             "ianmackenzie/elm-3d-scene": "1.0.1",
             "ianmackenzie/elm-geometry": "3.9.1",
             "ianmackenzie/elm-units": "2.9.0",
+            "malaire/elm-uint64": "2.0.0",
             "mdgriffith/elm-ui": "1.1.5",
             "rtfeldman/elm-hex": "1.0.0"
         },

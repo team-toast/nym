@@ -146,6 +146,61 @@ update msg model =
             }
 
 
+genNymEntities : Int -> Point3dM -> List (Scene3d.Entity ())
+genNymEntities seed focusPoint =
+    demoNyms seed
+        |> List.indexedMap
+            (\i nym ->
+                let
+                    nymPosition =
+                        let
+                            xFactor =
+                                ((i |> modBy 4 |> toFloat) / 3.0) - 0.5
+
+                            yFactor =
+                                ((i // 4 |> toFloat) / 3.0) - 0.5
+
+                            ( x, y ) =
+                                ( xFactor * 6
+                                , yFactor * 6
+                                )
+                        in
+                        Point3d.meters x y 0
+
+                    lookDir =
+                        Direction3d.from
+                            nymPosition
+                            focusPoint
+                            |> Maybe.withDefault Direction3d.z
+
+                    
+
+                    xAngle =
+                        Angle.asin <| Direction3d.xComponent lookDir
+
+                    yAngle =
+                        (Angle.asin <| -(Direction3d.yComponent lookDir))
+                in
+                Nym.makeNymEntity nym
+                    |> Scene3d.rotateAround
+                        Axis3d.y
+                        xAngle
+                    |> Scene3d.rotateAround
+                        (Axis3d.x |> Axis3d.rotateAround Axis3d.y xAngle)
+                        yAngle
+                    |> Scene3d.translateBy
+                        (Vector3d.from Point3d.origin nymPosition)
+            )
+
+
+mouseInputToNymFocusPoint3d : MouseInput -> Point3dM
+mouseInputToNymFocusPoint3d mouseInput =
+    Point3d.meters
+        (mouseInput.x * 10.4)
+        -(mouseInput.y * 10.4)
+        2
+
+
 view : Model -> Html Msg
 view model =
     Element.layout
@@ -171,26 +226,7 @@ view model =
                     List.singleton <|
                         Scene3d.unlit
                             { entities =
-                                demoNyms model.seed
-                                    |> List.indexedMap
-                                        (\i nym ->
-                                            Nym.makeNymEntity nym
-                                                |> Scene3d.translateBy
-                                                    (let
-                                                        xFactor =
-                                                            ((i |> modBy 4 |> toFloat) / 3.0) - 0.5
-
-                                                        yFactor =
-                                                            ((i // 4 |> toFloat) / 3.0) - 0.5
-
-                                                        ( x, y ) =
-                                                            ( xFactor * 6
-                                                            , yFactor * 6
-                                                            )
-                                                     in
-                                                     Vector3d.meters x y 0
-                                                    )
-                                        )
+                                genNymEntities model.seed (mouseInputToNymFocusPoint3d model.mouseInput)
 
                             -- Provide the camera to be used when rendering the scene
                             , camera =

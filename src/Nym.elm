@@ -1,7 +1,7 @@
 module Nym exposing (..)
 
 import BinarySource exposing (BinarySource)
-import Color
+import Color exposing (Color)
 import Html exposing (Html)
 import Length
 import List.Extra
@@ -276,6 +276,8 @@ binarySourceToNym source =
 
         ( coloring, rSource3 ) =
             consumeColoring rSource2
+                |> Maybe.withDefault
+                    ( allBlackColoring, source )
     in
     Nym
         structure
@@ -293,6 +295,51 @@ consumeEye source =
     ( testEye, source )
 
 
-consumeColoring : BinarySource -> ( Coloring, BinarySource )
-consumeColoring source =
-    ( testColoring, source )
+consumeColoring : BinarySource -> Maybe ( Coloring, BinarySource )
+consumeColoring fullSource =
+    let
+        source0 =
+            -- just for consistency in the following lines
+            fullSource
+
+        -- ( color, source1 ) =
+        --     consumeColor source0
+        --         |> Maybe.withDefault
+        --             (let
+        --                 _ =
+        --                     Debug.log "failed to consume color"
+        --              in
+        --              ( Color.black, source0 )
+        --             )
+        -- remainingSource =
+        --     -- change me manually!
+        --     source1
+    in
+    consumeColor fullSource
+        |> Maybe.map
+            (\( color, remainingSource ) ->
+                ( { testColoring
+                    | eyequad = color
+                  }
+                , remainingSource
+                )
+            )
+
+
+consumeColor : BinarySource -> Maybe ( Color, BinarySource )
+consumeColor source =
+    BinarySource.consumeIntWithMax (List.length allColors - 1) source
+        |> Maybe.map
+            (Tuple.mapFirst
+                (\colorNum ->
+                    List.Extra.getAt colorNum allColors
+                )
+            )
+        |> (\weirdMaybe ->
+                case weirdMaybe of
+                    Just ( Just a, b ) ->
+                        Just ( a, b )
+
+                    _ ->
+                        Nothing
+           )

@@ -69,6 +69,42 @@ type alias Coloring =
     }
 
 
+allColors =
+    [ Color.lightRed
+    , Color.red
+    , Color.darkRed
+    , Color.lightOrange
+    , Color.orange
+    , Color.darkOrange
+    , Color.lightYellow
+    , Color.yellow
+    , Color.darkYellow
+    , Color.lightGreen
+    , Color.green
+    , Color.darkGreen
+    , Color.lightBlue
+    , Color.blue
+    , Color.darkBlue
+    , Color.lightPurple
+    , Color.purple
+    , Color.darkPurple
+    , Color.lightBrown
+    , Color.brown
+    , Color.darkBrown
+    , Color.black
+    , Color.white
+    , Color.lightGrey
+    , Color.grey
+    , Color.darkGrey
+    , Color.lightGray
+    , Color.gray
+    , Color.darkGray
+    , Color.lightCharcoal
+    , Color.charcoal
+    , Color.darkCharcoal
+    ]
+
+
 testColoring : Coloring
 testColoring =
     { eyequad = Color.darkOrange
@@ -84,6 +120,21 @@ testColoring =
     }
 
 
+allBlackColoring : Coloring
+allBlackColoring =
+    { eyequad = Color.black
+    , noseBridge = Color.black
+    , noseSide = Color.black
+    , forehead = Color.black
+    , crown = Color.black
+    , temple = Color.black
+    , earFront = Color.black
+    , earBack = Color.black
+    , cheek = Color.black
+    , cheekSpot = Color.black
+    }
+
+
 type alias Eye =
     Point3dM
 
@@ -92,12 +143,13 @@ testEye =
     Point3d.meters 0.3 0.05 0.4
 
 
-testNym : Nym
-testNym =
-    Nym
-        testStructure
-        testEye
-        testColoring
+
+-- testNym : Nym
+-- testNym =
+--     Nym
+--         testStructure
+--         testEye
+--         testColoring
 
 
 type alias Nym =
