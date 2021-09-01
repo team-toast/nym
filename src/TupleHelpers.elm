@@ -41,3 +41,19 @@ listToTuple3 list =
 mapTuple2 : (a -> b) -> ( a, a ) -> ( b, b )
 mapTuple2 f =
     Tuple.mapBoth f f
+
+
+
+tuple3First : ( a, a, a ) -> a
+tuple3First ( a, b, c ) =
+    a
+
+
+tuple3Middle : ( a, a, a ) -> a
+tuple3Middle ( a, b, c ) =
+    b
+
+
+tuple3Last : ( a, a, a ) -> a
+tuple3Last ( a, b, c ) =
+    c
