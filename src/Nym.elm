@@ -2,8 +2,10 @@ module Nym exposing (..)
 
 import BinarySource exposing (BinarySource)
 import Color exposing (Color)
+import Generate
 import Html exposing (Html)
 import Length
+import List exposing (range)
 import List.Extra
 import Maybe.Extra
 import Pixels
@@ -265,70 +267,33 @@ makeNymEntity nym =
     allFeatures
 
 
-binarySourceToNym : BinarySource -> Nym
+binarySourceToNym : BinarySource -> Result (List (List Generate.GenError)) Nym
 binarySourceToNym source =
     let
-        ( structure, rSource1 ) =
-            consumeStructure source
+        ( structureResult, rSource1 ) =
+            Generate.consumeStructure source
 
-        ( eye, rSource2 ) =
-            consumeEye rSource1
+        ( eyeResult, rSource2 ) =
+            Generate.consumeEye rSource1
 
-        ( coloring, rSource3 ) =
-            consumeColoring rSource2
+        ( coloringResult, rSource3 ) =
+            Generate.consumeColoring rSource2
     in
-    Nym
-        structure
-        eye
-        coloring
+    case ( structureResult, eyeResult, coloringResult ) of
+        ( Ok structure, Ok eye, Ok coloring ) ->
+            Ok <|
+                Nym
+                    structure
+                    eye
+                    coloring
 
-
-consumeStructure : BinarySource -> ( Structure, BinarySource )
-consumeStructure source =
-    ( testStructure, source )
-
-
-consumeEye : BinarySource -> ( Eye, BinarySource )
-consumeEye source =
-    ( testEye, source )
-
-
-consumeColoring : BinarySource -> ( Coloring, BinarySource )
-consumeColoring fullSource =
-    let
-        source0 =
-            -- just for consistency in the following lines
-            fullSource
-
-        ( color0, source1 ) =
-            consumeColorFromPallette source0
-                |> squashMaybe "failed to consume color" ( Color.black, source0 )
-
-        remainingSource =
-            -- change me manually!
-            source1
-    in
-    ( { testColoring
-        | eyequad = color0
-      }
-    , remainingSource
-    )
-
-
-consumeColorFromPallette : BinarySource -> Maybe ( Color, BinarySource )
-consumeColorFromPallette source =
-    BinarySource.consumeIntWithMax (List.length allColors - 1) source
-        |> Maybe.map
-            (Tuple.mapFirst
-                (\colorNum ->
-                    List.Extra.getAt colorNum allColors
+        _ ->
+            Err
+                ([ structureResult |> Result.Extra.error
+                 , eyeResult |> Result.Extra.error
+                 , coloringResult |> Result.Extra.error
+                 ]
+                    |> List.map (Maybe.withDefault [])
                 )
-            )
-        |> (\weirdMaybe ->
-                case weirdMaybe of
-                    Just ( Just a, b ) ->
-                        Just ( a, b )
 
-                    _ ->
-                        Nothing
-           )
+
