@@ -66,6 +66,7 @@ type alias Coloring =
     , earBack : Color
     , cheek : Color
     , cheekSpot : Color
+    , chin : Color
     }
 
 
@@ -117,6 +118,7 @@ testColoring =
     , earBack = Color.lightRed
     , cheek = Color.brown
     , cheekSpot = Color.darkOrange
+    , chin = Color.white
     }
 
 
@@ -132,6 +134,7 @@ allBlackColoring =
     , earBack = Color.black
     , cheek = Color.black
     , cheekSpot = Color.black
+    , chin = Color.black
     }
 
 

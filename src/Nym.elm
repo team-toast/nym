@@ -1,5 +1,6 @@
 module Nym exposing (..)
 
+import Utils exposing (..)
 import BinarySource exposing (BinarySource)
 import Color exposing (Color)
 import Generate
@@ -21,6 +22,7 @@ import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Triangle3d exposing (Triangle3d)
 import Types exposing (..)
+import Vector3d
 
 
 makeNymEntity : Nym -> Scene3d.Entity ()
@@ -103,21 +105,26 @@ makeNymEntity nym =
 
         chinStrip : Scene3d.Entity ()
         chinStrip =
+            let
+                chinStripColor =
+                    nym.coloring.chin
+                        |> addVectorToColor (Vector3d.unitless -0.2 -0.2 -0.2)
+            in
             Scene3d.group
                 [ Scene3d.quad
-                    (Material.color Color.lightGray)
+                    (Material.color chinStripColor)
                     nym.structure.noseTop
                     nym.structure.noseMid
                     (mirrorPoint nym.structure.noseMid)
                     (mirrorPoint nym.structure.noseTop)
                 , Scene3d.quad
-                    (Material.color Color.lightGray)
+                    (Material.color chinStripColor)
                     nym.structure.noseMid
                     nym.structure.noseBottom
                     (mirrorPoint nym.structure.noseBottom)
                     (mirrorPoint nym.structure.noseMid)
                 , Scene3d.quad
-                    (Material.color Color.lightGray)
+                    (Material.color chinStripColor)
                     nym.structure.noseBottom
                     nym.structure.outerBottomSnout
                     (mirrorPoint nym.structure.outerBottomSnout)
@@ -179,7 +186,7 @@ makeNymEntity nym =
         lowerSnout : Scene3d.Entity ()
         lowerSnout =
             Scene3d.quad
-                (Material.color Color.white)
+                (Material.color nym.coloring.chin)
                 nym.structure.outerBottomSnout
                 nym.structure.noseBottom
                 nym.structure.noseMid
@@ -295,5 +302,3 @@ binarySourceToNym source =
                  ]
                     |> List.map (Maybe.withDefault [])
                 )
-
-

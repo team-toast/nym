@@ -63,12 +63,13 @@ type alias ColoringTemplate =
     , earBack : Result GenError Color
     , cheek : Result GenError Color
     , cheekSpot : Result GenError Color
+    , chin : Result GenError Color
     }
 
 
 blankColoringTemplate : ColoringTemplate
 blankColoringTemplate =
-    ColoringTemplate (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet)
+    ColoringTemplate (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet)
 
 
 indexedColoringTransformGenerator : IndexedTransformGenerator ColoringTemplate
@@ -112,10 +113,10 @@ coloringTemplateFinalizer ( errors, coloringTemplate ) =
     case
         ( ( coloringTemplate.eyequad, coloringTemplate.noseBridge, coloringTemplate.noseSide )
         , ( coloringTemplate.forehead, coloringTemplate.crown, coloringTemplate.temple )
-        , ( coloringTemplate.earFront, coloringTemplate.earBack, ( coloringTemplate.cheek, coloringTemplate.cheekSpot ) )
+        , ( coloringTemplate.earFront, coloringTemplate.earBack, ( coloringTemplate.cheek, coloringTemplate.cheekSpot, coloringTemplate.chin ) )
         )
     of
-        ( ( Ok eyequad, Ok noseBridge, Ok noseSide ), ( Ok forehead, Ok crown, Ok temple ), ( Ok earFront, Ok earBack, ( Ok cheek, Ok cheekSpot ) ) ) ->
+        ( ( Ok eyequad, Ok noseBridge, Ok noseSide ), ( Ok forehead, Ok crown, Ok temple ), ( Ok earFront, Ok earBack, ( Ok cheek, Ok cheekSpot, Ok chin ) ) ) ->
             Ok
                 { eyequad = eyequad
                 , noseBridge = noseBridge
@@ -127,9 +128,10 @@ coloringTemplateFinalizer ( errors, coloringTemplate ) =
                 , earBack = earBack
                 , cheek = cheek
                 , cheekSpot = cheekSpot
+                , chin = chin
                 }
 
-        ( ( eyequadResult, noseBridgeResult, noseSideResult ), ( foreheadResult, crownResult, templeResult ), ( earFrontResult, earBackResult, ( cheekResult, cheekSpotResult ) ) ) ->
+        ( ( eyequadResult, noseBridgeResult, noseSideResult ), ( foreheadResult, crownResult, templeResult ), ( earFrontResult, earBackResult, ( cheekResult, cheekSpotResult, chinResult ) ) ) ->
             Err
                 ([ eyequadResult
                  , noseBridgeResult
@@ -141,6 +143,7 @@ coloringTemplateFinalizer ( errors, coloringTemplate ) =
                  , earBackResult
                  , cheekResult
                  , cheekSpotResult
+                 , chinResult
                  ]
                     |> Result.Extra.partition
                     |> Tuple.second
@@ -164,6 +167,7 @@ coloringTransformGenerators =
                 , earBack = Ok Color.black
                 , cheek = Ok Color.black
                 , cheekSpot = Ok Color.black
+                , chin = Ok Color.black
             }
         , source
         )
@@ -189,9 +193,9 @@ coloringTransformGenerators =
                 | eyequad =
                     template.forehead
                         |> Result.map
-                            (colorToRgbVector3dM
+                            (colorToRgbVector3d
                                 >> Vector3d.plus (Vector3d.unitless 0 0 0.3)
-                                >> rgbVector3dMToColor
+                                >> rgbVector3dToColor
                             )
             }
         , source

@@ -6,8 +6,8 @@ import Vector3d exposing (Vector3d)
 import Quantity
 
 
-colorToRgbVector3dM : Color -> Vector3d Quantity.Unitless coordinates
-colorToRgbVector3dM color =
+colorToRgbVector3d : Color -> Vector3d Quantity.Unitless coordinates
+colorToRgbVector3d color =
     let
         rgba =
             color
@@ -20,8 +20,8 @@ colorToRgbVector3dM color =
         }
 
 
-rgbVector3dMToColor : Vector3d Quantity.Unitless coordinates -> Color
-rgbVector3dMToColor vector =
+rgbVector3dToColor : Vector3d Quantity.Unitless coordinates -> Color
+rgbVector3dToColor vector =
     let
         xyz =
             vector
@@ -33,3 +33,10 @@ rgbVector3dMToColor vector =
         , blue = xyz.z
         , alpha = 1
         }
+
+addVectorToColor : Vector3d Quantity.Unitless coordinates -> Color -> Color
+addVectorToColor vector color =
+    Vector3d.plus
+        (colorToRgbVector3d color)
+        vector
+        |> rgbVector3dToColor
