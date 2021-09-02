@@ -6,12 +6,15 @@ import List
 import List.Extra
 import Result.Extra
 import Types exposing (..)
+import Utils exposing (..)
+import Vector3d
 
 
 type GenError
     = NotEnoughSource
     | InvalidIndex
     | NotYetSet
+    | OtherError String
 
 
 type alias Transformer templateType =
@@ -151,23 +154,45 @@ coloringTransformGenerators =
     [ \source ->
         ( \template ->
             { template
-                | eyequad = Ok Color.darkOrange
-                , noseBridge = Ok Color.brown
-                , noseSide = Ok Color.lightBrown
-                , forehead = Ok Color.orange
-                , crown = Ok Color.lightOrange
-                , temple = Ok Color.lightOrange
+                | eyequad = Ok Color.black
+                , noseBridge = Ok Color.black
+                , noseSide = Ok Color.black
+                , forehead = Ok Color.black
+                , crown = Ok Color.black
+                , temple = Ok Color.black
                 , earFront = Ok Color.black
-                , earBack = Ok Color.lightRed
-                , cheek = Ok Color.brown
-                , cheekSpot = Ok Color.darkOrange
+                , earBack = Ok Color.black
+                , cheek = Ok Color.black
+                , cheekSpot = Ok Color.black
             }
         , source
         )
     , \source ->
+        let
+            ( colorResult, remainingSource ) =
+                case consumeColorFromPallette source of
+                    Ok ( color, s ) ->
+                        ( Ok color, s )
+
+                    Err err ->
+                        ( Err err, source )
+        in
         ( \template ->
             { template
-                | eyequad = Ok Color.red
+                | forehead = colorResult
+            }
+        , remainingSource
+        )
+    , \source ->
+        ( \template ->
+            { template
+                | eyequad =
+                    template.forehead
+                        |> Result.map
+                            (colorToRgbVector3dM
+                                >> Vector3d.plus (Vector3d.unitless 0 0 0.3)
+                                >> rgbVector3dMToColor
+                            )
             }
         , source
         )
@@ -184,7 +209,7 @@ consumeEye source =
     ( Ok testEye, source )
 
 
-consumeColorFromPallette : BinarySource -> Maybe ( Color, BinarySource )
+consumeColorFromPallette : BinarySource -> Result GenError ( Color, BinarySource )
 consumeColorFromPallette source =
     BinarySource.consumeIntWithMax (List.length allColors - 1) source
         |> Maybe.map
@@ -196,8 +221,11 @@ consumeColorFromPallette source =
         |> (\weirdMaybe ->
                 case weirdMaybe of
                     Just ( Just a, b ) ->
-                        Just ( a, b )
+                        Ok ( a, b )
 
-                    _ ->
-                        Nothing
+                    Just ( Nothing, b ) ->
+                        Err <| OtherError "Color index out of range"
+
+                    Nothing ->
+                        Err NotEnoughSource
            )
