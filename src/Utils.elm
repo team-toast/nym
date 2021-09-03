@@ -4,7 +4,6 @@ import Color exposing (Color)
 import Direction3d
 import Length
 import Point3d exposing (Point3d)
-import Vector3 exposing (Vector3)
 import Quantity
 import Vector3d exposing (Vector3d)
 

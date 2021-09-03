@@ -1,6 +1,6 @@
 module Generate exposing (..)
 
-import BinarySource exposing (BinarySource, consumeIntWithBits, consumeUnitVector3dU)
+import BinarySource exposing (BinarySource)
 import Color exposing (Color)
 import List
 import List.Extra
@@ -8,7 +8,15 @@ import Point3d exposing (Point3d)
 import Result.Extra
 import Types exposing (..)
 import Utils exposing (..)
+import Vector3 exposing (Vector3)
 import Vector3d
+
+
+type GenError
+    = NotEnoughSource
+    | InvalidIndex
+    | NotYetSet
+    | OtherError String
 
 
 type alias Transformer templateType =
@@ -21,13 +29,6 @@ type alias TransformerGenResult templateType =
 
 type alias IndexedTransformGenerator templateType =
     BinarySource -> Int -> ( BinarySource, TransformerGenResult templateType )
-
-
-type GenError
-    = NotEnoughSource
-    | InvalidIndex
-    | NotYetSet
-    | OtherError String
 
 
 applyTransformResults : List (TransformerGenResult templateType) -> (( List GenError, templateType ) -> Result (List GenError) finalType) -> templateType -> Result (List GenError) finalType
@@ -53,30 +54,45 @@ applyTransformResults transformerResults templateFinalizer initialTemplate =
         |> templateFinalizer
 
 
+type alias ColoringTemplate =
+    { eyequad : Result GenError Color
+    , noseBridge : Result GenError Color
+    , noseSide : Result GenError Color
+    , forehead : Result GenError Color
+    , crown : Result GenError Color
+    , temple : Result GenError Color
+    , earFront : Result GenError Color
+    , earBack : Result GenError Color
+    , cheek : Result GenError Color
+    , cheekSpot : Result GenError Color
+    , chin : Result GenError Color
+    }
+
+
 blankColoringTemplate : ColoringTemplate
 blankColoringTemplate =
     ColoringTemplate (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet)
 
 
 type alias StructureTemplate =
-    { innerBrow : Result GenError Point3dM
-    , outerBrow : Result GenError Point3dM
-    , cheekbone : Result GenError Point3dM
-    , eyecheek : Result GenError Point3dM
-    , eyenose : Result GenError Point3dM
-    , noseTop : Result GenError Point3dM
-    , noseMid : Result GenError Point3dM
-    , noseBottom : Result GenError Point3dM
-    , noseBridge : Result GenError Point3dM
-    , outerTemple : Result GenError Point3dM
-    , innerTemple : Result GenError Point3dM
-    , earTip : Result GenError Point3dM
-    , highCheek : Result GenError Point3dM
-    , midCheek : Result GenError Point3dM
-    , lowCheek : Result GenError Point3dM
-    , outerTopSnout : Result GenError Point3dM
-    , outerBottomSnout : Result GenError Point3dM
-    , crown : Result GenError Point3dM
+    { innerBrow : Result GenError Vector3
+    , outerBrow : Result GenError Vector3
+    , cheekbone : Result GenError Vector3
+    , eyecheek : Result GenError Vector3
+    , eyenose : Result GenError Vector3
+    , noseTop : Result GenError Vector3
+    , noseMid : Result GenError Vector3
+    , noseBottom : Result GenError Vector3
+    , noseBridge : Result GenError Vector3
+    , outerTemple : Result GenError Vector3
+    , innerTemple : Result GenError Vector3
+    , earTip : Result GenError Vector3
+    , highCheek : Result GenError Vector3
+    , midCheek : Result GenError Vector3
+    , lowCheek : Result GenError Vector3
+    , outerTopSnout : Result GenError Vector3
+    , outerBottomSnout : Result GenError Vector3
+    , crown : Result GenError Vector3
     }
 
 
@@ -178,24 +194,24 @@ structureTemplateFinalizer ( errors, structureTemplate ) =
     of
         ( ( ( Ok innerBrow, Ok outerBrow, Ok cheekbone ), ( Ok eyecheek, Ok eyenose, Ok noseTop ), ( Ok noseMid, Ok noseBottom, Ok noseBridge ) ), ( ( Ok outerTemple, Ok innerTemple, Ok earTip ), ( Ok highCheek, Ok midCheek, Ok lowCheek ), ( Ok outerTopSnout, Ok outerBottomSnout, Ok crown ) ) ) ->
             Ok
-                { innerBrow = innerBrow
-                , outerBrow = outerBrow
-                , cheekbone = cheekbone
-                , eyecheek = eyecheek
-                , eyenose = eyenose
-                , noseTop = noseTop
-                , noseMid = noseMid
-                , noseBottom = noseBottom
-                , noseBridge = noseBridge
-                , outerTemple = outerTemple
-                , innerTemple = innerTemple
-                , earTip = earTip
-                , highCheek = highCheek
-                , midCheek = midCheek
-                , lowCheek = lowCheek
-                , outerTopSnout = outerTopSnout
-                , outerBottomSnout = outerBottomSnout
-                , crown = crown
+                { innerBrow = innerBrow |> Vector3.toMetersPoint
+                , outerBrow = outerBrow |> Vector3.toMetersPoint
+                , cheekbone = cheekbone |> Vector3.toMetersPoint
+                , eyecheek = eyecheek |> Vector3.toMetersPoint
+                , eyenose = eyenose |> Vector3.toMetersPoint
+                , noseTop = noseTop |> Vector3.toMetersPoint
+                , noseMid = noseMid |> Vector3.toMetersPoint
+                , noseBottom = noseBottom |> Vector3.toMetersPoint
+                , noseBridge = noseBridge |> Vector3.toMetersPoint
+                , outerTemple = outerTemple |> Vector3.toMetersPoint
+                , innerTemple = innerTemple |> Vector3.toMetersPoint
+                , earTip = earTip |> Vector3.toMetersPoint
+                , highCheek = highCheek |> Vector3.toMetersPoint
+                , midCheek = midCheek |> Vector3.toMetersPoint
+                , lowCheek = lowCheek |> Vector3.toMetersPoint
+                , outerTopSnout = outerTopSnout |> Vector3.toMetersPoint
+                , outerBottomSnout = outerBottomSnout |> Vector3.toMetersPoint
+                , crown = crown |> Vector3.toMetersPoint
                 }
 
         ( ( ( innerBrowResult, outerBrowResult, cheekboneResult ), ( eyecheekResult, eyenoseResult, noseTopResult ), ( noseMidResult, noseBottomResult, noseBridgeResult ) ), ( ( outerTempleResult, innerTempleResult, earTipResult ), ( highCheekResult, midCheekResult, lowCheekResult ), ( outerTopSnoutResult, outerBottomSnoutResult, crownResult ) ) ) ->
@@ -222,6 +238,114 @@ structureTemplateFinalizer ( errors, structureTemplate ) =
                     |> Result.Extra.partition
                     |> Tuple.second
                 )
+
+
+structureTransformGenerators : List (BinarySource -> ( Transformer StructureTemplate, BinarySource ))
+structureTransformGenerators =
+    [ \source ->
+        ( \template ->
+            { template
+                | innerBrow = Ok <| Vector3 0.1 0.2 0.3
+                , outerBrow = Ok <| Vector3 0.5 0.15 0.4
+                , cheekbone = Ok <| Vector3 0.5 -0.2 0.2
+                , eyecheek = Ok <| Vector3 0.4 0 0.3
+                , eyenose = Ok <| Vector3 0.2 0 0.4
+                , noseTop = Ok <| Vector3 0.05 -0.4 1
+                , noseMid = Ok <| Vector3 0.05 -0.5 1
+                , noseBottom = Ok <| Vector3 0.05 -0.55 0.9
+                , noseBridge = Ok <| Vector3 0.15 0.08 0.45
+                , innerTemple = Ok <| Vector3 0.13 0.4 0.3
+                , outerTemple = Ok <| Vector3 0.4 0.4 0.2
+                , earTip = Ok <| Vector3 0.4 0.8 0.2
+                , highCheek = Ok <| Vector3 0.6 0.5 0
+                , midCheek = Ok <| Vector3 0.7 0 0
+                , lowCheek = Ok <| Vector3 0.7 -0.3 0
+                , outerTopSnout = Ok <| Vector3 0.4 -0.2 0.3
+                , outerBottomSnout = Ok <| Vector3 0.4 -0.4 0.3
+                , crown = Ok <| Vector3 0.15 0.6 0
+            }
+        , source
+        )
+    , \source ->
+        let
+            ( baseVecResult, remainingSource ) =
+                case BinarySource.consumeVectorDimNeg1to1 2 source of
+                    Just ( uVec, s ) ->
+                        ( Ok uVec
+                        , s
+                        )
+
+                    Nothing ->
+                        ( Err NotEnoughSource, source )
+        in
+        ( \template ->
+            { template
+                | earTip =
+                    Result.map2
+                        (\crown baseVec ->
+                            crown
+                                |> Vector3.add (Vector3 0.1 0.4 0)
+                                |> Vector3.add
+                                    (baseVec
+                                        |> Vector3.scaleByVector (Vector3 0.2 0.4 0.4)
+                                    )
+                        )
+                        template.crown
+                        baseVecResult
+            }
+        , remainingSource
+        )
+    ]
+
+
+coloringTransformGenerators : List (BinarySource -> ( Transformer ColoringTemplate, BinarySource ))
+coloringTransformGenerators =
+    -- these will be sequentially applied to a ColoringTemplate type.
+    -- Any errors should be stored as an Err in whatever was trying to be generated.
+    [ \source ->
+        ( \template ->
+            { template
+                | eyequad = Ok Color.darkOrange
+                , noseBridge = Ok Color.brown
+                , noseSide = Ok Color.lightBrown
+                , forehead = Ok Color.orange
+                , crown = Ok Color.lightOrange
+                , temple = Ok Color.lightOrange
+                , earFront = Ok Color.black
+                , earBack = Ok Color.lightRed
+                , cheek = Ok Color.brown
+                , cheekSpot = Ok Color.darkOrange
+                , chin = Ok Color.white
+            }
+        , source
+        )
+    , \source ->
+        let
+            ( colorResult, remainingSource ) =
+                case consumeColorFromPallette source of
+                    Ok ( color, s ) ->
+                        ( Ok color, s )
+
+                    Err err ->
+                        ( Err err, source )
+        in
+        ( \template ->
+            { template
+                | forehead = colorResult
+            }
+        , remainingSource
+        )
+    , \source ->
+        ( \template ->
+            { template
+                | eyequad =
+                    template.forehead
+                        |> Result.map
+                            (addVectorToColor (Vector3d.unitless 0 0 0.6))
+            }
+        , source
+        )
+    ]
 
 
 consumeStructure : BinarySource -> ( Result (List GenError) Structure, BinarySource )
@@ -285,126 +409,3 @@ consumeColorFromPallette source =
                     Nothing ->
                         Err NotEnoughSource
            )
-
-
-structureTransformGenerators : List (BinarySource -> ( Transformer StructureTemplate, BinarySource ))
-structureTransformGenerators =
-    [ \source ->
-        ( \template ->
-            { template
-                | innerBrow = Ok <| Point3d.meters 0.1 0.2 0.3
-                , outerBrow = Ok <| Point3d.meters 0.5 0.15 0.4
-                , cheekbone = Ok <| Point3d.meters 0.5 -0.2 0.2
-                , eyecheek = Ok <| Point3d.meters 0.4 0 0.3
-                , eyenose = Ok <| Point3d.meters 0.2 0 0.4
-                , noseTop = Ok <| Point3d.meters 0.05 -0.4 1
-                , noseMid = Ok <| Point3d.meters 0.05 -0.5 1
-                , noseBottom = Ok <| Point3d.meters 0.05 -0.55 0.9
-                , noseBridge = Ok <| Point3d.meters 0.15 0.08 0.45
-                , innerTemple = Ok <| Point3d.meters 0.13 0.4 0.3
-                , outerTemple = Ok <| Point3d.meters 0.4 0.4 0.2
-                , earTip = Ok <| Point3d.meters 0.4 0.8 0.2
-                , highCheek = Ok <| Point3d.meters 0.6 0.5 0
-                , midCheek = Ok <| Point3d.meters 0.7 0 0
-                , lowCheek = Ok <| Point3d.meters 0.7 -0.3 0
-                , outerTopSnout = Ok <| Point3d.meters 0.4 -0.2 0.3
-                , outerBottomSnout = Ok <| Point3d.meters 0.4 -0.4 0.3
-                , crown = Ok <| Point3d.meters 0.15 0.6 0
-            }
-        , source
-        )
-    , \source ->
-        \template ->
-            { template
-                | innerBrow =
-                    consumeUnitVector3dU 3 source
-                        |> Result.fromMaybe NotEnoughSource
-                        |> Result.map
-                            (Tuple.mapFirst
-                                meters
-                            )
-            }
-    ]
-
-
-old =
-    [ \source ->
-        let
-            ( unitVectorResult, remainingSource ) =
-                case consumeUnitVector3dU 2 source of
-                    Just ( uVec, s ) ->
-                        ( Ok uVec
-                        , s
-                        )
-
-                    Nothing ->
-                        ( Err NotEnoughSource, source )
-        in
-        ( \template ->
-            { template
-                | earTip =
-                    Result.map2
-                        (\crown unitVector ->
-                            crown
-                                |> Point3d.translateBy (Vector3d.meters 0.1 0.4 0)
-                                |> Point3d.translateBy
-                                    (unitVector
-                                        |> scaleByVector (Vector3d.meters 0.2 0.4 0.4)
-                                    )
-                        )
-                        template.crown
-                        unitVectorResult
-            }
-        , remainingSource
-        )
-    ]
-
-
-coloringTransformGenerators : List (BinarySource -> ( Transformer ColoringTemplate, BinarySource ))
-coloringTransformGenerators =
-    -- these will be sequentially applied to a ColoringTemplate type.
-    -- Any errors should be stored as an Err in whatever was trying to be generated.
-    [ \source ->
-        ( \template ->
-            { template
-                | eyequad = Ok Color.darkOrange
-                , noseBridge = Ok Color.brown
-                , noseSide = Ok Color.lightBrown
-                , forehead = Ok Color.orange
-                , crown = Ok Color.lightOrange
-                , temple = Ok Color.lightOrange
-                , earFront = Ok Color.black
-                , earBack = Ok Color.lightRed
-                , cheek = Ok Color.brown
-                , cheekSpot = Ok Color.darkOrange
-                , chin = Ok Color.white
-            }
-        , source
-        )
-    , \source ->
-        let
-            ( colorResult, remainingSource ) =
-                case consumeColorFromPallette source of
-                    Ok ( color, s ) ->
-                        ( Ok color, s )
-
-                    Err err ->
-                        ( Err err, source )
-        in
-        ( \template ->
-            { template
-                | forehead = colorResult
-            }
-        , remainingSource
-        )
-    , \source ->
-        ( \template ->
-            { template
-                | eyequad =
-                    template.forehead
-                        |> Result.map
-                            (addVectorToColor (Vector3d.unitless 0 0 0.6))
-            }
-        , source
-        )
-    ]
