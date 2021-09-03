@@ -3,7 +3,6 @@ module BinarySource exposing (BinaryChunk, BinarySource, consumeChunk, consumeFl
 import Quantity
 import String
 import TupleHelpers
-import Types exposing (..)
 import UInt64
 import UInt64.Digits as UInt64
 import Utils exposing (..)
