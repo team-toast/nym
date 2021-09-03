@@ -303,8 +303,8 @@ consumeColorFromPallette source =
            )
 
 
-structureTransformGenerators : List (BinarySource -> ( Transformer StructureTemplate, BinarySource ))
-structureTransformGenerators =
+oldStructureTransformGenerators : List (BinarySource -> ( Transformer StructureTemplate, BinarySource ))
+oldStructureTransformGenerators =
     [ \source ->
         ( \template ->
             { template
@@ -358,11 +358,40 @@ structureTransformGenerators =
             }
         , remainingSource
         )
+    , \source ->
+        let
+            ( baseVecResult, remainingSource ) =
+                case BinarySource.consumeVectorDimNeg1to1 2 source of
+                    Just ( uVec, s ) ->
+                        ( Ok uVec
+                        , s
+                        )
+
+                    Nothing ->
+                        ( Err NotEnoughSource, source )
+        in
+        ( \template ->
+            { template
+                | noseTop =
+                    Result.map2
+                        (\noseBottom baseVec ->
+                            noseBottom
+                                |> Vector3.plus (Vector3 0 0.1 0)
+                                |> Vector3.plus
+                                    (baseVec
+                                        |> Vector3.scaleBy 0.3
+                                    )
+                        )
+                        template.noseBottom
+                        baseVecResult
+            }
+        , remainingSource
+        )
     ]
 
 
-coloringTransformGenerators : List (BinarySource -> ( Transformer ColoringTemplate, BinarySource ))
-coloringTransformGenerators =
+oldColoringTransformGenerators : List (BinarySource -> ( Transformer ColoringTemplate, BinarySource ))
+oldColoringTransformGenerators =
     -- these will be sequentially applied to a ColoringTemplate type.
     -- Any errors should be stored as an Err in whatever was trying to be generated.
     [ \source ->
@@ -409,3 +438,13 @@ coloringTransformGenerators =
         , source
         )
     ]
+
+
+structureTransformGenerators : List (BinarySource -> ( Transformer StructureTemplate, BinarySource ))
+structureTransformGenerators =
+    []
+
+
+coloringTransformGenerators : List (BinarySource -> ( Transformer ColoringTemplate, BinarySource ))
+coloringTransformGenerators =
+    []
