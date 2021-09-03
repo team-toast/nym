@@ -11,13 +11,6 @@ import Utils exposing (..)
 import Vector3d
 
 
-type GenError
-    = NotEnoughSource
-    | InvalidIndex
-    | NotYetSet
-    | OtherError String
-
-
 type alias Transformer templateType =
     templateType -> templateType
 
@@ -28,6 +21,13 @@ type alias TransformerGenResult templateType =
 
 type alias IndexedTransformGenerator templateType =
     BinarySource -> Int -> ( BinarySource, TransformerGenResult templateType )
+
+
+type GenError
+    = NotEnoughSource
+    | InvalidIndex
+    | NotYetSet
+    | OtherError String
 
 
 applyTransformResults : List (TransformerGenResult templateType) -> (( List GenError, templateType ) -> Result (List GenError) finalType) -> templateType -> Result (List GenError) finalType
@@ -51,21 +51,6 @@ applyTransformResults transformerResults templateFinalizer initialTemplate =
         ( [], initialTemplate )
         transformerResults
         |> templateFinalizer
-
-
-type alias ColoringTemplate =
-    { eyequad : Result GenError Color
-    , noseBridge : Result GenError Color
-    , noseSide : Result GenError Color
-    , forehead : Result GenError Color
-    , crown : Result GenError Color
-    , temple : Result GenError Color
-    , earFront : Result GenError Color
-    , earBack : Result GenError Color
-    , cheek : Result GenError Color
-    , cheekSpot : Result GenError Color
-    , chin : Result GenError Color
-    }
 
 
 blankColoringTemplate : ColoringTemplate
