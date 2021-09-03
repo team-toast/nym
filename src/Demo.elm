@@ -5,16 +5,11 @@ import Axis3d
 import BinarySource exposing (BinarySource)
 import Browser
 import Camera3d
-import Color
 import Direction3d
 import Element exposing (Element)
 import Element.Background as Background
 import Element.Border as Border
-import Element.Events
-import Eth.Types exposing (Address)
-import Eth.Utils
 import Generate
-import Hex
 import Html exposing (Html)
 import Html.Events
 import Json.Decode as Decode
@@ -26,12 +21,8 @@ import Nym exposing (..)
 import Pixels
 import Point2d exposing (Point2d, xCoordinate, yCoordinate)
 import Point3d
-import Quantity
 import Random
 import Scene3d
-import Scene3d.Material as Material
-import Svg
-import Svg.Attributes as SvgA
 import Types exposing (..)
 import Vector3d
 import Viewpoint3d
