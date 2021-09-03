@@ -1,6 +1,5 @@
 module Types exposing (..)
 
-import BinarySource exposing (BinarySource)
 import Color exposing (Color)
 import Length
 import Point2d exposing (Point2d)
@@ -175,23 +174,3 @@ squashMaybe warning default maybeVal =
                     Debug.log "maybe squashed:" warning
             in
             default
-
-
-type alias Transformer templateType =
-    templateType -> templateType
-
-
-type alias TransformerGenResult templateType =
-    Result GenError (Transformer templateType)
-
-
-type alias IndexedTransformGenerator templateType =
-    BinarySource -> Int -> ( BinarySource, TransformerGenResult templateType )
-
-type GenError
-    = NotEnoughSource
-    | InvalidIndex
-    | NotYetSet
-    | OtherError String
-
-

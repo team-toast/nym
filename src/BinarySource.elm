@@ -4,6 +4,7 @@ import Point3d exposing (Point3d)
 import Quantity
 import String
 import TupleHelpers
+import Types exposing (..)
 import UInt64
 import UInt64.Digits as UInt64
 import Utils exposing (..)
