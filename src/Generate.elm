@@ -239,6 +239,69 @@ structureTemplateFinalizer ( errors, structureTemplate ) =
                 )
 
 
+consumeStructure : BinarySource -> ( Result (List GenError) Structure, BinarySource )
+consumeStructure fullSource =
+    let
+        remainingSourceAndTransformResults =
+            List.Extra.mapAccuml
+                indexedStructureTransformGenerator
+                fullSource
+                (List.range 0 (List.length structureTransformGenerators - 1))
+
+        transformResults : List (Result GenError (Transformer StructureTemplate))
+        transformResults =
+            Tuple.second remainingSourceAndTransformResults
+
+        remainingSource =
+            Tuple.first remainingSourceAndTransformResults
+    in
+    ( blankStructureTemplate
+        |> applyTransformResults transformResults structureTemplateFinalizer
+    , remainingSource
+    )
+
+
+indexedStructureTransformGenerator : IndexedTransformGenerator StructureTemplate
+indexedStructureTransformGenerator fullSource transformIndex =
+    case List.Extra.getAt transformIndex structureTransformGenerators of
+        Just transformerGenerator ->
+            let
+                ( transformer, remainingSource ) =
+                    transformerGenerator fullSource
+            in
+            ( remainingSource, Ok transformer )
+
+        Nothing ->
+            ( fullSource, Err <| InvalidIndex )
+
+
+consumeEye : BinarySource -> ( Result (List GenError) Eye, BinarySource )
+consumeEye source =
+    ( Ok testEye, source )
+
+
+consumeColorFromPallette : BinarySource -> Result GenError ( Color, BinarySource )
+consumeColorFromPallette source =
+    BinarySource.consumeIntWithMax (List.length allColors - 1) source
+        |> Maybe.map
+            (Tuple.mapFirst
+                (\colorNum ->
+                    List.Extra.getAt colorNum allColors
+                )
+            )
+        |> (\weirdMaybe ->
+                case weirdMaybe of
+                    Just ( Just a, b ) ->
+                        Ok ( a, b )
+
+                    Just ( Nothing, b ) ->
+                        Err <| OtherError "Color index out of range"
+
+                    Nothing ->
+                        Err NotEnoughSource
+           )
+
+
 structureTransformGenerators : List (BinarySource -> ( Transformer StructureTemplate, BinarySource ))
 structureTransformGenerators =
     [ \source ->
@@ -265,18 +328,20 @@ structureTransformGenerators =
             }
         , source
         )
-    -- , \source ->
-    --     (\template ->
-    --         { template
-    --             | innerBrow =
-    --                 consumeUnitVector3dU 3 source
-    --                     |> Result.fromMaybe NotEnoughSource
-    --                     |> Result.map (Tuple.mapFirst
-    --                         meters
-    --                     )
-    --         }
-    --     )
+    , \source ->
+        \template ->
+            { template
+                | innerBrow =
+                    consumeUnitVector3dU 3 source
+                        |> Result.fromMaybe NotEnoughSource
+                        |> Result.map
+                            (Tuple.mapFirst
+                                meters
+                            )
+            }
     ]
+
+
 old =
     [ \source ->
         let
@@ -358,66 +423,3 @@ coloringTransformGenerators =
         , source
         )
     ]
-
-
-consumeStructure : BinarySource -> ( Result (List GenError) Structure, BinarySource )
-consumeStructure fullSource =
-    let
-        remainingSourceAndTransformResults =
-            List.Extra.mapAccuml
-                indexedStructureTransformGenerator
-                fullSource
-                (List.range 0 (List.length structureTransformGenerators - 1))
-
-        transformResults : List (Result GenError (Transformer StructureTemplate))
-        transformResults =
-            Tuple.second remainingSourceAndTransformResults
-
-        remainingSource =
-            Tuple.first remainingSourceAndTransformResults
-    in
-    ( blankStructureTemplate
-        |> applyTransformResults transformResults structureTemplateFinalizer
-    , remainingSource
-    )
-
-
-indexedStructureTransformGenerator : IndexedTransformGenerator StructureTemplate
-indexedStructureTransformGenerator fullSource transformIndex =
-    case List.Extra.getAt transformIndex structureTransformGenerators of
-        Just transformerGenerator ->
-            let
-                ( transformer, remainingSource ) =
-                    transformerGenerator fullSource
-            in
-            ( remainingSource, Ok transformer )
-
-        Nothing ->
-            ( fullSource, Err <| InvalidIndex )
-
-
-consumeEye : BinarySource -> ( Result (List GenError) Eye, BinarySource )
-consumeEye source =
-    ( Ok testEye, source )
-
-
-consumeColorFromPallette : BinarySource -> Result GenError ( Color, BinarySource )
-consumeColorFromPallette source =
-    BinarySource.consumeIntWithMax (List.length allColors - 1) source
-        |> Maybe.map
-            (Tuple.mapFirst
-                (\colorNum ->
-                    List.Extra.getAt colorNum allColors
-                )
-            )
-        |> (\weirdMaybe ->
-                case weirdMaybe of
-                    Just ( Just a, b ) ->
-                        Ok ( a, b )
-
-                    Just ( Nothing, b ) ->
-                        Err <| OtherError "Color index out of range"
-
-                    Nothing ->
-                        Err NotEnoughSource
-           )
