@@ -1,9 +1,14 @@
-module BinarySource exposing (BinaryChunk, BinarySource, consumeChunk, consumeIntWithBits, consumeIntWithMax, empty, fromBitsString, unsafeFromBitsString)
+module BinarySource exposing (BinaryChunk, BinarySource, consumeChunk, consumeIntWithBits, consumeIntWithMax, consumeUnitFloat, empty, fromBitsString, unsafeFromBitsString, consumeUnitVector3dU)
 
+import Point3d exposing (Point3d)
+import Quantity
 import String
 import TupleHelpers
+import Types exposing (..)
 import UInt64
 import UInt64.Digits as UInt64
+import Utils exposing (..)
+import Vector3d exposing (Vector3d)
 
 
 type BinarySource
@@ -62,6 +67,43 @@ consumeIntWithMax max source =
                 |> floor
     in
     consumeIntWithBits bitsNeeded source
+
+
+consumeUnitFloat : Int -> BinarySource -> Maybe ( Float, BinarySource )
+consumeUnitFloat bits source =
+    source
+        |> consumeIntWithBits bits
+        |> Maybe.map
+            (Tuple.mapFirst
+                (\divisorInt ->
+                    toFloat divisorInt
+                        / (toFloat <| 2 ^ bits - 1)
+                )
+            )
+
+
+consumeUnitVector3dU : Int -> BinarySource -> Maybe ( Vector3d Quantity.Unitless coordinates, BinarySource )
+consumeUnitVector3dU bitsPerComponent source =
+    consumeUnitFloat bitsPerComponent source
+        |> Maybe.andThen
+            (\( xUnit, source1 ) ->
+                consumeUnitFloat bitsPerComponent source1
+                    |> Maybe.andThen
+                        (\( yUnit, source2 ) ->
+                            consumeUnitFloat bitsPerComponent source2
+                                |> Maybe.andThen
+                                    (\( zUnit, source3 ) ->
+                                        Just
+                                            ( Vector3d.unitless
+                                                (xUnit - 0.5)
+                                                (yUnit - 0.5)
+                                                (zUnit - 0.5)
+                                                |> Vector3d.normalize
+                                            , source3
+                                            )
+                                    )
+                        )
+            )
 
 
 chunkToInt32 : BinaryChunk -> Int

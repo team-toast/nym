@@ -1,6 +1,6 @@
 module Generate exposing (..)
 
-import BinarySource exposing (BinarySource, consumeIntWithBits)
+import BinarySource exposing (BinarySource, consumeIntWithBits, consumeUnitVector3dU)
 import Color exposing (Color)
 import List
 import List.Extra
@@ -267,14 +267,10 @@ structureTransformGenerators =
         )
     , \source ->
         let
-            ( earPointYResult, remainingSource ) =
-                case consumeIntWithBits 3 source of
-                    Just ( yChangeInt, s ) ->
-                        let
-                            yChangeRatio =
-                                toFloat yChangeInt / 8.0
-                        in
-                        ( Ok <| (yChangeRatio * 1.0) + 0.4
+            ( unitVectorResult, remainingSource ) =
+                case consumeUnitVector3dU 2 source of
+                    Just ( uVec, s ) ->
+                        ( Ok uVec
                         , s
                         )
 
@@ -284,11 +280,17 @@ structureTransformGenerators =
         ( \template ->
             { template
                 | earTip =
-                    earPointYResult
-                        |> Result.map
-                            (\y ->
-                                Point3d.meters 0.5 y 0.2
-                            )
+                    Result.map2
+                        (\crown unitVector ->
+                            crown
+                                |> Point3d.translateBy (Vector3d.meters 0.1 0.4 0)
+                                |> Point3d.translateBy
+                                    (unitVector
+                                        |> scaleByVector (Vector3d.meters 0.2 0.4 0.4)
+                                    )
+                        )
+                        template.crown
+                        unitVectorResult
             }
         , remainingSource
         )
