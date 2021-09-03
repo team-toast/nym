@@ -1,5 +1,6 @@
 module Nym exposing (..)
 
+import Vector3 exposing (Vector3)
 import Utils exposing (..)
 import BinarySource exposing (BinarySource)
 import Color exposing (Color)
@@ -108,7 +109,7 @@ makeNymEntity nym =
             let
                 chinStripColor =
                     nym.coloring.chin
-                        |> addVectorToColor (Vector3d.unitless -0.2 -0.2 -0.2)
+                        |> addVectorToColor (Vector3 -0.2 -0.2 -0.2)
             in
             Scene3d.group
                 [ Scene3d.quad

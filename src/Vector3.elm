@@ -28,8 +28,8 @@ negate =
     scaleBy -1
 
 
-add : Vector3 -> Vector3 -> Vector3
-add v1 v2 =
+plus : Vector3 -> Vector3 -> Vector3
+plus v1 v2 =
     Vector3
         (v1.x + v2.x)
         (v1.y + v2.y)
@@ -38,7 +38,7 @@ add v1 v2 =
 
 minus : Vector3 -> Vector3 -> Vector3
 minus subtrahend minuend =
-    add (negate subtrahend) minuend
+    plus (negate subtrahend) minuend
 
 
 scaleBy : Float -> Vector3 -> Vector3

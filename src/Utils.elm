@@ -5,44 +5,39 @@ import Direction3d
 import Length
 import Point3d exposing (Point3d)
 import Quantity
+import Vector3 exposing (Vector3)
 import Vector3d exposing (Vector3d)
 
 
-colorToRgbVector3d : Color -> Vector3d Quantity.Unitless coordinates
-colorToRgbVector3d color =
+colorToRgbVector3 : Color -> Vector3
+colorToRgbVector3 color =
     let
         rgba =
             color
                 |> Color.toRgba
     in
-    Vector3d.fromUnitless
-        { x = rgba.red
-        , y = rgba.green
-        , z = rgba.blue
-        }
+    Vector3
+        rgba.red
+        rgba.green
+        rgba.blue
 
 
-rgbVector3dToColor : Vector3d Quantity.Unitless coordinates -> Color
-rgbVector3dToColor vector =
-    let
-        xyz =
-            vector
-                |> Vector3d.toUnitless
-    in
+rgbVector3ToColor : Vector3 -> Color
+rgbVector3ToColor v =
     Color.fromRgba
-        { red = xyz.x
-        , green = xyz.y
-        , blue = xyz.z
+        { red = v.x
+        , green = v.y
+        , blue = v.z
         , alpha = 1
         }
 
 
-addVectorToColor : Vector3d Quantity.Unitless coordinates -> Color -> Color
+addVectorToColor : Vector3 -> Color -> Color
 addVectorToColor vector color =
-    Vector3d.plus
-        (colorToRgbVector3d color)
+    Vector3.plus
+        (colorToRgbVector3 color)
         vector
-        |> rgbVector3dToColor
+        |> rgbVector3ToColor
 
 
 point3dMToVector3dM : Point3d units coordinates -> Vector3d units coordinates
