@@ -304,17 +304,17 @@ coloringTransformGenerators =
     [ \source ->
         ( \template ->
             { template
-                | eyequad = Ok Color.black
-                , noseBridge = Ok Color.black
-                , noseSide = Ok Color.black
-                , forehead = Ok Color.black
-                , crown = Ok Color.black
-                , temple = Ok Color.black
+                | eyequad = Ok Color.darkOrange
+                , noseBridge = Ok Color.brown
+                , noseSide = Ok Color.lightBrown
+                , forehead = Ok Color.orange
+                , crown = Ok Color.lightOrange
+                , temple = Ok Color.lightOrange
                 , earFront = Ok Color.black
-                , earBack = Ok Color.black
-                , cheek = Ok Color.black
-                , cheekSpot = Ok Color.black
-                , chin = Ok Color.black
+                , earBack = Ok Color.lightRed
+                , cheek = Ok Color.brown
+                , cheekSpot = Ok Color.darkOrange
+                , chin = Ok Color.white
             }
         , source
         )
