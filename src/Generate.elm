@@ -265,7 +265,20 @@ structureTransformGenerators =
             }
         , source
         )
-    , \source ->
+    -- , \source ->
+    --     (\template ->
+    --         { template
+    --             | innerBrow =
+    --                 consumeUnitVector3dU 3 source
+    --                     |> Result.fromMaybe NotEnoughSource
+    --                     |> Result.map (Tuple.mapFirst
+    --                         meters
+    --                     )
+    --         }
+    --     )
+    ]
+old =
+    [ \source ->
         let
             ( unitVectorResult, remainingSource ) =
                 case consumeUnitVector3dU 2 source of
