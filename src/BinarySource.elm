@@ -1,12 +1,12 @@
-module BinarySource exposing (BinaryChunk, BinarySource, consumeChunk, consumeFloat0to1, consumeIntWithBits, consumeIntWithMax, consumeVectorDimNeg1to1, empty, fromBitsString, unsafeFromBitsString)
+module BinarySource exposing (BinaryChunk, BinarySource, consumeChunk, consumeIntWithBits, consumeIntWithMax, consumeUnitFloat, empty, fromBitsString, unsafeFromBitsString, consumeUnitVector3dU)
 
+import Point3d exposing (Point3d)
 import Quantity
 import String
 import TupleHelpers
 import UInt64
 import UInt64.Digits as UInt64
 import Utils exposing (..)
-import Vector3 exposing (Vector3)
 import Vector3d exposing (Vector3d)
 
 
@@ -68,8 +68,8 @@ consumeIntWithMax max source =
     consumeIntWithBits bitsNeeded source
 
 
-consumeFloat0to1 : Int -> BinarySource -> Maybe ( Float, BinarySource )
-consumeFloat0to1 bits source =
+consumeUnitFloat : Int -> BinarySource -> Maybe ( Float, BinarySource )
+consumeUnitFloat bits source =
     source
         |> consumeIntWithBits bits
         |> Maybe.map
@@ -81,21 +81,23 @@ consumeFloat0to1 bits source =
             )
 
 
-consumeVectorDimNeg1to1 : Int -> BinarySource -> Maybe ( Vector3, BinarySource )
-consumeVectorDimNeg1to1 bitsPerComponent source =
-    consumeFloat0to1 bitsPerComponent source
+consumeUnitVector3dU : Int -> BinarySource -> Maybe ( Vector3d Quantity.Unitless coordinates, BinarySource )
+consumeUnitVector3dU bitsPerComponent source =
+    consumeUnitFloat bitsPerComponent source
         |> Maybe.andThen
-            (\( x, source1 ) ->
-                consumeFloat0to1 bitsPerComponent source1
+            (\( xUnit, source1 ) ->
+                consumeUnitFloat bitsPerComponent source1
                     |> Maybe.andThen
-                        (\( y, source2 ) ->
-                            consumeFloat0to1 bitsPerComponent source2
+                        (\( yUnit, source2 ) ->
+                            consumeUnitFloat bitsPerComponent source2
                                 |> Maybe.andThen
-                                    (\( z, source3 ) ->
+                                    (\( zUnit, source3 ) ->
                                         Just
-                                            ( Vector3 x y z
-                                                |> Vector3.scaleBy 2
-                                                |> Vector3.minus (Vector3 1 1 1)
+                                            ( Vector3d.unitless
+                                                (xUnit - 0.5)
+                                                (yUnit - 0.5)
+                                                (zUnit - 0.5)
+                                                |> Vector3d.normalize
                                             , source3
                                             )
                                     )

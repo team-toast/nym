@@ -5,7 +5,6 @@ import Color exposing (Color)
 import Length
 import Point2d exposing (Point2d)
 import Point3d exposing (Point3d)
-import Vector3 exposing (Vector3)
 
 
 type alias Point3dM =
@@ -34,27 +33,27 @@ type alias Structure =
     }
 
 
--- testStructure : Structure
--- testStructure =
---     { innerBrow = Vector3 0.1 0.2 0.3
---     , outerBrow = Vector3 0.5 0.15 0.4
---     , cheekbone = Vector3 0.5 -0.2 0.2
---     , eyecheek = Vector3 0.4 0 0.3
---     , eyenose = Vector3 0.2 0 0.4
---     , noseTop = Vector3 0.05 -0.4 1
---     , noseMid = Vector3 0.05 -0.5 1
---     , noseBottom = Vector3 0.05 -0.55 0.9
---     , noseBridge = Vector3 0.15 0.08 0.45
---     , innerTemple = Vector3 0.13 0.4 0.3
---     , outerTemple = Vector3 0.4 0.4 0.2
---     , earTip = Vector3 0.4 0.8 0.2
---     , highCheek = Vector3 0.6 0.5 0
---     , midCheek = Vector3 0.7 0 0
---     , lowCheek = Vector3 0.7 -0.3 0
---     , outerTopSnout = Vector3 0.4 -0.2 0.3
---     , outerBottomSnout = Vector3 0.4 -0.4 0.3
---     , crown = Vector3 0.15 0.6 0
---     }
+testStructure : Structure
+testStructure =
+    { innerBrow = Point3d.meters 0.1 0.2 0.3
+    , outerBrow = Point3d.meters 0.5 0.15 0.4
+    , cheekbone = Point3d.meters 0.5 -0.2 0.2
+    , eyecheek = Point3d.meters 0.4 0 0.3
+    , eyenose = Point3d.meters 0.2 0 0.4
+    , noseTop = Point3d.meters 0.05 -0.4 1
+    , noseMid = Point3d.meters 0.05 -0.5 1
+    , noseBottom = Point3d.meters 0.05 -0.55 0.9
+    , noseBridge = Point3d.meters 0.15 0.08 0.45
+    , innerTemple = Point3d.meters 0.13 0.4 0.3
+    , outerTemple = Point3d.meters 0.4 0.4 0.2
+    , earTip = Point3d.meters 0.4 0.8 0.2
+    , highCheek = Point3d.meters 0.6 0.5 0
+    , midCheek = Point3d.meters 0.7 0 0
+    , lowCheek = Point3d.meters 0.7 -0.3 0
+    , outerTopSnout = Point3d.meters 0.4 -0.2 0.3
+    , outerBottomSnout = Point3d.meters 0.4 -0.4 0.3
+    , crown = Point3d.meters 0.15 0.6 0
+    }
 
 
 type alias Coloring =
@@ -144,7 +143,6 @@ type alias Eye =
     Point3dM
 
 
-testEye : Eye
 testEye =
     Point3d.meters 0.3 0.05 0.4
 
