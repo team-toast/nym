@@ -150,7 +150,7 @@ genNymEntitiesAndPositions seed =
                 |> List.head
                 |> Maybe.map Tuple.first
                 |> Maybe.withDefault []
-                |> Debug.log "genErrorsLists"
+                |> Debug.log "genErrors lists"
     in
     errorsAndTemplates
         |> List.map Tuple.second
@@ -211,8 +211,6 @@ view model =
                             { entities =
                                 model.nymEntitiesAndPositions
                                     |> rotateNyms model.mouseInput
-
-                            -- Provide the camera to be used when rendering the scene
                             , camera =
                                 Camera3d.perspective
                                     { viewpoint =
@@ -224,16 +222,8 @@ view model =
                                             }
                                     , verticalFieldOfView = Angle.degrees 30
                                     }
-
-                            -- Anything closer than 1 meter to the camera will be clipped away
-                            -- (this is necessary because of the internals of how WebGL works)
                             , clipDepth = Length.meters 1
-
-                            -- Using a transparent background means that the HTML underneath the
-                            -- scene will show through
                             , background = Scene3d.transparentBackground
-
-                            -- Size in pixels of the generated HTML element
                             , dimensions = ( Pixels.int 1200, Pixels.int 800 )
                             }
 
