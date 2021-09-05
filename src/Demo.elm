@@ -149,11 +149,13 @@ genNymEntitiesAndPositions seed =
             errorsAndTemplates
                 |> List.head
                 |> Maybe.map Tuple.first
-                |> Debug.log "genErrors"
+                |> Maybe.withDefault []
+                |> Debug.log "genErrorsLists"
     in
     errorsAndTemplates
+        |> List.map Tuple.second
         |> List.indexedMap
-            (\i ( genErrors, nymTemplate ) ->
+            (\i nymTemplate ->
                 let
                     nymPosition =
                         let

@@ -401,9 +401,25 @@ oldColoringTransformGenerators =
 
 structureTransformGenerators : List (BinarySource -> ( Transformer StructureTemplate, BinarySource ))
 structureTransformGenerators =
-    []
+    [ \source ->
+        ( \template ->
+            { template
+                | innerBrow = Ok <| Vector3 0.1 0.2 0.5
+                , noseBridge = Ok <| Vector3 0.1 0 0.5
+                , noseTop = Ok <| Vector3 0.1 -0.2 1
+            }
+        , source
+        )
+    ]
 
 
 coloringTransformGenerators : List (BinarySource -> ( Transformer ColoringTemplate, BinarySource ))
 coloringTransformGenerators =
-    []
+    [\source ->
+        (\template ->
+            { template
+                | noseBridge = Ok <| Color.red
+            }
+        , source
+        )
+    ]
