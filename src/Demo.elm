@@ -111,7 +111,7 @@ type alias MouseInput =
 
 type alias Model =
     { mouseInput : MouseInput
-    , seed : Int
+    , nymEntitiesAndPositions : List ( Scene3d.Entity (), Point3dM )
     }
 
 
@@ -120,7 +120,7 @@ main =
     Browser.sandbox
         { init =
             { mouseInput = MouseInput 0 0
-            , seed = 0
+            , nymEntitiesAndPositions = genNymEntitiesAndPositions 0
             }
         , view = view
         , update = update
@@ -139,15 +139,21 @@ update msg model =
             }
 
 
-genNymEntities : Int -> Point3dM -> List (Scene3d.Entity ())
-genNymEntities seed focusPoint =
-    demoNymTemplates seed
+genNymEntitiesAndPositions : Int -> List ( Scene3d.Entity (), Point3dM )
+genNymEntitiesAndPositions seed =
+    let
+        errorsAndTemplates =
+            demoNymTemplates seed
+
+        _ =
+            errorsAndTemplates
+                |> List.head
+                |> Maybe.map Tuple.first
+                |> Debug.log "genErrors"
+    in
+    errorsAndTemplates
         |> List.indexedMap
             (\i ( genErrors, nymTemplate ) ->
-                let
-                    _ =
-                        Debug.log "genErrors" genErrors
-                in
                 let
                     nymPosition =
                         let
@@ -163,28 +169,8 @@ genNymEntities seed focusPoint =
                                 )
                         in
                         Point3d.meters x y 0
-
-                    lookDir =
-                        Direction3d.from
-                            nymPosition
-                            focusPoint
-                            |> Maybe.withDefault Direction3d.z
-
-                    xAngle =
-                        Angle.asin <| Direction3d.xComponent lookDir
-
-                    yAngle =
-                        Angle.asin <| -(Direction3d.yComponent lookDir)
                 in
-                Nym.makeNymEntity nymTemplate
-                    |> Scene3d.rotateAround
-                        Axis3d.y
-                        xAngle
-                    |> Scene3d.rotateAround
-                        (Axis3d.x |> Axis3d.rotateAround Axis3d.y xAngle)
-                        yAngle
-                    |> Scene3d.translateBy
-                        (Vector3d.from Point3d.origin nymPosition)
+                ( Nym.makeNymEntity nymTemplate, nymPosition )
             )
 
 
@@ -221,7 +207,8 @@ view model =
                     List.singleton <|
                         Scene3d.unlit
                             { entities =
-                                genNymEntities model.seed (mouseInputToNymFocusPoint3d model.mouseInput)
+                                model.nymEntitiesAndPositions
+                                    |> rotateNyms model.mouseInput
 
                             -- Provide the camera to be used when rendering the scene
                             , camera =
@@ -247,3 +234,36 @@ view model =
                             -- Size in pixels of the generated HTML element
                             , dimensions = ( Pixels.int 1200, Pixels.int 800 )
                             }
+
+
+rotateNyms : MouseInput -> List ( Scene3d.Entity (), Point3dM ) -> List (Scene3d.Entity ())
+rotateNyms mouseInput entitiesAndPositions =
+    entitiesAndPositions
+        |> List.map
+            (\( nymEntity, position ) ->
+                let
+                    focusPoint =
+                        mouseInputToNymFocusPoint3d mouseInput
+
+                    lookDir =
+                        Direction3d.from
+                            position
+                            focusPoint
+                            |> Maybe.withDefault Direction3d.z
+
+                    xAngle =
+                        Angle.asin <| Direction3d.xComponent lookDir
+
+                    yAngle =
+                        Angle.asin <| -(Direction3d.yComponent lookDir)
+                in
+                nymEntity
+                    |> Scene3d.rotateAround
+                        Axis3d.y
+                        xAngle
+                    |> Scene3d.rotateAround
+                        (Axis3d.x |> Axis3d.rotateAround Axis3d.y xAngle)
+                        yAngle
+                    |> Scene3d.translateBy
+                        (Vector3d.from Point3d.origin position)
+            )

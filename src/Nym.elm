@@ -78,13 +78,9 @@ makeNymEntity nymTemplate =
                             (noseBridgePoint |> mirrorPoint)
                         ]
                 )
-                (Ok <| Vector3 0.1 0.2 0.3)
-                (Ok <| Vector3 0.15 0.08 0.45)
-                (Ok <| Vector3 0.05 -0.4 1)
-            
-                -- nymTemplate.structure.innerBrow
-                -- nymTemplate.structure.noseBridge
-                -- nymTemplate.structure.noseTop
+                nymTemplate.structure.innerBrow
+                nymTemplate.structure.noseBridge
+                nymTemplate.structure.noseTop
                 |> defaultAndLogEntityError "noseBridge"
 
         noseFront : Scene3d.Entity ()
