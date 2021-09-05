@@ -12,13 +12,6 @@ import Vector3 exposing (Vector3)
 import Vector3d
 
 
-type GenError
-    = NotEnoughSource
-    | InvalidIndex
-    | NotYetSet
-    | OtherError String
-
-
 type alias Transformer templateType =
     templateType -> templateType
 
@@ -31,42 +24,17 @@ type alias IndexedTransformGenerator templateType =
     BinarySource -> Int -> ( BinarySource, TransformerGenResult templateType )
 
 
-applyTransformResults : List (TransformerGenResult templateType) -> (( List GenError, templateType ) -> Result (List GenError) finalType) -> templateType -> Result (List GenError) finalType
-applyTransformResults transformerResults templateFinalizer initialTemplate =
+applyTransforms : List (Transformer templateType) -> templateType -> templateType
+applyTransforms transformers initialTemplate =
     let
-        applyTransformerResult : TransformerGenResult templateType -> ( List GenError, templateType ) -> ( List GenError, templateType )
-        applyTransformerResult transformerResult ( errors, template ) =
-            case transformerResult of
-                Ok transformer ->
-                    ( errors, transformer template )
-
-                Err newError ->
-                    ( List.append
-                        errors
-                        [ newError ]
-                    , template
-                    )
+        applyTransformerResult : Transformer templateType -> templateType -> templateType
+        applyTransformerResult transformer template =
+            transformer template
     in
     List.foldl
         applyTransformerResult
-        ( [], initialTemplate )
-        transformerResults
-        |> templateFinalizer
-
-
-type alias ColoringTemplate =
-    { eyequad : Result GenError Color
-    , noseBridge : Result GenError Color
-    , noseSide : Result GenError Color
-    , forehead : Result GenError Color
-    , crown : Result GenError Color
-    , temple : Result GenError Color
-    , earFront : Result GenError Color
-    , earBack : Result GenError Color
-    , cheek : Result GenError Color
-    , cheekSpot : Result GenError Color
-    , chin : Result GenError Color
-    }
+        initialTemplate
+        transformers
 
 
 blankColoringTemplate : ColoringTemplate
@@ -74,31 +42,14 @@ blankColoringTemplate =
     ColoringTemplate (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet)
 
 
-type alias StructureTemplate =
-    { innerBrow : Result GenError Vector3
-    , outerBrow : Result GenError Vector3
-    , cheekbone : Result GenError Vector3
-    , eyecheek : Result GenError Vector3
-    , eyenose : Result GenError Vector3
-    , noseTop : Result GenError Vector3
-    , noseMid : Result GenError Vector3
-    , noseBottom : Result GenError Vector3
-    , noseBridge : Result GenError Vector3
-    , outerTemple : Result GenError Vector3
-    , innerTemple : Result GenError Vector3
-    , earTip : Result GenError Vector3
-    , highCheek : Result GenError Vector3
-    , midCheek : Result GenError Vector3
-    , lowCheek : Result GenError Vector3
-    , outerTopSnout : Result GenError Vector3
-    , outerBottomSnout : Result GenError Vector3
-    , crown : Result GenError Vector3
-    }
-
-
 blankStructureTemplate : StructureTemplate
 blankStructureTemplate =
     StructureTemplate (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet)
+
+
+blankEyeTemplate : EyeTemplate
+blankEyeTemplate =
+    Err NotYetSet
 
 
 indexedColoringTransformGenerator : IndexedTransformGenerator ColoringTemplate
@@ -115,8 +66,8 @@ indexedColoringTransformGenerator fullSource transformIndex =
             ( fullSource, Err <| InvalidIndex )
 
 
-consumeColoring : BinarySource -> ( Result (List GenError) Coloring, BinarySource )
-consumeColoring fullSource =
+consumeColoringToTemplate : BinarySource -> ( List GenError, ColoringTemplate, BinarySource )
+consumeColoringToTemplate fullSource =
     let
         remainingSourceAndTransformResults =
             List.Extra.mapAccuml
@@ -130,9 +81,13 @@ consumeColoring fullSource =
 
         remainingSource =
             Tuple.first remainingSourceAndTransformResults
+
+        ( validTransforms, errors ) =
+            Result.Extra.partition transformResults
     in
-    ( blankColoringTemplate
-        |> applyTransformResults transformResults coloringTemplateFinalizer
+    ( errors
+    , blankColoringTemplate
+        |> applyTransforms validTransforms
     , remainingSource
     )
 
@@ -240,8 +195,8 @@ structureTemplateFinalizer ( errors, structureTemplate ) =
                 )
 
 
-consumeStructure : BinarySource -> ( Result (List GenError) Structure, BinarySource )
-consumeStructure fullSource =
+consumeStructureToTemplate : BinarySource -> ( List GenError, StructureTemplate, BinarySource )
+consumeStructureToTemplate fullSource =
     let
         remainingSourceAndTransformResults =
             List.Extra.mapAccuml
@@ -255,9 +210,13 @@ consumeStructure fullSource =
 
         remainingSource =
             Tuple.first remainingSourceAndTransformResults
+
+        ( validTransforms, errors ) =
+            Result.Extra.partition transformResults
     in
-    ( blankStructureTemplate
-        |> applyTransformResults transformResults structureTemplateFinalizer
+    ( errors
+    , blankStructureTemplate
+        |> applyTransforms validTransforms
     , remainingSource
     )
 
@@ -276,9 +235,9 @@ indexedStructureTransformGenerator fullSource transformIndex =
             ( fullSource, Err <| InvalidIndex )
 
 
-consumeEye : BinarySource -> ( Result (List GenError) Eye, BinarySource )
-consumeEye source =
-    ( Ok testEye, source )
+consumeEyeToTemplate : BinarySource -> ( List GenError, EyeTemplate, BinarySource )
+consumeEyeToTemplate source =
+    ( [], blankEyeTemplate, source )
 
 
 consumeColorFromPallette : BinarySource -> Result GenError ( Color, BinarySource )

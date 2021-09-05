@@ -93,8 +93,8 @@ randomBinarySources masterSeed =
     List.Extra.initialize 8 initFunc
 
 
-demoNyms : Int -> List (Result (List (List Generate.GenError)) Nym)
-demoNyms seed =
+demoNymTemplates : Int -> List ( List (List GenError), NymTemplate )
+demoNymTemplates seed =
     demoNymSources seed
         |> List.map binarySourceToNym
 
@@ -141,55 +141,50 @@ update msg model =
 
 genNymEntities : Int -> Point3dM -> List (Scene3d.Entity ())
 genNymEntities seed focusPoint =
-    demoNyms seed
+    demoNymTemplates seed
         |> List.indexedMap
-            (\i nymGenResult ->
-                case nymGenResult of
-                    Err errsLists ->
+            (\i ( genErrors, nymTemplate ) ->
+                let
+                    _ =
+                        Debug.log "genErrors" genErrors
+                in
+                let
+                    nymPosition =
                         let
-                            _ =
-                                Debug.log "errors!" errsLists
+                            xFactor =
+                                ((i |> modBy 4 |> toFloat) / 3.0) - 0.5
+
+                            yFactor =
+                                ((i // 4 |> toFloat) / 3.0) - 0.5
+
+                            ( x, y ) =
+                                ( xFactor * 6
+                                , yFactor * -6
+                                )
                         in
-                        Scene3d.nothing
+                        Point3d.meters x y 0
 
-                    Ok nym ->
-                        let
-                            nymPosition =
-                                let
-                                    xFactor =
-                                        ((i |> modBy 4 |> toFloat) / 3.0) - 0.5
+                    lookDir =
+                        Direction3d.from
+                            nymPosition
+                            focusPoint
+                            |> Maybe.withDefault Direction3d.z
 
-                                    yFactor =
-                                        ((i // 4 |> toFloat) / 3.0) - 0.5
+                    xAngle =
+                        Angle.asin <| Direction3d.xComponent lookDir
 
-                                    ( x, y ) =
-                                        ( xFactor * 6
-                                        , yFactor * -6
-                                        )
-                                in
-                                Point3d.meters x y 0
-
-                            lookDir =
-                                Direction3d.from
-                                    nymPosition
-                                    focusPoint
-                                    |> Maybe.withDefault Direction3d.z
-
-                            xAngle =
-                                Angle.asin <| Direction3d.xComponent lookDir
-
-                            yAngle =
-                                Angle.asin <| -(Direction3d.yComponent lookDir)
-                        in
-                        Nym.makeNymEntity nym
-                            |> Scene3d.rotateAround
-                                Axis3d.y
-                                xAngle
-                            |> Scene3d.rotateAround
-                                (Axis3d.x |> Axis3d.rotateAround Axis3d.y xAngle)
-                                yAngle
-                            |> Scene3d.translateBy
-                                (Vector3d.from Point3d.origin nymPosition)
+                    yAngle =
+                        Angle.asin <| -(Direction3d.yComponent lookDir)
+                in
+                Nym.makeNymEntity nymTemplate
+                    |> Scene3d.rotateAround
+                        Axis3d.y
+                        xAngle
+                    |> Scene3d.rotateAround
+                        (Axis3d.x |> Axis3d.rotateAround Axis3d.y xAngle)
+                        yAngle
+                    |> Scene3d.translateBy
+                        (Vector3d.from Point3d.origin nymPosition)
             )
 
 

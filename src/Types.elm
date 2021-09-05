@@ -7,6 +7,13 @@ import Point3d exposing (Point3d)
 import Vector3 exposing (Vector3)
 
 
+type GenError
+    = NotEnoughSource
+    | InvalidIndex
+    | NotYetSet
+    | OtherError String
+
+
 type alias Point3dM =
     Point3d Length.Meters ()
 
@@ -31,6 +38,29 @@ type alias Structure =
     , outerBottomSnout : Point3dM
     , crown : Point3dM
     }
+
+
+type alias StructureTemplate =
+    { innerBrow : Result GenError Vector3
+    , outerBrow : Result GenError Vector3
+    , cheekbone : Result GenError Vector3
+    , eyecheek : Result GenError Vector3
+    , eyenose : Result GenError Vector3
+    , noseTop : Result GenError Vector3
+    , noseMid : Result GenError Vector3
+    , noseBottom : Result GenError Vector3
+    , noseBridge : Result GenError Vector3
+    , outerTemple : Result GenError Vector3
+    , innerTemple : Result GenError Vector3
+    , earTip : Result GenError Vector3
+    , highCheek : Result GenError Vector3
+    , midCheek : Result GenError Vector3
+    , lowCheek : Result GenError Vector3
+    , outerTopSnout : Result GenError Vector3
+    , outerBottomSnout : Result GenError Vector3
+    , crown : Result GenError Vector3
+    }
+
 
 
 -- testStructure : Structure
@@ -68,6 +98,21 @@ type alias Coloring =
     , cheek : Color
     , cheekSpot : Color
     , chin : Color
+    }
+
+
+type alias ColoringTemplate =
+    { eyequad : Result GenError Color
+    , noseBridge : Result GenError Color
+    , noseSide : Result GenError Color
+    , forehead : Result GenError Color
+    , crown : Result GenError Color
+    , temple : Result GenError Color
+    , earFront : Result GenError Color
+    , earBack : Result GenError Color
+    , cheek : Result GenError Color
+    , cheekSpot : Result GenError Color
+    , chin : Result GenError Color
     }
 
 
@@ -139,6 +184,10 @@ allBlackColoring =
     }
 
 
+type alias EyeTemplate =
+    Result GenError Vector3
+
+
 type alias Eye =
     Point3dM
 
@@ -155,6 +204,13 @@ testEye =
 --         testStructure
 --         testEye
 --         testColoring
+
+
+type alias NymTemplate =
+    { structure : StructureTemplate
+    , eye : EyeTemplate
+    , coloring : ColoringTemplate
+    }
 
 
 type alias Nym =

@@ -58,3 +58,10 @@ scaleByVector scaleVec vec =
         , y = v1.y * v2.y
         , z = v1.z * v2.z
         }
+
+
+mirrorPoint : Vector3 -> Vector3
+mirrorPoint v =
+    { v
+        | x = -v.x
+    }
