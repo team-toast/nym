@@ -4,6 +4,7 @@ import Angle
 import Axis3d
 import BinarySource exposing (BinarySource)
 import Browser
+import Browser.Events
 import Camera3d
 import Direction3d
 import Element exposing (Element)
@@ -26,6 +27,69 @@ import Scene3d
 import Types exposing (..)
 import Vector3d
 import Viewpoint3d
+
+
+type Msg
+    = MouseMove Mouse.MoveData
+    | NewSeed Int
+
+
+type alias MouseInput =
+    { x : Float
+    , y : Float
+    }
+
+
+type alias Model =
+    { mouseInput : MouseInput
+    , nymEntitiesAndPositions : List ( Scene3d.Entity (), Point3dM )
+    }
+
+
+initModel =
+    { mouseInput = MouseInput 0 0
+    , nymEntitiesAndPositions = genNymEntitiesAndPositions 0
+    }
+
+
+main : Program () Model Msg
+main =
+    Browser.element
+        { init =
+            always
+                ( initModel
+                , Cmd.none
+                )
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        MouseMove moveData ->
+            ( { model
+                | mouseInput =
+                    MouseInput
+                        (toFloat moveData.offsetX / moveData.offsetWidth - 0.5)
+                        (toFloat moveData.offsetY / moveData.offsetHeight - 0.5)
+              }
+            , Cmd.none
+            )
+
+        NewSeed seed ->
+            let
+                _ =
+                    Debug.log "new seed" seed
+            in
+            ( { model
+                | nymEntitiesAndPositions =
+                    genNymEntitiesAndPositions seed
+              }
+            , Cmd.none
+            )
 
 
 demoNymSources : Int -> List BinarySource
@@ -97,46 +161,6 @@ demoNymTemplates : Int -> List ( List (List GenError), NymTemplate )
 demoNymTemplates seed =
     demoNymSources seed
         |> List.map binarySourceToNym
-
-
-type Msg
-    = MouseMove Mouse.MoveData
-
-
-type alias MouseInput =
-    { x : Float
-    , y : Float
-    }
-
-
-type alias Model =
-    { mouseInput : MouseInput
-    , nymEntitiesAndPositions : List ( Scene3d.Entity (), Point3dM )
-    }
-
-
-main : Program () Model Msg
-main =
-    Browser.sandbox
-        { init =
-            { mouseInput = MouseInput 0 0
-            , nymEntitiesAndPositions = genNymEntitiesAndPositions 0
-            }
-        , view = view
-        , update = update
-        }
-
-
-update : Msg -> Model -> Model
-update msg model =
-    case msg of
-        MouseMove moveData ->
-            { model
-                | mouseInput =
-                    MouseInput
-                        (toFloat moveData.offsetX / moveData.offsetWidth - 0.5)
-                        (toFloat moveData.offsetY / moveData.offsetHeight - 0.5)
-            }
 
 
 genNymEntitiesAndPositions : Int -> List ( Scene3d.Entity (), Point3dM )
@@ -258,4 +282,21 @@ rotateNyms mouseInput entitiesAndPositions =
                         yAngle
                     |> Scene3d.translateBy
                         (Vector3d.from Point3d.origin position)
+            )
+
+
+subscriptions : Model -> Sub.Sub Msg
+subscriptions _ =
+    Browser.Events.onKeyDown keyDecoder
+        |> Sub.map NewSeed
+
+
+keyDecoder : Decode.Decoder Int
+keyDecoder =
+    Decode.field "key" Decode.string
+        |> Decode.map
+            (String.toList
+                >> List.head
+                >> Maybe.map Char.toCode
+                >> Maybe.withDefault 0
             )

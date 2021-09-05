@@ -19,14 +19,15 @@ type alias Point3dM =
 
 
 type alias Structure =
-    { innerBrow : Point3dM
+    { crown : Point3dM
+    , innerBrow : Point3dM
     , outerBrow : Point3dM
-    , cheekbone : Point3dM
-    , eyecheek : Point3dM
-    , eyenose : Point3dM
     , noseTop : Point3dM
     , noseMid : Point3dM
     , noseBottom : Point3dM
+    , cheekbone : Point3dM
+    , eyecheek : Point3dM
+    , eyenose : Point3dM
     , noseBridge : Point3dM
     , outerTemple : Point3dM
     , innerTemple : Point3dM
@@ -36,19 +37,19 @@ type alias Structure =
     , lowCheek : Point3dM
     , outerTopSnout : Point3dM
     , outerBottomSnout : Point3dM
-    , crown : Point3dM
     }
 
 
 type alias StructureTemplate =
-    { innerBrow : Result GenError Vector3
+    { crown : Result GenError Vector3
+    , innerBrow : Result GenError Vector3
     , outerBrow : Result GenError Vector3
-    , cheekbone : Result GenError Vector3
-    , eyecheek : Result GenError Vector3
-    , eyenose : Result GenError Vector3
     , noseTop : Result GenError Vector3
     , noseMid : Result GenError Vector3
     , noseBottom : Result GenError Vector3
+    , cheekbone : Result GenError Vector3
+    , eyecheek : Result GenError Vector3
+    , eyenose : Result GenError Vector3
     , noseBridge : Result GenError Vector3
     , outerTemple : Result GenError Vector3
     , innerTemple : Result GenError Vector3
@@ -58,7 +59,6 @@ type alias StructureTemplate =
     , lowCheek : Result GenError Vector3
     , outerTopSnout : Result GenError Vector3
     , outerBottomSnout : Result GenError Vector3
-    , crown : Result GenError Vector3
     }
 
 
