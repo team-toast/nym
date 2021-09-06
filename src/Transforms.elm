@@ -13,6 +13,83 @@ import Vector3 exposing (Vector3)
 import Vector3d
 
 
+structureTransforms : List (BinarySource -> StructureTemplate -> ( BinarySource, StructureTemplate ))
+structureTransforms =
+    [ \source template ->
+        source
+            |> BinarySource.consumeVectorFromBounds 2
+                ( Vector3 0 0.4 0
+                , Vector3 0.5 0.7 0
+                )
+            |> tryApplyToTemplate
+                (\crownResult ->
+                    { template
+                        | crown = crownResult
+                    }
+                )
+    , \source template ->
+        source
+            |> BinarySource.consumeVectorFromBounds 2
+                ( Vector3 0.1 -0.1 0.1
+                , Vector3 0.2 -0.2 0.2
+                )
+            |> tryApplyToTemplate
+                (\templeResult ->
+                    { template
+                        | innerTemple =
+                            Result.map2
+                                Vector3.plus
+                                template.crown
+                                templeResult
+                    }
+                )
+    , \source template ->
+        source
+            |> BinarySource.consumeVectorFromBounds 2
+                ( Vector3 -0.1 -0.1 0
+                , Vector3 0.1 -0.2 0
+                )
+            |> tryApplyToTemplate
+                (\browResult ->
+                    { template
+                        | innerBrow =
+                            Result.map2
+                                Vector3.plus
+                                template.innerTemple
+                                browResult
+                    }
+                )
+    ]
+
+
+coloringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
+coloringTransforms =
+    [ \source template ->
+        source
+            |> BinarySource.consumeColorFromPallette
+            |> tryApplyToTemplate
+                (\colorResult ->
+                    { template
+                        | crown = colorResult
+                    }
+                )
+    , \source template ->
+        source
+            |> BinarySource.consumeVectorDimNeg1to1 1
+            |> Maybe.map (Tuple.mapSecond (Vector3.scaleBy 0.1))
+            |> tryApplyToTemplate
+                (\colorModifierResult ->
+                    { template
+                        | forehead =
+                            Result.map2
+                                addVectorToColor
+                                colorModifierResult
+                                template.crown
+                    }
+                )
+    ]
+
+
 tryApplyToTemplate : (Result GenError val -> template) -> Maybe ( BinarySource, val ) -> ( BinarySource, template )
 tryApplyToTemplate func maybeSourceAndVal =
     let
@@ -29,47 +106,6 @@ tryApplyToTemplate func maybeSourceAndVal =
     ( remainingSource
     , func result
     )
-
-
-structureTransforms : List (BinarySource -> StructureTemplate -> ( BinarySource, StructureTemplate ))
-structureTransforms =
-    [ \source template ->
-        source
-            |> BinarySource.consumeVectorFromBounds 2
-                ( Vector3 0 0.4 0, Vector3 0.5 0.7 0 )
-            |> tryApplyToTemplate
-                (\crownResult ->
-                    { template
-                        | crown = crownResult
-                    }
-                )
-    , \source template ->
-        source
-            |> BinarySource.consumeVectorFromBounds 2
-                ( Vector3 0.1 -0.1 0.1, Vector3 0.2 -0.2 0.2 )
-            |> tryApplyToTemplate
-                (\templeResult ->
-                    { template
-                        | innerTemple =
-                            Result.map2
-                                Vector3.plus
-                                template.crown
-                                templeResult
-                    }
-                )
-    ]
-
-
-coloringTransformGenerators : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
-coloringTransformGenerators =
-    [ \source template ->
-        ( source
-        , { template
-            | crown = Ok <| Color.red
-            , forehead = Ok <| Color.green
-          }
-        )
-    ]
 
 
 

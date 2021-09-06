@@ -117,40 +117,7 @@ type alias ColoringTemplate =
     }
 
 
-allColors =
-    [ Color.lightRed
-    , Color.red
-    , Color.darkRed
-    , Color.lightOrange
-    , Color.orange
-    , Color.darkOrange
-    , Color.lightYellow
-    , Color.yellow
-    , Color.darkYellow
-    , Color.lightGreen
-    , Color.green
-    , Color.darkGreen
-    , Color.lightBlue
-    , Color.blue
-    , Color.darkBlue
-    , Color.lightPurple
-    , Color.purple
-    , Color.darkPurple
-    , Color.lightBrown
-    , Color.brown
-    , Color.darkBrown
-    , Color.black
-    , Color.white
-    , Color.lightGrey
-    , Color.grey
-    , Color.darkGrey
-    , Color.lightGray
-    , Color.gray
-    , Color.darkGray
-    , Color.lightCharcoal
-    , Color.charcoal
-    , Color.darkCharcoal
-    ]
+
 
 
 testColoring : Coloring

@@ -39,7 +39,7 @@ consumeColoringToTemplate fullSource =
             List.foldl
                 trfunc
                 ( fullSource, blankColoringTemplate )
-                Transforms.coloringTransformGenerators
+                Transforms.coloringTransforms
     in
     remainingSourceAndTemplate
 
@@ -168,23 +168,3 @@ consumeEyeToTemplate source =
     ( source, blankEyeTemplate )
 
 
-consumeColorFromPallette : BinarySource -> Result GenError ( BinarySource, Color )
-consumeColorFromPallette source =
-    BinarySource.consumeIntWithMax (List.length allColors - 1) source
-        |> Maybe.map
-            (Tuple.mapSecond
-                (\colorNum ->
-                    List.Extra.getAt colorNum allColors
-                )
-            )
-        |> (\weirdMaybe ->
-                case weirdMaybe of
-                    Just ( a, Just b ) ->
-                        Ok ( a, b )
-
-                    Just ( a, Nothing ) ->
-                        Err <| OtherError "Color index out of range"
-
-                    Nothing ->
-                        Err NotEnoughSource
-           )

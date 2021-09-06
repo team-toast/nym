@@ -128,11 +128,6 @@ demoNymSources seed =
            )
 
 
-randomSourceLength : Int
-randomSourceLength =
-    24
-
-
 randomBinarySources : Int -> List BinarySource
 randomBinarySources masterSeed =
     let
@@ -148,7 +143,7 @@ randomBinarySources masterSeed =
 
                 unfoldFunc : ( Int, Random.Seed ) -> Maybe ( Char, ( Int, Random.Seed ) )
                 unfoldFunc ( count, seed ) =
-                    if count < randomSourceLength then
+                    if count < demoBinarySourceLength then
                         Just <|
                             let
                                 ( bit, newSeed ) =
@@ -169,7 +164,7 @@ randomBinarySources masterSeed =
                 |> String.fromList
                 |> BinarySource.unsafeFromBitsString
     in
-    List.Extra.initialize demoBinarySourceLength initFunc
+    List.Extra.initialize 8 initFunc
 
 
 demoNymTemplates : Int -> List NymTemplate

@@ -1,5 +1,7 @@
-module BinarySource exposing (BinaryChunk, BinarySource, consumeChunk, consumeFloat0to1, consumeIntWithBits, consumeIntWithMax, consumeVectorDimNeg1to1, consumeVectorFromBounds, empty, fromBitsString, unsafeFromBitsString)
+module BinarySource exposing (BinaryChunk, BinarySource, consumeChunk, consumeColorFromPallette, consumeFloat0to1, consumeIntWithBits, consumeIntWithMax, consumeVectorDimNeg1to1, consumeVectorFromBounds, empty, fromBitsString, unsafeFromBitsString)
 
+import Color exposing (Color)
+import List.Extra
 import Quantity
 import String
 import TupleHelpers
@@ -142,3 +144,58 @@ chunkToInt32 chunk =
 encodeBinaryString : BinaryChunk -> String
 encodeBinaryString (BinaryChunk chunk) =
     "0b" ++ chunk
+
+
+consumeColorFromPallette : BinarySource -> Maybe ( BinarySource, Color )
+consumeColorFromPallette source =
+    consumeIntWithMax (List.length allColors - 1) source
+        |> Maybe.map
+            (Tuple.mapSecond
+                (\colorNum ->
+                    List.Extra.getAt colorNum allColors
+                )
+            )
+        |> (\weirdMaybe ->
+                case weirdMaybe of
+                    Just ( a, Just b ) ->
+                        Just ( a, b )
+
+                    _ ->
+                        Nothing
+           )
+
+
+allColors =
+    [ Color.lightRed
+    , Color.red
+    , Color.darkRed
+    , Color.lightOrange
+    , Color.orange
+    , Color.darkOrange
+    , Color.lightYellow
+    , Color.yellow
+    , Color.darkYellow
+    , Color.lightGreen
+    , Color.green
+    , Color.darkGreen
+    , Color.lightBlue
+    , Color.blue
+    , Color.darkBlue
+    , Color.lightPurple
+    , Color.purple
+    , Color.darkPurple
+    , Color.lightBrown
+    , Color.brown
+    , Color.darkBrown
+    , Color.black
+    , Color.white
+    , Color.lightGrey
+    , Color.grey
+    , Color.darkGrey
+    , Color.lightGray
+    , Color.gray
+    , Color.darkGray
+    , Color.lightCharcoal
+    , Color.charcoal
+    , Color.darkCharcoal
+    ]
