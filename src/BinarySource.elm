@@ -1,11 +1,10 @@
-module BinarySource exposing (BinaryChunk, BinarySource, consumeChunk, consumeFloat0to1, consumeIntWithBits, consumeIntWithMax, consumeVectorDimNeg1to1, empty, fromBitsString, unsafeFromBitsString, consumeVectorFromBounds)
+module BinarySource exposing (BinaryChunk, BinarySource, consumeChunk, consumeFloat0to1, consumeIntWithBits, consumeIntWithMax, consumeVectorDimNeg1to1, consumeVectorFromBounds, empty, fromBitsString, unsafeFromBitsString)
 
 import Quantity
 import String
 import TupleHelpers
 import UInt64
 import UInt64.Digits as UInt64
-import Utils exposing (..)
 import Vector3 exposing (Vector3)
 import Vector3d exposing (Vector3d)
 
@@ -37,26 +36,26 @@ unsafeFromBitsString str =
     BinarySource str
 
 
-consumeChunk : Int -> BinarySource -> Maybe ( BinaryChunk, BinarySource )
+consumeChunk : Int -> BinarySource -> Maybe ( BinarySource, BinaryChunk )
 consumeChunk numBits (BinarySource source) =
     if String.length source >= numBits then
         Just
-            ( BinaryChunk <| String.left numBits source
-            , BinarySource <| String.dropLeft numBits source
+            ( BinarySource <| String.dropLeft numBits source
+            , BinaryChunk <| String.left numBits source
             )
 
     else
         Nothing
 
 
-consumeIntWithBits : Int -> BinarySource -> Maybe ( Int, BinarySource )
+consumeIntWithBits : Int -> BinarySource -> Maybe ( BinarySource, Int )
 consumeIntWithBits bits source =
     source
         |> consumeChunk bits
-        |> Maybe.map (Tuple.mapFirst chunkToInt32)
+        |> Maybe.map (Tuple.mapSecond chunkToInt32)
 
 
-consumeIntWithMax : Int -> BinarySource -> Maybe ( Int, BinarySource )
+consumeIntWithMax : Int -> BinarySource -> Maybe ( BinarySource, Int )
 consumeIntWithMax max source =
     let
         bitsNeeded =
@@ -68,12 +67,12 @@ consumeIntWithMax max source =
     consumeIntWithBits bitsNeeded source
 
 
-consumeFloat0to1 : Int -> BinarySource -> Maybe ( Float, BinarySource )
+consumeFloat0to1 : Int -> BinarySource -> Maybe ( BinarySource, Float )
 consumeFloat0to1 bits source =
     source
         |> consumeIntWithBits bits
         |> Maybe.map
-            (Tuple.mapFirst
+            (Tuple.mapSecond
                 (\divisorInt ->
                     toFloat divisorInt
                         / (toFloat <| 2 ^ bits - 1)
@@ -81,48 +80,48 @@ consumeFloat0to1 bits source =
             )
 
 
-consumeVectorDimNeg1to1 : Int -> BinarySource -> Maybe ( Vector3, BinarySource )
+consumeVectorDimNeg1to1 : Int -> BinarySource -> Maybe ( BinarySource, Vector3 )
 consumeVectorDimNeg1to1 bitsPerComponent source =
     consumeFloat0to1 bitsPerComponent source
         |> Maybe.andThen
-            (\( x, source1 ) ->
+            (\( source1, x ) ->
                 consumeFloat0to1 bitsPerComponent source1
                     |> Maybe.andThen
-                        (\( y, source2 ) ->
+                        (\( source2, y ) ->
                             consumeFloat0to1 bitsPerComponent source2
                                 |> Maybe.andThen
-                                    (\( z, source3 ) ->
+                                    (\( source3, z ) ->
                                         Just
-                                            ( Vector3 x y z
+                                            ( source3
+                                            , Vector3 x y z
                                                 |> Vector3.scaleBy 2
                                                 |> Vector3.minus (Vector3 1 1 1)
-                                            , source3
                                             )
                                     )
                         )
             )
 
 
-consumeVectorFromBounds : Int -> Vector3 -> Vector3 -> BinarySource -> Maybe ( Vector3, BinarySource )
-consumeVectorFromBounds bitsPerComponent boundsStart boundsEnd source =
+consumeVectorFromBounds : Int -> Vector3.RectBounds -> BinarySource -> Maybe ( BinarySource, Vector3 )
+consumeVectorFromBounds bitsPerComponent ( boundsStart, boundsEnd ) source =
     consumeFloat0to1 bitsPerComponent source
         |> Maybe.andThen
-            (\( x, source1 ) ->
+            (\( source1, x ) ->
                 consumeFloat0to1 bitsPerComponent source1
                     |> Maybe.andThen
-                        (\( y, source2 ) ->
+                        (\( source2, y ) ->
                             consumeFloat0to1 bitsPerComponent source2
                                 |> Maybe.andThen
-                                    (\( z, source3 ) ->
+                                    (\( source3, z ) ->
                                         let
                                             boundsSpace =
                                                 boundsEnd |> Vector3.minus boundsStart
                                         in
                                         Just
-                                            ( Vector3 x y z
+                                            ( source3
+                                            , Vector3 x y z
                                                 |> Vector3.scaleByVector boundsSpace
                                                 |> Vector3.plus boundsStart
-                                            , source3
                                             )
                                     )
                         )

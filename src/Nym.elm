@@ -316,43 +316,22 @@ meterQuad material v1 v2 v3 v4 =
         (v4 |> Vector3.toMetersPoint)
 
 
-binarySourceToNym : BinarySource -> ( List (List GenError), NymTemplate )
+binarySourceToNym : BinarySource -> NymTemplate
 binarySourceToNym source =
     let
-        ( structureErrors, structureTemplate, rSource1 ) =
+        ( rSource1, structureTemplate ) =
             Generate.consumeStructureToTemplate source
 
-        ( eyeErrors, eyeTemplate, rSource2 ) =
+        ( rSource2, eyeTemplate ) =
             Generate.consumeEyeToTemplate rSource1
 
-        ( coloringErrors, coloringTemplate, rSource3 ) =
+        ( rSource3, coloringTemplate ) =
             Generate.consumeColoringToTemplate rSource2
     in
-    ( [ structureErrors, eyeErrors, coloringErrors ]
-    , NymTemplate
+    NymTemplate
         structureTemplate
         eyeTemplate
         coloringTemplate
-    )
-
-
-
--- stuff =
---     case ( structureResult, eyeResult, coloringResult ) of
---         ( Ok structure, Ok eye, Ok coloring ) ->
---             Ok <|
---                 Nym
---                     structure
---                     eye
---                     coloring
---         _ ->
---             Err
---                 ([ structureResult |> Result.Extra.error
---                  , eyeResult |> Result.Extra.error
---                  , coloringResult |> Result.Extra.error
---                  ]
---                     |> List.map (Maybe.withDefault [])
---                 )
 
 
 defaultAndLogEntityError : String -> Result GenError (Scene3d.Entity ()) -> Scene3d.Entity ()

@@ -6,26 +6,11 @@ import List
 import List.Extra
 import Point3d exposing (Point3d)
 import Result.Extra
+import Transforms
 import Types exposing (..)
 import Utils exposing (..)
 import Vector3 exposing (Vector3)
 import Vector3d
-import Transforms
-
-
-
-
-applyTransforms : List (Transformer templateType) -> templateType -> templateType
-applyTransforms transformers initialTemplate =
-    let
-        applyTransformerResult : Transformer templateType -> templateType -> templateType
-        applyTransformerResult transformer template =
-            transformer template
-    in
-    List.foldl
-        applyTransformerResult
-        initialTemplate
-        transformers
 
 
 blankColoringTemplate : ColoringTemplate
@@ -43,44 +28,20 @@ blankEyeTemplate =
     Err NotYetSet
 
 
-indexedColoringTransformGenerator : IndexedTransformGenerator ColoringTemplate
-indexedColoringTransformGenerator fullSource transformIndex =
-    case List.Extra.getAt transformIndex Transforms.coloringTransformGenerators of
-        Just transformerGenerator ->
-            let
-                ( transformer, remainingSource ) =
-                    transformerGenerator fullSource
-            in
-            ( remainingSource, Ok transformer )
-
-        Nothing ->
-            ( fullSource, Err <| InvalidIndex )
-
-
-consumeColoringToTemplate : BinarySource -> ( List GenError, ColoringTemplate, BinarySource )
+consumeColoringToTemplate : BinarySource -> ( BinarySource, ColoringTemplate )
 consumeColoringToTemplate fullSource =
     let
-        remainingSourceAndTransformResults =
-            List.Extra.mapAccuml
-                indexedColoringTransformGenerator
-                fullSource
-                (List.range 0 (List.length Transforms.coloringTransformGenerators - 1))
+        trfunc : (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate )) -> ( BinarySource, ColoringTemplate ) -> ( BinarySource, ColoringTemplate )
+        trfunc tr ( s, te ) =
+            tr s te
 
-        transformResults : List (Result GenError (Transformer ColoringTemplate))
-        transformResults =
-            Tuple.second remainingSourceAndTransformResults
-
-        remainingSource =
-            Tuple.first remainingSourceAndTransformResults
-
-        ( validTransforms, errors ) =
-            Result.Extra.partition transformResults
+        remainingSourceAndTemplate =
+            List.foldl
+                trfunc
+                ( fullSource, blankColoringTemplate )
+                Transforms.coloringTransformGenerators
     in
-    ( errors
-    , blankColoringTemplate
-        |> applyTransforms validTransforms
-    , remainingSource
-    )
+    remainingSourceAndTemplate
 
 
 coloringTemplateFinalizer : ( List GenError, ColoringTemplate ) -> Result (List GenError) Coloring
@@ -186,70 +147,44 @@ structureTemplateFinalizer ( errors, structureTemplate ) =
                 )
 
 
-consumeStructureToTemplate : BinarySource -> ( List GenError, StructureTemplate, BinarySource )
+consumeStructureToTemplate : BinarySource -> ( BinarySource, StructureTemplate )
 consumeStructureToTemplate fullSource =
     let
+        trfunc : (BinarySource -> StructureTemplate -> ( BinarySource, StructureTemplate )) -> ( BinarySource, StructureTemplate ) -> ( BinarySource, StructureTemplate )
+        trfunc tr ( s, te ) =
+            tr s te
+
         remainingSourceAndTransformResults =
-            List.Extra.mapAccuml
-                indexedStructureTransformGenerator
-                fullSource
-                (List.range 0 (List.length Transforms.structureTransformGenerators - 1))
-
-        transformResults : List (Result GenError (Transformer StructureTemplate))
-        transformResults =
-            Tuple.second remainingSourceAndTransformResults
-
-        remainingSource =
-            Tuple.first remainingSourceAndTransformResults
-
-        ( validTransforms, errors ) =
-            Result.Extra.partition transformResults
+            List.foldl
+                trfunc
+                ( fullSource, blankStructureTemplate )
+                Transforms.structureTransforms
     in
-    ( errors
-    , blankStructureTemplate
-        |> applyTransforms validTransforms
-    , remainingSource
-    )
+    remainingSourceAndTransformResults
 
 
-indexedStructureTransformGenerator : IndexedTransformGenerator StructureTemplate
-indexedStructureTransformGenerator fullSource transformIndex =
-    case List.Extra.getAt transformIndex Transforms.structureTransformGenerators of
-        Just transformerGenerator ->
-            let
-                ( transformer, remainingSource ) =
-                    transformerGenerator fullSource
-            in
-            ( remainingSource, Ok transformer )
-
-        Nothing ->
-            ( fullSource, Err <| InvalidIndex )
-
-
-consumeEyeToTemplate : BinarySource -> ( List GenError, EyeTemplate, BinarySource )
+consumeEyeToTemplate : BinarySource -> ( BinarySource, EyeTemplate )
 consumeEyeToTemplate source =
-    ( [], blankEyeTemplate, source )
+    ( source, blankEyeTemplate )
 
 
-consumeColorFromPallette : BinarySource -> Result GenError ( Color, BinarySource )
+consumeColorFromPallette : BinarySource -> Result GenError ( BinarySource, Color )
 consumeColorFromPallette source =
     BinarySource.consumeIntWithMax (List.length allColors - 1) source
         |> Maybe.map
-            (Tuple.mapFirst
+            (Tuple.mapSecond
                 (\colorNum ->
                     List.Extra.getAt colorNum allColors
                 )
             )
         |> (\weirdMaybe ->
                 case weirdMaybe of
-                    Just ( Just a, b ) ->
+                    Just ( a, Just b ) ->
                         Ok ( a, b )
 
-                    Just ( Nothing, b ) ->
+                    Just ( a, Nothing ) ->
                         Err <| OtherError "Color index out of range"
 
                     Nothing ->
                         Err NotEnoughSource
            )
-
-

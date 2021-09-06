@@ -157,7 +157,7 @@ randomBinarySources masterSeed =
     List.Extra.initialize 8 initFunc
 
 
-demoNymTemplates : Int -> List ( List (List GenError), NymTemplate )
+demoNymTemplates : Int -> List NymTemplate
 demoNymTemplates seed =
     demoNymSources seed
         |> List.map binarySourceToNym
@@ -169,15 +169,8 @@ genNymEntitiesAndPositions seed =
         errorsAndTemplates =
             demoNymTemplates seed
 
-        _ =
-            errorsAndTemplates
-                |> List.head
-                |> Maybe.map Tuple.first
-                |> Maybe.withDefault []
-                |> Debug.log "genErrors lists"
     in
     errorsAndTemplates
-        |> List.map Tuple.second
         |> List.indexedMap
             (\i nymTemplate ->
                 let

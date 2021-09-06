@@ -6,6 +6,10 @@ import Quantity
 import Vector3d exposing (Vector3d)
 
 
+type alias RectBounds =
+    ( Vector3, Vector3 )
+
+
 type alias Vector3 =
     { x : Float
     , y : Float

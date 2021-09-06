@@ -234,6 +234,7 @@ squashMaybe warning default maybeVal =
             in
             default
 
+
 type alias Transformer templateType =
     templateType -> templateType
 
@@ -244,3 +245,5 @@ type alias TransformerGenResult templateType =
 
 type alias IndexedTransformGenerator templateType =
     BinarySource -> Int -> ( BinarySource, TransformerGenResult templateType )
+
+
