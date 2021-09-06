@@ -11,6 +11,7 @@ import Utils exposing (..)
 import Vector3 exposing (Vector3)
 import Vector3d
 
+
 structureTransformGenerators : List (BinarySource -> ( Transformer StructureTemplate, BinarySource ))
 structureTransformGenerators =
     -- these will be sequentially applied to the template.
@@ -18,10 +19,25 @@ structureTransformGenerators =
     [ \source ->
         -- Middle points, from crown to bottom of nose
         ( \template ->
+            let
+                ( crownResult, source1 ) =
+                    BinarySource.consumeVectorFromBounds 2
+                        (Vector3 0 0.4 0)
+                        (Vector3 0.5 0.7 0)
+                        source
+                        |> Maybe.map (Tuple.mapFirst Ok)
+                        |> Maybe.withDefault
+                            ( Err NotEnoughSource, source )
+            in
             { template
-                | innerBrow = Ok <| Vector3 0.1 0.2 0.5
+                | crown = crownResult
+                , innerTemple = Ok <| Vector3 0.2 0.4 0.4
+                , innerBrow = Ok <| Vector3 0.1 0.2 0.5
                 , noseBridge = Ok <| Vector3 0.1 0 0.5
                 , noseTop = Ok <| Vector3 0.1 -0.2 1
+                , noseMid = Ok <| Vector3 0.1 -0.3 1
+                , noseBottom = Ok <| Vector3 0.1 -0.35 0.9
+                , outerBottomSnout = Ok <| Vector3 0.3 -0.35 0
             }
         , source
         )
@@ -169,5 +185,3 @@ coloringTransformGenerators =
 --         , source
 --         )
 --     ]
-
-

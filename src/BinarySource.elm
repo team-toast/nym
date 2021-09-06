@@ -1,4 +1,4 @@
-module BinarySource exposing (BinaryChunk, BinarySource, consumeChunk, consumeFloat0to1, consumeIntWithBits, consumeIntWithMax, consumeVectorDimNeg1to1, empty, fromBitsString, unsafeFromBitsString)
+module BinarySource exposing (BinaryChunk, BinarySource, consumeChunk, consumeFloat0to1, consumeIntWithBits, consumeIntWithMax, consumeVectorDimNeg1to1, empty, fromBitsString, unsafeFromBitsString, consumeVectorFromBounds)
 
 import Quantity
 import String
@@ -96,6 +96,32 @@ consumeVectorDimNeg1to1 bitsPerComponent source =
                                             ( Vector3 x y z
                                                 |> Vector3.scaleBy 2
                                                 |> Vector3.minus (Vector3 1 1 1)
+                                            , source3
+                                            )
+                                    )
+                        )
+            )
+
+
+consumeVectorFromBounds : Int -> Vector3 -> Vector3 -> BinarySource -> Maybe ( Vector3, BinarySource )
+consumeVectorFromBounds bitsPerComponent boundsStart boundsEnd source =
+    consumeFloat0to1 bitsPerComponent source
+        |> Maybe.andThen
+            (\( x, source1 ) ->
+                consumeFloat0to1 bitsPerComponent source1
+                    |> Maybe.andThen
+                        (\( y, source2 ) ->
+                            consumeFloat0to1 bitsPerComponent source2
+                                |> Maybe.andThen
+                                    (\( z, source3 ) ->
+                                        let
+                                            boundsSpace =
+                                                boundsEnd |> Vector3.minus boundsStart
+                                        in
+                                        Just
+                                            ( Vector3 x y z
+                                                |> Vector3.scaleByVector boundsSpace
+                                                |> Vector3.plus boundsStart
                                             , source3
                                             )
                                     )

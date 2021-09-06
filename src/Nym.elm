@@ -40,15 +40,6 @@ makeNymEntity nymTemplate =
         testEntity =
             Scene3d.nothing
 
-        -- Scene3d.group <|
-        --     List.map
-        --         (Scene3d.point
-        --             { radius = Pixels.pixels 3 }
-        --             (Material.color Color.red)
-        --         )
-        --         [ nym.structure.noseMid
-        --         , nym.structure.noseBottom
-        --         ]
         centerFeatures : Scene3d.Entity ()
         centerFeatures =
             Scene3d.group
@@ -83,65 +74,87 @@ makeNymEntity nymTemplate =
                 nymTemplate.structure.noseTop
                 |> defaultAndLogEntityError "noseBridge"
 
-        noseFront : Scene3d.Entity ()
-        noseFront =
-            Scene3d.nothing
-
-        -- Scene3d.quad
-        --     (Material.color Color.black)
-        --     nymTemplate.structure.noseTop
-        --     nymTemplate.structure.noseMid
-        --     (mirrorPoint nymTemplate.structure.noseMid)
-        --     (mirrorPoint nymTemplate.structure.noseTop)
-        forehead : Scene3d.Entity ()
-        forehead =
-            Scene3d.nothing
-
-        -- Scene3d.quad
-        --     (Material.color nymTemplate.coloring.forehead)
-        --     nymTemplate.structure.innerTemple
-        --     nymTemplate.structure.innerBrow
-        --     (nymTemplate.structure.innerBrow |> mirrorPoint)
-        --     (nymTemplate.structure.innerTemple |> mirrorPoint)
         crown : Scene3d.Entity ()
         crown =
-            Scene3d.nothing
+            Result.map2
+                (\crownPoint innerTemple ->
+                    meterQuad
+                        (defaultAndLogColorError "crown" nymTemplate.coloring.crown)
+                        crownPoint
+                        innerTemple
+                        (innerTemple |> mirrorPoint)
+                        (crownPoint |> mirrorPoint)
+                )
+                nymTemplate.structure.crown
+                nymTemplate.structure.innerTemple
+                |> defaultAndLogEntityError "crown"
 
-        -- Scene3d.quad
-        --     (Material.color nymTemplate.coloring.crown)
-        --     nymTemplate.structure.crown
-        --     nymTemplate.structure.innerTemple
-        --     (nymTemplate.structure.innerTemple |> mirrorPoint)
-        --     (nymTemplate.structure.crown |> mirrorPoint)
+        noseFront : Scene3d.Entity ()
+        noseFront =
+            Result.map2
+                (\noseTop noseMid ->
+                    meterQuad
+                        (Material.color Color.black)
+                        noseTop
+                        noseMid
+                        (noseMid |> mirrorPoint)
+                        (noseTop |> mirrorPoint)
+                )
+                nymTemplate.structure.noseTop
+                nymTemplate.structure.noseMid
+                |> defaultAndLogEntityError "noseFront"
+
+        forehead : Scene3d.Entity ()
+        forehead =
+            Result.map2
+                (\innerTemple innerBrow ->
+                    meterQuad
+                        (defaultAndLogColorError "forehead" nymTemplate.coloring.forehead)
+                        innerTemple
+                        innerBrow
+                        (innerBrow |> mirrorPoint)
+                        (innerTemple |> mirrorPoint)
+                )
+                nymTemplate.structure.innerTemple
+                nymTemplate.structure.innerBrow
+                |> defaultAndLogEntityError "forehead"
+
         chinStrip : Scene3d.Entity ()
         chinStrip =
-            Scene3d.nothing
+            let
+                chinStripColor =
+                    nymTemplate.coloring.chin
+                        |> Result.map (addVectorToColor (Vector3 -0.2 -0.2 -0.2))
+            in
+            Result.map4
+                (\noseTop noseMid noseBottom outerBottomSnout ->
+                    Scene3d.group
+                        [ meterQuad
+                            (defaultAndLogColorError "chinStrip" chinStripColor)
+                            noseTop
+                            noseMid
+                            (noseMid |> mirrorPoint)
+                            (noseTop |> mirrorPoint)
+                        , meterQuad
+                            (defaultAndLogColorError "chinStrip" chinStripColor)
+                            noseMid
+                            noseBottom
+                            (noseBottom |> mirrorPoint)
+                            (noseMid |> mirrorPoint)
+                        , meterQuad
+                            (defaultAndLogColorError "chinStrip" chinStripColor)
+                            noseBottom
+                            outerBottomSnout
+                            (outerBottomSnout |> mirrorPoint)
+                            (noseBottom |> mirrorPoint)
+                        ]
+                )
+                nymTemplate.structure.noseTop
+                nymTemplate.structure.noseMid
+                nymTemplate.structure.noseBottom
+                nymTemplate.structure.outerBottomSnout
+                |> defaultAndLogEntityError "chinStrip"
 
-        -- let
-        --     chinStripColor =
-        --         nymTemplate.coloring.chin
-        --             |> addVectorToColor (Vector3 -0.2 -0.2 -0.2)
-        -- in
-        -- Scene3d.group
-        --     [ Scene3d.quad
-        --         (Material.color chinStripColor)
-        --         nymTemplate.structure.noseTop
-        --         nymTemplate.structure.noseMid
-        --         (mirrorPoint nymTemplate.structure.noseMid)
-        --         (mirrorPoint nymTemplate.structure.noseTop)
-        --     , Scene3d.quad
-        --         (Material.color chinStripColor)
-        --         nymTemplate.structure.noseMid
-        --         nymTemplate.structure.noseBottom
-        --         (mirrorPoint nymTemplate.structure.noseBottom)
-        --         (mirrorPoint nymTemplate.structure.noseMid)
-        --     , Scene3d.quad
-        --         (Material.color chinStripColor)
-        --         nymTemplate.structure.noseBottom
-        --         nymTemplate.structure.outerBottomSnout
-        --         (mirrorPoint nymTemplate.structure.outerBottomSnout)
-        --         (mirrorPoint nymTemplate.structure.noseBottom)
-        --     ]
         copySymmetryGroup =
             Scene3d.group
                 [ eyeSquare
