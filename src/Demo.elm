@@ -92,23 +92,38 @@ update msg model =
             )
 
 
+demoBinarySourceLength : Int
+demoBinarySourceLength =
+    100
+
+
 demoNymSources : Int -> List BinarySource
 demoNymSources seed =
-    (List.map BinarySource.fromBitsString
-        [ "111111111111111111111111"
-        , "000000000000000000000000"
-        , "101010101010101010101010"
-        , "010101010101010101010101"
-        ]
+    ([ "111111111111111111111111"
+     , "000000000000000000000000"
+     , "101010101010101010101010"
+     , "010101010101010101010101"
+     ]
+        |> List.map
+            (String.toList
+                >> List.Extra.cycle demoBinarySourceLength
+                >> String.fromList
+            )
+        |> List.map BinarySource.fromBitsString
         |> Maybe.Extra.values
     )
         ++ randomBinarySources seed
-        ++ (List.map BinarySource.fromBitsString
-                [ "111111111111000000000000"
-                , "000000000000111111111111"
-                , "000000111111000000111111"
-                , "111111000000111111000000"
-                ]
+        ++ ([ "111111111111000000000000"
+            , "000000000000111111111111"
+            , "000000111111000000111111"
+            , "111111000000111111000000"
+            ]
+                |> List.map
+                    (String.toList
+                        >> List.Extra.cycle demoBinarySourceLength
+                        >> String.fromList
+                    )
+                |> List.map BinarySource.fromBitsString
                 |> Maybe.Extra.values
            )
 
@@ -154,7 +169,7 @@ randomBinarySources masterSeed =
                 |> String.fromList
                 |> BinarySource.unsafeFromBitsString
     in
-    List.Extra.initialize 8 initFunc
+    List.Extra.initialize demoBinarySourceLength initFunc
 
 
 demoNymTemplates : Int -> List NymTemplate
@@ -168,7 +183,6 @@ genNymEntitiesAndPositions seed =
     let
         errorsAndTemplates =
             demoNymTemplates seed
-
     in
     errorsAndTemplates
         |> List.indexedMap
