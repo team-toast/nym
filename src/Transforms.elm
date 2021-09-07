@@ -159,133 +159,15 @@ structureTransforms =
     ]
 
 
-oldStuff =
-    [ \source template ->
-        -- define crown,temple,brow position
-        -- x first, independently
-        let
-            maxXValue =
-                0.3
-
-            minDescendAngle =
-                pi / 12
-
-            maxDescendAngle =
-                pi / 5
-
-            minVectorLength =
-                0.5
-
-            maxVectorLength =
-                0.7
-
-            createPoint : ( Float, Float, Float ) -> Vector3
-            createPoint ( x, yzAngle, yzLength ) =
-                Vector3
-                    x
-                    (sin yzAngle * yzLength)
-                    (cos yzAngle * yzLength)
-        in
-        source
-            |> BinarySource.consumeTriple
-                (BinarySource.consume3
-                    -- x value
-                    ( BinarySource.consumeUnsignedFloat 2 maxXValue
-                      -- angle in radians in YZ from 'up' relative to previous one
-                    , BinarySource.consumeFloatRange 2 minDescendAngle maxDescendAngle
-                      -- length
-                    , BinarySource.consumeFloatRange 2 minVectorLength maxVectorLength
-                    )
-                )
-            |> BinarySource.map
-                (\( crownVals, templeVals, browVals ) ->
-                    ( createPoint crownVals
-                    , createPoint
-                        (templeVals
-                            |> TupleHelpers.mapTuple3Middle
-                                ((+) (TupleHelpers.tuple3Middle crownVals))
-                        )
-                    , createPoint
-                        (browVals
-                            |> TupleHelpers.mapTuple3Middle
-                                ((+) (TupleHelpers.tuple3Middle crownVals))
-                            |> TupleHelpers.mapTuple3Middle
-                                ((+) (TupleHelpers.tuple3Middle templeVals))
-                        )
-                    )
-                )
-            |> tryApplyToTemplate
-                (\results ->
-                    case results of
-                        Ok ( crown, temple, brow ) ->
-                            { template
-                                | crown = Ok crown
-                                , innerTemple = Ok temple
-                                , innerBrow = Ok brow
-                            }
-
-                        Err err ->
-                            { template
-                                | crown = Err err
-                                , innerTemple = Err err
-                                , innerBrow = Err err
-                            }
-                )
-
-    -- , \source template ->
-    --     source
-    --         |> BinarySource.consumeVectorFromBounds 2
-    --             ( Vector3 0 0.4 0
-    --             , Vector3 0.5 0.7 0
-    --             )
-    --         |> tryApplyToTemplate
-    --             (\crownResult ->
-    --                 { template
-    --                     | crown = crownResult
-    --                 }
-    --             )
-    -- , \source template ->
-    --     source
-    --         |> BinarySource.consumeVectorFromBounds 2
-    --             ( Vector3 0.1 -0.1 0.1
-    --             , Vector3 0.2 -0.2 0.2
-    --             )
-    --         |> tryApplyToTemplate
-    --             (\templeResult ->
-    --                 { template
-    --                     | innerTemple =
-    --                         Result.map2
-    --                             Vector3.plus
-    --                             template.crown
-    --                             templeResult
-    --                 }
-    --             )
-    -- , \source template ->
-    --     source
-    --         |> BinarySource.consumeVectorFromBounds 2
-    --             ( Vector3 -0.1 -0.1 0
-    --             , Vector3 0.1 -0.2 0
-    --             )
-    --         |> tryApplyToTemplate
-    --             (\browResult ->
-    --                 { template
-    --                     | innerBrow =
-    --                         Result.map2
-    --                             Vector3.plus
-    --                             template.innerTemple
-    --                             browResult
-    --                 }
-    --             )
-    ]
-
-
 testColorTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
 testColorTransforms =
     [ \source template ->
         ( source
         , { template
             | crown = Ok Color.red
-            , forehead = Ok Color.green
+            , forehead = Ok Color.red
+            , noseBridge = Ok Color.green
+            , chin = Ok Color.white
           }
         )
     ]
