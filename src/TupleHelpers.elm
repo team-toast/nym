@@ -56,3 +56,23 @@ tuple3Middle ( a, b, c ) =
 tuple3Last : ( a, a, a ) -> a
 tuple3Last ( a, b, c ) =
     c
+
+
+mapTuple3 : (a -> b) -> ( a, a, a ) -> ( b, b, b )
+mapTuple3 f ( a, b, c ) =
+    ( f a, f b, f c )
+
+
+mapTuple3First : (a -> z) -> ( a, b, c ) -> ( z, b, c )
+mapTuple3First f ( a, b, c ) =
+    ( f a, b, c )
+
+
+mapTuple3Middle : (b -> z) -> ( a, b, c ) -> ( a, z, c )
+mapTuple3Middle f ( a, b, c ) =
+    ( a, f b, c )
+
+
+mapTuple3Last : (c -> z) -> ( a, b, c ) -> ( a, b, z )
+mapTuple3Last f ( a, b, c ) =
+    ( a, b, f c )
