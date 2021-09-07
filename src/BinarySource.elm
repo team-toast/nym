@@ -19,9 +19,7 @@ module BinarySource exposing
 import Color exposing (Color)
 import List.Extra
 import Maybe.Extra
-import Quantity
 import String
-import TupleHelpers
 import UInt64
 import UInt64.Digits as UInt64
 import Vector3 exposing (Vector3)
@@ -153,7 +151,7 @@ encodeBinaryString (BinaryChunk chunk) =
 
 consumeColorFromPallette : BinarySource -> Maybe ( BinarySource, Color )
 consumeColorFromPallette source =
-    consumeIntWithBits 5 source
+    consumeIntWithBits 5 source -- happily the list contains exactly 32 items, so 5 bits is perfect
         |> Maybe.map
             (Tuple.mapSecond
                 (\colorNum ->
