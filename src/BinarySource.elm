@@ -1,7 +1,24 @@
-module BinarySource exposing (BinaryChunk, BinarySource, consumeChunk, consumeColorFromPallette, consumeFloat0to1, consumeIntWithBits, consumeIntWithMax, consumeVectorDimNeg1to1, consumeVectorFromBounds, empty, fromBitsString, unsafeFromBitsString)
+module BinarySource exposing
+    ( BinaryChunk
+    , BinarySource
+    , consumeChunk
+    , consumeColorFromPallette
+    , consumeFloat0to1
+    , consumeIntWithBits
+    , consumeIntWithMax
+    , consumeSeveralValues
+    , consumeThreeSimilarValues
+    , consumeThreeValues
+    , consumeVectorDimNeg1to1
+    , consumeVectorFromBounds
+    , empty
+    , fromBitsString
+    , unsafeFromBitsString
+    )
 
 import Color exposing (Color)
 import List.Extra
+import Maybe.Extra
 import Quantity
 import String
 import TupleHelpers
@@ -163,6 +180,99 @@ consumeColorFromPallette source =
                     _ ->
                         Nothing
            )
+
+
+consumeThreeValues :
+    ( BinarySource -> Maybe ( BinarySource, a )
+    , BinarySource -> Maybe ( BinarySource, b )
+    , BinarySource -> Maybe ( BinarySource, c )
+    )
+    -> BinarySource
+    -> Maybe ( BinarySource, ( a, b, c ) )
+consumeThreeValues ( f1, f2, f3 ) source =
+    source
+        |> f1
+        |> Maybe.andThen
+            (\( s1, v1 ) ->
+                s1
+                    |> f2
+                    |> Maybe.andThen
+                        (\( s2, v2 ) ->
+                            s2
+                                |> f3
+                                |> Maybe.map
+                                    (\( s3, v3 ) ->
+                                        ( s3, ( v1, v2, v3 ) )
+                                    )
+                        )
+            )
+
+
+consumeThreeSimilarValues : (BinarySource -> Maybe ( BinarySource, a )) -> BinarySource -> Maybe ( BinarySource, ( a, a, a ) )
+consumeThreeSimilarValues f source =
+    consumeThreeValues ( f, f, f ) source
+
+
+consumeSeveralValues : Int -> (BinarySource -> Maybe ( BinarySource, valType )) -> BinarySource -> Maybe ( BinarySource, List valType )
+consumeSeveralValues count f source =
+    let
+        func : BinarySource -> () -> ( BinarySource, Maybe valType )
+        func s _ =
+            f s
+                |> Maybe.Extra.unwrap
+                    ( s, Nothing )
+                    (Tuple.mapSecond Just)
+
+        ( remainingSource, maybeListOfVals ) =
+            List.Extra.mapAccuml
+                func
+                source
+                (List.repeat count ())
+                |> Tuple.mapSecond Maybe.Extra.combine
+    in
+    maybeListOfVals
+        |> Maybe.map
+            (\vals ->
+                ( remainingSource, vals )
+            )
+
+
+
+-- consumeSeveralValues : BinarySource -> Int -> (BinarySource -> Maybe ( BinarySource, valType )) -> Maybe ( BinarySource, List valType )
+-- consumeSeveralValues source count f =
+--     List.range 0 count
+--         |> List.Extra.mapAccuml
+--             func
+--             source
+--     let
+--         trfunc : () -> Maybe ( BinarySource, List valType ) -> Maybe ( BinarySource, List valType )
+--         trfunc _ ( s, vals ) =
+--             if List.length vals >= count then
+--                 Nothing
+--             else
+--                 f s
+--                     |> Maybe.map
+--                         (\(newSource, newVal) ->
+--                         )
+--         func : ( BinarySource, Int ) -> Maybe ( valType, ( BinarySource, Int ) )
+--         func ( s, i ) =
+--             if i >= count then
+--                 Nothing
+--             else
+--                 f s
+--                     |> Maybe.map
+--                         (\( newSource, newVal ) ->
+--                             ( newVal, ( newSource, i + 1 ) )
+--                         )
+--         vals =
+--             List.Extra.unfoldr
+--                 func
+--                 ( source, 0 )
+--     in
+--     if List.length vals < count then
+--         Nothing
+--     else
+--         Just vals
 
 
 allColors =
