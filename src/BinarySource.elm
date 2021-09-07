@@ -1,7 +1,7 @@
 module BinarySource exposing
     ( BinaryChunk
-    , allColors
     , BinarySource
+    , allColors
     , consumeChunk
     , consumeColorFromPallette
     , consumeFloat0to1
@@ -9,10 +9,12 @@ module BinarySource exposing
     , consumeSeveralValues
     , consumeThreeSimilarValues
     , consumeThreeValues
+    , consumeUnsignedFloat
     , consumeVectorDimNeg1to1
     , consumeVectorFromBounds
     , empty
     , fromBitsString
+    , map
     , unsafeFromBitsString
     )
 
@@ -85,6 +87,12 @@ consumeFloat0to1 bits source =
             )
 
 
+consumeUnsignedFloat : Int -> Float -> BinarySource -> Maybe ( BinarySource, Float )
+consumeUnsignedFloat bits max =
+    consumeFloat0to1 bits
+        >> map ((*) max)
+
+
 consumeVectorDimNeg1to1 : Int -> BinarySource -> Maybe ( BinarySource, Vector3 )
 consumeVectorDimNeg1to1 bitsPerComponent source =
     consumeFloat0to1 bitsPerComponent source
@@ -151,7 +159,8 @@ encodeBinaryString (BinaryChunk chunk) =
 
 consumeColorFromPallette : BinarySource -> Maybe ( BinarySource, Color )
 consumeColorFromPallette source =
-    consumeIntWithBits 5 source -- happily the list contains exactly 32 items, so 5 bits is perfect
+    consumeIntWithBits 5 source
+        -- happily the list contains exactly 32 items, so 5 bits is perfect
         |> Maybe.map
             (Tuple.mapSecond
                 (\colorNum ->
@@ -221,6 +230,12 @@ consumeSeveralValues count f source =
             (\vals ->
                 ( remainingSource, vals )
             )
+
+
+map : (a -> b) -> Maybe ( BinarySource, a ) -> Maybe ( BinarySource, b )
+map f maybeSourceAndVal =
+    maybeSourceAndVal
+        |> Maybe.map (Tuple.mapSecond f)
 
 
 
