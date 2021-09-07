@@ -9,10 +9,10 @@ module BinarySource exposing
     , consumeFloatRange
     , consumeIntWithBits
     , consumeSeveralValues
-    , consumeThreeSimilarValues
-    , consumeThreeValues
-    , consumeTwoSimilarValues
-    , consumeTwoValues
+    , consumeTriple
+    , consume3
+    , consumeDouble
+    , consume2
     , consumeUnsignedFloat
     , consumeVectorDimNeg1to1
     , consumeVectorFromBounds
@@ -190,14 +190,14 @@ consumeColorFromPallette source =
            )
 
 
-consumeThreeValues :
+consume3 :
     ( BinarySource -> Maybe ( BinarySource, a )
     , BinarySource -> Maybe ( BinarySource, b )
     , BinarySource -> Maybe ( BinarySource, c )
     )
     -> BinarySource
     -> Maybe ( BinarySource, ( a, b, c ) )
-consumeThreeValues ( f1, f2, f3 ) source =
+consume3 ( f1, f2, f3 ) source =
     source
         |> f1
         |> Maybe.andThen
@@ -216,18 +216,18 @@ consumeThreeValues ( f1, f2, f3 ) source =
             )
 
 
-consumeThreeSimilarValues : (BinarySource -> Maybe ( BinarySource, a )) -> BinarySource -> Maybe ( BinarySource, ( a, a, a ) )
-consumeThreeSimilarValues f source =
-    consumeThreeValues ( f, f, f ) source
+consumeTriple : (BinarySource -> Maybe ( BinarySource, a )) -> BinarySource -> Maybe ( BinarySource, ( a, a, a ) )
+consumeTriple f source =
+    consume3 ( f, f, f ) source
 
 
-consumeTwoValues :
+consume2 :
     ( BinarySource -> Maybe ( BinarySource, a )
     , BinarySource -> Maybe ( BinarySource, b )
     )
     -> BinarySource
     -> Maybe ( BinarySource, ( a, b ) )
-consumeTwoValues ( f1, f2 ) source =
+consume2 ( f1, f2 ) source =
     source
         |> f1
         |> Maybe.andThen
@@ -241,9 +241,9 @@ consumeTwoValues ( f1, f2 ) source =
             )
 
 
-consumeTwoSimilarValues : (BinarySource -> Maybe ( BinarySource, a )) -> BinarySource -> Maybe ( BinarySource, ( a, a ) )
-consumeTwoSimilarValues f source =
-    consumeTwoValues ( f, f ) source
+consumeDouble : (BinarySource -> Maybe ( BinarySource, a )) -> BinarySource -> Maybe ( BinarySource, ( a, a ) )
+consumeDouble f source =
+    consume2 ( f, f ) source
 
 
 consumeSeveralValues : Int -> (BinarySource -> Maybe ( BinarySource, valType )) -> BinarySource -> Maybe ( BinarySource, List valType )

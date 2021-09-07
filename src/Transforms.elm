@@ -18,11 +18,12 @@ structureTransforms : List (BinarySource -> StructureTemplate -> ( BinarySource,
 structureTransforms =
     [ \source template ->
         source
-            |> BinarySource.consumeTwoSimilarValues
+            -- x values of crown and innerTemple
+            |> BinarySource.consumeDouble
                 (BinarySource.consumeFloatRange 2 0.1 0.5)
             |> BinarySource.andThenConsume
-                (BinarySource.consumeTwoValues
-                    --YZ angle from crown to forehead, 0 = forward
+                (BinarySource.consume2
+                    -- crown angle
                     ( BinarySource.consumeFloatRange 2 -(pi / 8) (pi / 8)
                       -- length of line from crown to forehead
                     , BinarySource.consumeFloatRange 2 0.1 0.4
@@ -56,6 +57,105 @@ structureTransforms =
                         }
                     )
                 )
+    , \source template ->
+        source
+            |> BinarySource.consume3
+                -- x for brow point
+                ( BinarySource.consumeFloatRange 2 0.1 0.3
+                  -- forehead angle
+                , BinarySource.consumeFloatRange 2 -(pi / 4) -(pi / 2)
+                  -- forehead length
+                , BinarySource.consumeFloatRange 2 0.1 0.4
+                )
+            |> tryApplyToTemplate
+                (\valsResult ->
+                    { template
+                        | innerBrow =
+                            Result.map2
+                                (\innerTemple ( x, angle, length ) ->
+                                    Vector3
+                                        x
+                                        (sin angle * length + innerTemple.y)
+                                        (cos angle * length + innerTemple.z)
+                                )
+                                template.innerTemple
+                                valsResult
+                    }
+                )
+    , \source template ->
+        source
+            |> BinarySource.consume3
+                -- noseMid
+                ( BinarySource.consume3
+                    -- x
+                    ( BinarySource.consumeFloatRange 2 0.04 0.2
+                      -- ZY angle
+                    , BinarySource.consumeFloatRange 2 0 -(pi / 4)
+                      -- distance from origin
+                    , BinarySource.consumeFloatRange 3 0.5 1
+                    )
+                  -- noseTop
+                , BinarySource.consume2
+                    -- x
+                    ( BinarySource.consumeFloatRange 2 0.04 0.2
+                      -- relative y
+                    , BinarySource.consumeFloatRange 2 0.06 0.15
+                    )
+                  -- noseBottom
+                , BinarySource.consume3
+                    -- x
+                    ( BinarySource.consumeFloatRange 2 0.04 0.2
+                      -- relative y
+                    , BinarySource.consumeFloatRange 1 -0.1 -0.2
+                      -- relative z
+                    , BinarySource.consumeFloatRange 2 -0.05 -0.2
+                    )
+                )
+            |> BinarySource.map
+                (\( ( midX, angle, length ), ( topX, topYRel ), ( bottomX, bottomYRel, bottomZRel ) ) ->
+                    let
+                        noseMid =
+                            Vector3
+                                midX
+                                (sin angle * length)
+                                (cos angle * length)
+
+                        noseTop =
+                            Vector3
+                                topX
+                                (topYRel + noseMid.y)
+                                noseMid.z
+
+                        noseBottom =
+                            Vector3
+                                bottomX
+                                (bottomYRel + noseMid.y)
+                                (bottomZRel + noseMid.z)
+                    in
+                    ( noseTop
+                    , noseMid
+                    , noseBottom
+                    )
+                )
+            |> tryApplyToTemplate
+                (\nosePointsResult ->
+                    { template
+                        | noseTop = nosePointsResult |> Result.map TupleHelpers.tuple3First
+                        , noseMid = nosePointsResult |> Result.map TupleHelpers.tuple3Middle
+                        , noseBottom = nosePointsResult |> Result.map TupleHelpers.tuple3Last
+                    }
+                )
+    , \source template ->
+        -- outerBottomSnout
+        source
+            |> BinarySource.consumeVectorFromBounds 2
+                ( Vector3 0.2 -0.5 0
+                , Vector3 0.7 -1 0.5
+                )
+            |> tryApplyToTemplate
+                (\outerBottomSnoutResult ->
+                    { template | outerBottomSnout = outerBottomSnoutResult }
+                )
     ]
 
 
@@ -87,8 +187,8 @@ oldStuff =
                     (cos yzAngle * yzLength)
         in
         source
-            |> BinarySource.consumeThreeSimilarValues
-                (BinarySource.consumeThreeValues
+            |> BinarySource.consumeTriple
+                (BinarySource.consume3
                     -- x value
                     ( BinarySource.consumeUnsignedFloat 2 maxXValue
                       -- angle in radians in YZ from 'up' relative to previous one

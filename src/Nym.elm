@@ -52,25 +52,18 @@ makeNymEntity nymTemplate =
 
         noseBridge : Scene3d.Entity ()
         noseBridge =
-            Result.map3
-                (\innerBrow noseBridgePoint noseTop ->
+            Result.map2
+                (\innerBrow noseTop ->
                     Scene3d.group
                         [ meterQuad
                             (defaultAndLogColorError "noseBridge" nymTemplate.coloring.noseBridge)
                             innerBrow
-                            noseBridgePoint
-                            (noseBridgePoint |> mirrorPoint)
-                            (innerBrow |> mirrorPoint)
-                        , meterQuad
-                            (defaultAndLogColorError "noseBridge" nymTemplate.coloring.noseBridge)
-                            noseBridgePoint
                             noseTop
                             (noseTop |> mirrorPoint)
-                            (noseBridgePoint |> mirrorPoint)
+                            (innerBrow |> mirrorPoint)
                         ]
                 )
                 nymTemplate.structure.innerBrow
-                nymTemplate.structure.noseBridge
                 nymTemplate.structure.noseTop
                 |> defaultAndLogEntityError "noseBridge"
 
