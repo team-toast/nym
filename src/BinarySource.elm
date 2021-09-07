@@ -1,11 +1,11 @@
 module BinarySource exposing
     ( BinaryChunk
+    , allColors
     , BinarySource
     , consumeChunk
     , consumeColorFromPallette
     , consumeFloat0to1
     , consumeIntWithBits
-    , consumeIntWithMax
     , consumeSeveralValues
     , consumeThreeSimilarValues
     , consumeThreeValues
@@ -72,18 +72,6 @@ consumeIntWithBits bits source =
     source
         |> consumeChunk bits
         |> Maybe.map (Tuple.mapSecond chunkToInt32)
-
-
-consumeIntWithMax : Int -> BinarySource -> Maybe ( BinarySource, Int )
-consumeIntWithMax max source =
-    let
-        bitsNeeded =
-            max
-                |> toFloat
-                |> (logBase 2 >> (+) 1)
-                |> floor
-    in
-    consumeIntWithBits bitsNeeded source
 
 
 consumeFloat0to1 : Int -> BinarySource -> Maybe ( BinarySource, Float )
@@ -165,7 +153,7 @@ encodeBinaryString (BinaryChunk chunk) =
 
 consumeColorFromPallette : BinarySource -> Maybe ( BinarySource, Color )
 consumeColorFromPallette source =
-    consumeIntWithMax (List.length allColors - 1) source
+    consumeIntWithBits 5 source
         |> Maybe.map
             (Tuple.mapSecond
                 (\colorNum ->
