@@ -2,6 +2,7 @@ module BinarySource exposing
     ( BinaryChunk
     , BinarySource
     , allColors
+    , andThenConsume
     , consumeChunk
     , consumeColorFromPallette
     , consumeFloat0to1
@@ -10,6 +11,8 @@ module BinarySource exposing
     , consumeSeveralValues
     , consumeThreeSimilarValues
     , consumeThreeValues
+    , consumeTwoSimilarValues
+    , consumeTwoValues
     , consumeUnsignedFloat
     , consumeVectorDimNeg1to1
     , consumeVectorFromBounds
@@ -218,6 +221,31 @@ consumeThreeSimilarValues f source =
     consumeThreeValues ( f, f, f ) source
 
 
+consumeTwoValues :
+    ( BinarySource -> Maybe ( BinarySource, a )
+    , BinarySource -> Maybe ( BinarySource, b )
+    )
+    -> BinarySource
+    -> Maybe ( BinarySource, ( a, b ) )
+consumeTwoValues ( f1, f2 ) source =
+    source
+        |> f1
+        |> Maybe.andThen
+            (\( s1, v1 ) ->
+                s1
+                    |> f2
+                    |> Maybe.map
+                        (\( s2, v2 ) ->
+                            ( s2, ( v1, v2 ) )
+                        )
+            )
+
+
+consumeTwoSimilarValues : (BinarySource -> Maybe ( BinarySource, a )) -> BinarySource -> Maybe ( BinarySource, ( a, a ) )
+consumeTwoSimilarValues f source =
+    consumeTwoValues ( f, f ) source
+
+
 consumeSeveralValues : Int -> (BinarySource -> Maybe ( BinarySource, valType )) -> BinarySource -> Maybe ( BinarySource, List valType )
 consumeSeveralValues count f source =
     let
@@ -246,6 +274,19 @@ map : (a -> b) -> Maybe ( BinarySource, a ) -> Maybe ( BinarySource, b )
 map f maybeSourceAndVal =
     maybeSourceAndVal
         |> Maybe.map (Tuple.mapSecond f)
+
+
+andThenConsume : (BinarySource -> Maybe ( BinarySource, b )) -> (a -> b -> c) -> Maybe ( BinarySource, a ) -> Maybe ( BinarySource, c )
+andThenConsume consumeFunc mapFunc maybeSourceAndVal =
+    maybeSourceAndVal
+        |> Maybe.andThen
+            (\( source1, aVal ) ->
+                consumeFunc source1
+                    |> Maybe.map
+                        (\( source2, bVal ) ->
+                            ( source2, mapFunc aVal bVal )
+                        )
+            )
 
 
 
