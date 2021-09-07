@@ -5,6 +5,7 @@ module BinarySource exposing
     , consumeChunk
     , consumeColorFromPallette
     , consumeFloat0to1
+    , consumeFloatRange
     , consumeIntWithBits
     , consumeSeveralValues
     , consumeThreeSimilarValues
@@ -91,6 +92,15 @@ consumeUnsignedFloat : Int -> Float -> BinarySource -> Maybe ( BinarySource, Flo
 consumeUnsignedFloat bits max =
     consumeFloat0to1 bits
         >> map ((*) max)
+
+
+consumeFloatRange : Int -> Float -> Float -> BinarySource -> Maybe ( BinarySource, Float )
+consumeFloatRange bits min max =
+    consumeFloat0to1 bits
+        >> map
+            (\uFloat ->
+                uFloat * (max - min) + min
+            )
 
 
 consumeVectorDimNeg1to1 : Int -> BinarySource -> Maybe ( BinarySource, Vector3 )
