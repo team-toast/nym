@@ -15,7 +15,7 @@ import Vector3d
 
 blankColoringTemplate : ColoringTemplate
 blankColoringTemplate =
-    ColoringTemplate (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet)
+    ColoringTemplate (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet)
 
 
 blankStructureTemplate : StructureTemplate
@@ -49,10 +49,13 @@ coloringTemplateFinalizer ( errors, coloringTemplate ) =
     case
         ( ( coloringTemplate.eyequad, coloringTemplate.noseBridge, coloringTemplate.noseSide )
         , ( coloringTemplate.forehead, coloringTemplate.crown, coloringTemplate.temple )
-        , ( coloringTemplate.earFront, coloringTemplate.earBack, ( coloringTemplate.cheek, coloringTemplate.cheekSpot, coloringTemplate.chin ) )
+        , ( ( coloringTemplate.earFront, coloringTemplate.earBack )
+          , ( coloringTemplate.cheekSpot, coloringTemplate.chin )
+          , ( coloringTemplate.cheek1, coloringTemplate.cheek2, coloringTemplate.cheek3 )
+          )
         )
     of
-        ( ( Ok eyequad, Ok noseBridge, Ok noseSide ), ( Ok forehead, Ok crown, Ok temple ), ( Ok earFront, Ok earBack, ( Ok cheek, Ok cheekSpot, Ok chin ) ) ) ->
+        ( ( Ok eyequad, Ok noseBridge, Ok noseSide ), ( Ok forehead, Ok crown, Ok temple ), ( (Ok earFront, Ok earBack), ( Ok cheekSpot, Ok chin ), (Ok cheek1, Ok cheek2, Ok cheek3) ) ) ->
             Ok
                 { eyequad = eyequad
                 , noseBridge = noseBridge
@@ -62,12 +65,14 @@ coloringTemplateFinalizer ( errors, coloringTemplate ) =
                 , temple = temple
                 , earFront = earFront
                 , earBack = earBack
-                , cheek = cheek
+                , cheek1 = cheek1
+                , cheek2 = cheek2
+                , cheek3 = cheek3
                 , cheekSpot = cheekSpot
                 , chin = chin
                 }
 
-        ( ( eyequadResult, noseBridgeResult, noseSideResult ), ( foreheadResult, crownResult, templeResult ), ( earFrontResult, earBackResult, ( cheekResult, cheekSpotResult, chinResult ) ) ) ->
+        ( ( eyequadResult, noseBridgeResult, noseSideResult ), ( foreheadResult, crownResult, templeResult ), ( (earFrontResult, earBackResult), ( cheekSpotResult, chinResult ), (cheek1Result, cheek2Result, cheek3Result) ) ) ->
             Err
                 ([ eyequadResult
                  , noseBridgeResult
@@ -77,7 +82,9 @@ coloringTemplateFinalizer ( errors, coloringTemplate ) =
                  , templeResult
                  , earFrontResult
                  , earBackResult
-                 , cheekResult
+                 , cheek1Result
+                 , cheek2Result
+                 , cheek3Result
                  , cheekSpotResult
                  , chinResult
                  ]
@@ -166,5 +173,3 @@ consumeStructureToTemplate fullSource =
 consumeEyeToTemplate : BinarySource -> ( BinarySource, EyeTemplate )
 consumeEyeToTemplate source =
     ( source, blankEyeTemplate )
-
-

@@ -6,6 +6,7 @@ import BinarySource exposing (BinarySource)
 import Browser
 import Browser.Events
 import Camera3d
+import Color
 import Direction3d
 import Element exposing (Element)
 import Element.Background as Background
@@ -25,6 +26,7 @@ import Point3d
 import Random
 import Scene3d
 import Types exposing (..)
+import Vector3 exposing (Vector3)
 import Vector3d
 import Viewpoint3d
 
@@ -32,6 +34,7 @@ import Viewpoint3d
 type Msg
     = MouseMove Mouse.MoveData
     | NewSeed Int
+    | ToggleDefaultErrors
 
 
 type alias MouseInput =
@@ -43,12 +46,16 @@ type alias MouseInput =
 type alias Model =
     { mouseInput : MouseInput
     , nymEntitiesAndPositions : List ( Scene3d.Entity (), Point3dM )
+    , seed : Int
+    , defaultErrors : Bool
     }
 
 
 initModel =
     { mouseInput = MouseInput 0 0
-    , nymEntitiesAndPositions = genNymEntitiesAndPositions 0
+    , nymEntitiesAndPositions = genNymEntitiesAndPositions 0 False
+    , seed = 0
+    , defaultErrors = False
     }
 
 
@@ -79,14 +86,24 @@ update msg model =
             , Cmd.none
             )
 
-        NewSeed seed ->
+        NewSeed newSeed ->
             let
                 _ =
-                    Debug.log "new seed" seed
+                    Debug.log "new seed" newSeed
             in
             ( { model
-                | nymEntitiesAndPositions =
-                    genNymEntitiesAndPositions seed
+                | seed = newSeed
+                , nymEntitiesAndPositions =
+                    genNymEntitiesAndPositions newSeed model.defaultErrors
+              }
+            , Cmd.none
+            )
+
+        ToggleDefaultErrors ->
+            ( { model
+                | defaultErrors = not model.defaultErrors
+                , nymEntitiesAndPositions =
+                    genNymEntitiesAndPositions model.seed (not model.defaultErrors)
               }
             , Cmd.none
             )
@@ -167,17 +184,17 @@ randomBinarySources masterSeed =
     List.Extra.initialize 8 initFunc
 
 
-demoNymTemplates : Int -> List NymTemplate
-demoNymTemplates seed =
+demoNymTemplates : Int -> Bool -> List NymTemplate
+demoNymTemplates seed defaultErrors =
     demoNymSources seed
-        |> List.map binarySourceToNym
+        |> List.map (binarySourceToNym defaultErrors)
 
 
-genNymEntitiesAndPositions : Int -> List ( Scene3d.Entity (), Point3dM )
-genNymEntitiesAndPositions seed =
+genNymEntitiesAndPositions : Int -> Bool -> List ( Scene3d.Entity (), Point3dM )
+genNymEntitiesAndPositions seed defaultErrors =
     let
         errorsAndTemplates =
-            demoNymTemplates seed
+            demoNymTemplates seed defaultErrors
     in
     errorsAndTemplates
         |> List.indexedMap
@@ -290,7 +307,14 @@ rotateNyms mouseInput entitiesAndPositions =
 subscriptions : Model -> Sub.Sub Msg
 subscriptions _ =
     Browser.Events.onKeyDown keyDecoder
-        |> Sub.map NewSeed
+        |> Sub.map
+            (\keyInt ->
+                if keyInt == 32 then
+                    ToggleDefaultErrors
+
+                else
+                    NewSeed keyInt
+            )
 
 
 keyDecoder : Decode.Decoder Int

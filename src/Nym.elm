@@ -20,6 +20,7 @@ import Scene3dHelpers exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Triangle3d exposing (Triangle3d)
+import TupleHelpers
 import Types exposing (..)
 import Utils exposing (..)
 import Vector3 exposing (Vector3)
@@ -38,7 +39,14 @@ makeNymEntity nymTemplate =
                 ]
 
         testEntity =
-            Scene3d.nothing
+            -- Scene3d.nothing
+            Scene3d.point
+                { radius = Pixels.pixels 10}
+                (Material.color Color.black)
+                (nymTemplate.structure.outerBrow
+                    |> Result.withDefault Vector3.zero
+                    |> Vector3.toMetersPoint
+                )
 
         centerFeatures : Scene3d.Entity ()
         centerFeatures =
@@ -52,19 +60,26 @@ makeNymEntity nymTemplate =
 
         noseBridge : Scene3d.Entity ()
         noseBridge =
-            Result.map2
-                (\innerBrow noseTop ->
+            Result.map3
+                (\innerBrow noseTop noseBridgePoint ->
                     Scene3d.group
                         [ meterQuad
                             (defaultAndLogColorError "noseBridge" nymTemplate.coloring.noseBridge)
                             innerBrow
+                            noseBridgePoint
+                            (noseBridgePoint |> mirrorPoint)
+                            (innerBrow |> mirrorPoint)
+                        , meterQuad
+                            (defaultAndLogColorError "noseBridge" nymTemplate.coloring.noseBridge)
+                            noseBridgePoint
                             noseTop
                             (noseTop |> mirrorPoint)
-                            (innerBrow |> mirrorPoint)
+                            (noseBridgePoint |> mirrorPoint)
                         ]
                 )
                 nymTemplate.structure.innerBrow
                 nymTemplate.structure.noseTop
+                nymTemplate.structure.noseBridge
                 |> defaultAndLogEntityError "noseBridge"
 
         crown : Scene3d.Entity ()
@@ -164,137 +179,215 @@ makeNymEntity nymTemplate =
                 |> mirrorGroup
 
         eyeSquare =
-            Scene3d.nothing
+            Result.map4
+                (\innerBrow outerBrow eyecheek eyenose ->
+                    meterQuad
+                        (defaultAndLogColorError "eyequad" nymTemplate.coloring.eyequad)
+                        innerBrow
+                        outerBrow
+                        eyecheek
+                        eyenose
+                )
+                nymTemplate.structure.innerBrow
+                nymTemplate.structure.outerBrow
+                nymTemplate.structure.eyecheek
+                nymTemplate.structure.eyenose
+                |> defaultAndLogEntityError "eyeSquare"
 
-        -- Scene3d.quad
-        --     (Material.color nymTemplate.coloring.eyequad)
-        --     nymTemplate.structure.innerBrow
-        --     nymTemplate.structure.outerBrow
-        --     nymTemplate.structure.eyecheek
-        --     nymTemplate.structure.eyenose
         eyePoint : Scene3d.Entity ()
         eyePoint =
-            Scene3d.nothing
+            Result.map
+                (\eye ->
+                    Scene3d.point
+                        { radius = Pixels.pixels 3 }
+                        (Material.color Color.black)
+                        (eye |> Vector3.toMetersPoint)
+                )
+                nymTemplate.eye
+                |> defaultAndLogEntityError "eyePoint"
 
-        -- Scene3d.point
-        --     { radius = Pixels.pixels 3 }
-        --     (Material.color Color.black)
-        --     nymTemplate.eye
         noseSide : Scene3d.Entity ()
         noseSide =
-            Scene3d.nothing
+            Result.map3
+                (\( innerBrow, noseBridgePoint ) ( eyenose, noseTop ) ( outerTopSnout, outerBottomSnout ) ->
+                    Scene3d.group <|
+                        List.map
+                            (Scene3d.triangle
+                                (defaultAndLogColorError "noseside" nymTemplate.coloring.noseSide)
+                                << Triangle3d.fromVertices
+                                << TupleHelpers.mapTuple3 Vector3.toMetersPoint
+                            )
+                            [ ( innerBrow
+                              , noseBridgePoint
+                              , eyenose
+                              )
+                            , ( noseBridgePoint
+                              , noseTop
+                              , eyenose
+                              )
+                            , ( outerTopSnout
+                              , noseTop
+                              , outerBottomSnout
+                              )
+                            ]
+                )
+                (Result.Extra.combineBoth ( nymTemplate.structure.innerBrow, nymTemplate.structure.noseBridge ))
+                (Result.Extra.combineBoth ( nymTemplate.structure.eyenose, nymTemplate.structure.noseTop ))
+                (Result.Extra.combineBoth ( nymTemplate.structure.outerTopSnout, nymTemplate.structure.outerBottomSnout ))
+                |> defaultAndLogEntityError "noseSide"
 
-        -- Scene3d.group <|
-        --     List.map
-        --         (Scene3d.triangle
-        --             (Material.color nymTemplate.coloring.noseSide)
-        --             << Triangle3d.fromVertices
-        --         )
-        --         [ ( nymTemplate.structure.innerBrow
-        --           , nymTemplate.structure.noseBridge
-        --           , nymTemplate.structure.eyenose
-        --           )
-        --         , ( nymTemplate.structure.noseBridge
-        --           , nymTemplate.structure.noseTop
-        --           , nymTemplate.structure.eyenose
-        --           )
-        --         , ( nymTemplate.structure.outerTopSnout
-        --           , nymTemplate.structure.noseTop
-        --           , nymTemplate.structure.outerBottomSnout
-        --           )
-        --         ]
         lowerSnout : Scene3d.Entity ()
         lowerSnout =
-            Scene3d.nothing
+            Result.map4
+                (\outerBottomSnout noseBottom noseMid noseTop ->
+                    meterQuad
+                        (defaultAndLogColorError "lowerSnout" nymTemplate.coloring.chin)
+                        outerBottomSnout
+                        noseBottom
+                        noseMid
+                        noseTop
+                )
+                nymTemplate.structure.outerBottomSnout
+                nymTemplate.structure.noseBottom
+                nymTemplate.structure.noseMid
+                nymTemplate.structure.noseTop
+                |> defaultAndLogEntityError "lowerSnout"
 
-        -- Scene3d.quad
-        --     (Material.color nymTemplate.coloring.chin)
-        --     nymTemplate.structure.outerBottomSnout
-        --     nymTemplate.structure.noseBottom
-        --     nymTemplate.structure.noseMid
-        --     nymTemplate.structure.noseTop
         temple : Scene3d.Entity ()
         temple =
-            Scene3d.nothing
+            Result.map4
+                (\outerTemple outerBrow innerBrow innerTemple ->
+                    meterQuad
+                        (defaultAndLogColorError "temple" nymTemplate.coloring.temple)
+                        outerTemple
+                        outerBrow
+                        innerBrow
+                        innerTemple
+                )
+                nymTemplate.structure.outerTemple
+                nymTemplate.structure.outerBrow
+                nymTemplate.structure.innerBrow
+                nymTemplate.structure.innerTemple
+                |> defaultAndLogEntityError "temple"
 
-        -- Scene3d.quad
-        --     (Material.color nymTemplate.coloring.temple)
-        --     nymTemplate.structure.outerTemple
-        --     nymTemplate.structure.outerBrow
-        --     nymTemplate.structure.innerBrow
-        --     nymTemplate.structure.innerTemple
         ear : Scene3d.Entity ()
         ear =
-            Scene3d.nothing
+            Result.map5
+                (\outerTemple innerTemple earTip highCheek crownPoint ->
+                    Scene3d.group
+                        [ meterQuad
+                            (defaultAndLogColorError "earFront" nymTemplate.coloring.earFront)
+                            outerTemple
+                            innerTemple
+                            earTip
+                            highCheek
+                        , meterQuad
+                            (defaultAndLogColorError "earBack" nymTemplate.coloring.earBack)
+                            crownPoint
+                            innerTemple
+                            earTip
+                            highCheek
+                        ]
+                )
+                nymTemplate.structure.outerTemple
+                nymTemplate.structure.innerTemple
+                nymTemplate.structure.earTip
+                nymTemplate.structure.highCheek
+                nymTemplate.structure.crown
+                |> defaultAndLogEntityError "ear"
 
-        -- Scene3d.group
-        --     [ Scene3d.quad
-        --         (Material.color nymTemplate.coloring.earFront)
-        --         nymTemplate.structure.outerTemple
-        --         nymTemplate.structure.innerTemple
-        --         nymTemplate.structure.earTip
-        --         nymTemplate.structure.highCheek
-        --     , Scene3d.quad
-        --         (Material.color nymTemplate.coloring.earBack)
-        --         nymTemplate.structure.crown
-        --         nymTemplate.structure.innerTemple
-        --         nymTemplate.structure.earTip
-        --         nymTemplate.structure.highCheek
-        --     ]
         cheek : Scene3d.Entity ()
         cheek =
-            Scene3d.nothing
-
-        -- Scene3d.group <|
-        --     List.map
-        --         (Scene3d.triangle
-        --             (Material.color nymTemplate.coloring.cheek)
-        --             << Triangle3d.fromVertices
-        --         )
-        --         [ ( nymTemplate.structure.outerTemple
-        --           , nymTemplate.structure.highCheek
-        --           , nymTemplate.structure.outerBrow
-        --           )
-        --         , ( nymTemplate.structure.outerBrow
-        --           , nymTemplate.structure.highCheek
-        --           , nymTemplate.structure.midCheek
-        --           )
-        --         , ( nymTemplate.structure.outerBrow
-        --           , nymTemplate.structure.midCheek
-        --           , nymTemplate.structure.cheekbone
-        --           )
-        --         , ( nymTemplate.structure.outerBrow
-        --           , nymTemplate.structure.cheekbone
-        --           , nymTemplate.structure.outerTopSnout
-        --           )
-        --         , ( nymTemplate.structure.outerBrow
-        --           , nymTemplate.structure.outerTopSnout
-        --           , nymTemplate.structure.eyecheek
-        --           )
-        --         , ( nymTemplate.structure.eyecheek
-        --           , nymTemplate.structure.eyenose
-        --           , nymTemplate.structure.outerTopSnout
-        --           )
-        --         , ( nymTemplate.structure.eyenose
-        --           , nymTemplate.structure.noseTop
-        --           , nymTemplate.structure.outerTopSnout
-        --           )
-        --         ]
-        --         ++ [ Scene3d.quad
-        --                 (Material.color nymTemplate.coloring.cheek)
-        --                 nymTemplate.structure.midCheek
-        --                 nymTemplate.structure.lowCheek
-        --                 nymTemplate.structure.outerBottomSnout
-        --                 nymTemplate.structure.cheekbone
-        --            , Scene3d.triangle
-        --                 (Material.color nymTemplate.coloring.cheekSpot)
-        --              <|
-        --                 Triangle3d.fromVertices
-        --                     ( nymTemplate.structure.cheekbone
-        --                     , nymTemplate.structure.outerBottomSnout
-        --                     , nymTemplate.structure.outerTopSnout
-        --                     )
-        --            ]
+            Scene3d.group <|
+                [ Result.map5
+                    (\outerTemple highCheek outerBrow midCheek cheekbone ->
+                        Scene3d.group <|
+                            List.map
+                                (Scene3d.triangle
+                                    (defaultAndLogColorError "cheek1" nymTemplate.coloring.cheek1)
+                                    << Triangle3d.fromVertices
+                                    << TupleHelpers.mapTuple3 Vector3.toMetersPoint
+                                )
+                                [ ( outerTemple
+                                  , highCheek
+                                  , outerBrow
+                                  )
+                                , ( outerBrow
+                                  , highCheek
+                                  , midCheek
+                                  )
+                                , ( outerBrow
+                                  , midCheek
+                                  , cheekbone
+                                  )
+                                ]
+                    )
+                    nymTemplate.structure.outerTemple
+                    nymTemplate.structure.highCheek
+                    nymTemplate.structure.outerBrow
+                    nymTemplate.structure.midCheek
+                    nymTemplate.structure.cheekbone
+                    |> defaultAndLogEntityError "cheek1"
+                , Result.map5
+                    (\outerBrow cheekbone outerTopSnout eyecheek ( eyenose, noseTop ) ->
+                        Scene3d.group <|
+                            List.map
+                                (Scene3d.triangle
+                                    (defaultAndLogColorError "cheek2" nymTemplate.coloring.cheek2)
+                                    << Triangle3d.fromVertices
+                                    << TupleHelpers.mapTuple3 Vector3.toMetersPoint
+                                )
+                                [ ( outerBrow
+                                  , cheekbone
+                                  , outerTopSnout
+                                  )
+                                , ( outerBrow
+                                  , outerTopSnout
+                                  , eyecheek
+                                  )
+                                , ( eyecheek
+                                  , eyenose
+                                  , outerTopSnout
+                                  )
+                                , ( eyenose
+                                  , noseTop
+                                  , outerTopSnout
+                                  )
+                                ]
+                    )
+                    nymTemplate.structure.outerBrow
+                    nymTemplate.structure.cheekbone
+                    nymTemplate.structure.outerTopSnout
+                    nymTemplate.structure.eyecheek
+                    (Result.Extra.combineBoth ( nymTemplate.structure.eyenose, nymTemplate.structure.noseTop ))
+                    |> defaultAndLogEntityError "cheek2"
+                , Result.map5
+                    (\midCheek lowCheek outerBottomSnout cheekbone outerTopSnout ->
+                        Scene3d.group <|
+                            [ meterQuad
+                                (defaultAndLogColorError "cheek3" nymTemplate.coloring.cheek3)
+                                midCheek
+                                lowCheek
+                                outerBottomSnout
+                                cheekbone
+                            , (Scene3d.triangle
+                                (defaultAndLogColorError "cheekSpot" nymTemplate.coloring.cheekSpot)
+                                << Triangle3d.fromVertices
+                                << TupleHelpers.mapTuple3 Vector3.toMetersPoint
+                              )
+                                ( cheekbone
+                                , outerBottomSnout
+                                , outerTopSnout
+                                )
+                            ]
+                    )
+                    nymTemplate.structure.midCheek
+                    nymTemplate.structure.lowCheek
+                    nymTemplate.structure.outerBottomSnout
+                    nymTemplate.structure.cheekbone
+                    nymTemplate.structure.outerTopSnout
+                    |> defaultAndLogEntityError "cheek3"
+                ]
     in
     allFeatures
 
@@ -309,8 +402,8 @@ meterQuad material v1 v2 v3 v4 =
         (v4 |> Vector3.toMetersPoint)
 
 
-binarySourceToNym : BinarySource -> NymTemplate
-binarySourceToNym source =
+binarySourceToNym : Bool -> BinarySource -> NymTemplate
+binarySourceToNym defaultErrors source =
     let
         ( rSource1, structureTemplate ) =
             Generate.consumeStructureToTemplate source
@@ -325,6 +418,12 @@ binarySourceToNym source =
         structureTemplate
         eyeTemplate
         coloringTemplate
+        |> (if defaultErrors then
+                fillTemplateWithDefaults
+
+            else
+                identity
+           )
 
 
 defaultAndLogEntityError : String -> Result GenError (Scene3d.Entity ()) -> Scene3d.Entity ()
@@ -339,7 +438,7 @@ defaultAndLogEntityError name =
         )
 
 
-defaultAndLogColorError : String -> Result GenError Color -> Material.Textured ()
+defaultAndLogColorError : String -> Result GenError Color -> Material.Material coordinates attributes
 defaultAndLogColorError name =
     Result.Extra.unpack
         (\err ->
@@ -350,3 +449,54 @@ defaultAndLogColorError name =
             Material.color Color.black
         )
         Material.color
+
+
+fillTemplateWithDefaults : NymTemplate -> NymTemplate
+fillTemplateWithDefaults template =
+    { template
+        | coloring =
+            let
+                coloring =
+                    template.coloring
+            in
+            { coloring
+                | eyequad = template.coloring.eyequad |> Result.withDefault Color.darkOrange |> Ok
+                , noseBridge = template.coloring.noseBridge |> Result.withDefault Color.brown |> Ok
+                , noseSide = template.coloring.noseSide |> Result.withDefault Color.lightBrown |> Ok
+                , forehead = template.coloring.forehead |> Result.withDefault Color.orange |> Ok
+                , crown = template.coloring.crown |> Result.withDefault Color.lightOrange |> Ok
+                , temple = template.coloring.temple |> Result.withDefault Color.lightOrange |> Ok
+                , earFront = template.coloring.earFront |> Result.withDefault Color.black |> Ok
+                , earBack = template.coloring.earBack |> Result.withDefault Color.lightRed |> Ok
+                , cheek1 = template.coloring.cheek1 |> Result.withDefault Color.brown |> Ok
+                , cheek2 = template.coloring.cheek2 |> Result.withDefault Color.brown |> Ok
+                , cheek3 = template.coloring.cheek3 |> Result.withDefault Color.brown |> Ok
+                , cheekSpot = template.coloring.cheekSpot |> Result.withDefault Color.darkOrange |> Ok
+                , chin = template.coloring.chin |> Result.withDefault Color.white |> Ok
+            }
+        , structure =
+            let
+                structure =
+                    template.structure
+            in
+            { structure
+                | innerBrow = template.structure.innerBrow |> Result.withDefault (Vector3 0.1 0.2 0.3) |> Ok
+                , outerBrow = template.structure.outerBrow |> Result.withDefault (Vector3 0.5 0.15 0.4) |> Ok
+                , cheekbone = template.structure.cheekbone |> Result.withDefault (Vector3 0.5 -0.2 0.2) |> Ok
+                , eyecheek = template.structure.eyecheek |> Result.withDefault (Vector3 0.4 0 0.3) |> Ok
+                , eyenose = template.structure.eyenose |> Result.withDefault (Vector3 0.2 0 0.4) |> Ok
+                , noseTop = template.structure.noseTop |> Result.withDefault (Vector3 0.05 -0.4 1) |> Ok
+                , noseMid = template.structure.noseMid |> Result.withDefault (Vector3 0.05 -0.5 1) |> Ok
+                , noseBottom = template.structure.noseBottom |> Result.withDefault (Vector3 0.05 -0.55 0.9) |> Ok
+                , noseBridge = template.structure.noseBridge |> Result.withDefault (Vector3 0.15 0.08 0.45) |> Ok
+                , innerTemple = template.structure.innerTemple |> Result.withDefault (Vector3 0.13 0.4 0.3) |> Ok
+                , outerTemple = template.structure.outerTemple |> Result.withDefault (Vector3 0.4 0.4 0.2) |> Ok
+                , earTip = template.structure.earTip |> Result.withDefault (Vector3 0.4 0.8 0.2) |> Ok
+                , highCheek = template.structure.highCheek |> Result.withDefault (Vector3 0.6 0.5 0) |> Ok
+                , midCheek = template.structure.midCheek |> Result.withDefault (Vector3 0.7 0 0) |> Ok
+                , lowCheek = template.structure.lowCheek |> Result.withDefault (Vector3 0.7 -0.3 0) |> Ok
+                , outerTopSnout = template.structure.outerTopSnout |> Result.withDefault (Vector3 0.4 -0.2 0.3) |> Ok
+                , outerBottomSnout = template.structure.outerBottomSnout |> Result.withDefault (Vector3 0.4 -0.4 0.3) |> Ok
+                , crown = template.structure.crown |> Result.withDefault (Vector3 0.15 0.6 0) |> Ok
+            }
+    }

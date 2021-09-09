@@ -96,7 +96,9 @@ type alias Coloring =
     , temple : Color
     , earFront : Color
     , earBack : Color
-    , cheek : Color
+    , cheek1 : Color
+    , cheek2 : Color
+    , cheek3 : Color
     , cheekSpot : Color
     , chin : Color
     }
@@ -111,45 +113,44 @@ type alias ColoringTemplate =
     , temple : Result GenError Color
     , earFront : Result GenError Color
     , earBack : Result GenError Color
-    , cheek : Result GenError Color
+    , cheek1 : Result GenError Color
+    , cheek2 : Result GenError Color
+    , cheek3 : Result GenError Color
     , cheekSpot : Result GenError Color
     , chin : Result GenError Color
     }
 
 
+-- testColoring : Coloring
+-- testColoring =
+--     { eyequad = Color.darkOrange
+--     , noseBridge = Color.brown
+--     , noseSide = Color.lightBrown
+--     , forehead = Color.orange
+--     , crown = Color.lightOrange
+--     , temple = Color.lightOrange
+--     , earFront = Color.black
+--     , earBack = Color.lightRed
+--     , cheek = Color.brown
+--     , cheekSpot = Color.darkOrange
+--     , chin = Color.white
+--     }
 
 
-
-testColoring : Coloring
-testColoring =
-    { eyequad = Color.darkOrange
-    , noseBridge = Color.brown
-    , noseSide = Color.lightBrown
-    , forehead = Color.orange
-    , crown = Color.lightOrange
-    , temple = Color.lightOrange
-    , earFront = Color.black
-    , earBack = Color.lightRed
-    , cheek = Color.brown
-    , cheekSpot = Color.darkOrange
-    , chin = Color.white
-    }
-
-
-allBlackColoring : Coloring
-allBlackColoring =
-    { eyequad = Color.black
-    , noseBridge = Color.black
-    , noseSide = Color.black
-    , forehead = Color.black
-    , crown = Color.black
-    , temple = Color.black
-    , earFront = Color.black
-    , earBack = Color.black
-    , cheek = Color.black
-    , cheekSpot = Color.black
-    , chin = Color.black
-    }
+-- allBlackColoring : Coloring
+-- allBlackColoring =
+--     { eyequad = Color.black
+--     , noseBridge = Color.black
+--     , noseSide = Color.black
+--     , forehead = Color.black
+--     , crown = Color.black
+--     , temple = Color.black
+--     , earFront = Color.black
+--     , earBack = Color.black
+--     , cheek = Color.black
+--     , cheekSpot = Color.black
+--     , chin = Color.black
+--     }
 
 
 type alias EyeTemplate =
@@ -212,5 +213,3 @@ type alias TransformerGenResult templateType =
 
 type alias IndexedTransformGenerator templateType =
     BinarySource -> Int -> ( BinarySource, TransformerGenResult templateType )
-
-

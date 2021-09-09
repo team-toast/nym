@@ -17,6 +17,11 @@ type alias Vector3 =
     }
 
 
+zero : Vector3
+zero =
+    Vector3 0 0 0
+
+
 toMetersVector : Vector3 -> Vector3d Length.Meters ()
 toMetersVector v =
     Vector3d.unsafe v
