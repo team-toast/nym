@@ -111,7 +111,7 @@ update msg model =
 
 demoBinarySourceLength : Int
 demoBinarySourceLength =
-    100
+    256
 
 
 demoNymSources : Int -> List BinarySource
