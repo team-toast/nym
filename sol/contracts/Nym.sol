@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 struct OpenNymBid {
     uint nymData;
-    uint currentBid;
+    uint currentBidAmount;
     address payable currentBidHolder;
     uint bidCloseTime;
 }
@@ -88,7 +88,7 @@ contract Nyms is Ownable, ERC721, NymDataCycler {
 
             uint minBidRequired;
             if (alreadyHasBid) {
-                minBidRequired = offeredNym.currentBid.mul(MIN_OUTBID_MULTIPLIER_PERC).div(HUNDRED_PERC);
+                minBidRequired = offeredNym.currentBidAmount.mul(MIN_OUTBID_MULTIPLIER_PERC).div(HUNDRED_PERC);
             }
             else {
                 minBidRequired = 1 wei;
@@ -97,7 +97,7 @@ contract Nyms is Ownable, ERC721, NymDataCycler {
             require(msg.value >= minBidRequired, "You didn't include the minimum bid amount.");
 
             // try to refund previous bidder, ignore success
-            offeredNym.currentBidHolder.send(offeredNym.currentBid);
+            bool success = offeredNym.currentBidHolder.send(offeredNym.currentBidAmount);
             // whether it fails or not, send all remaining funds to Gulper or revert
             require(incomeTarget.send(address(this).balance), "Failed to capture funds!");
 
@@ -108,7 +108,7 @@ contract Nyms is Ownable, ERC721, NymDataCycler {
     function updateBid(uint8 bidId, uint _newBidAmount, address payable _newBidHolder)
         internal
         {
-            offeredNyms[bidId].currentBid = _newBidAmount;
+            offeredNyms[bidId].currentBidAmount = _newBidAmount;
             offeredNyms[bidId].currentBidHolder = _newBidHolder;
             offeredNyms[bidId].bidCloseTime = block.timestamp.add(BID_FINALIZE_TIME);
         }
