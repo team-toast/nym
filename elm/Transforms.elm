@@ -110,15 +110,15 @@ structureTransforms =
                                 browLineResult
                     }
                 )
-        , \source template ->
-            -- outside bottom eye point
-            source
-                |> BinarySource.consume3
-                    -- 'tilt up' angle
-                    ( BinarySource.consumeFloatRange 2 
-                    ,
-                    ,
-                    )
+        -- , \source template ->
+        --     -- outside bottom eye point
+        --     source
+        --         |> BinarySource.consume3
+        --             -- 'tilt up' angle
+        --             ( BinarySource.consumeFloatRange 2 
+        --             ,
+        --             ,
+        --             )
             -- |> BinarySource.consume2
             --     -- plane of eyesquare
             --     ( BinarySource.consume2
@@ -217,8 +217,8 @@ structureTransforms =
     ]
 
 
-testColorTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
-testColorTransforms =
+testColoringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
+testColoringTransforms =
     [ \source template ->
         ( source
         , { template
