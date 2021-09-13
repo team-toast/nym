@@ -39,7 +39,7 @@ consumeColoringToTemplate fullSource =
             List.foldl
                 trfunc
                 ( fullSource, blankColoringTemplate )
-                Transforms.testColorTransforms
+                Transforms.testColoringTransforms
     in
     remainingSourceAndTemplate
 

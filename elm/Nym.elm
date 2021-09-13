@@ -17,8 +17,6 @@ import Result.Extra
 import Scene3d
 import Scene3d.Material as Material
 import Scene3dHelpers exposing (..)
-import Svg exposing (..)
-import Svg.Attributes exposing (..)
 import Triangle3d exposing (Triangle3d)
 import TupleHelpers
 import Types exposing (..)
@@ -41,7 +39,7 @@ makeNymEntity nymTemplate =
         testEntity =
             -- Scene3d.nothing
             Scene3d.point
-                { radius = Pixels.pixels 10}
+                { radius = Pixels.pixels 10 }
                 (Material.color Color.black)
                 (nymTemplate.structure.outerBrow
                     |> Result.withDefault Vector3.zero
