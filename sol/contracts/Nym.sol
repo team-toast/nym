@@ -59,15 +59,25 @@ contract Nyms is Ownable, ERC721, NymDataCycler {
 
     address payable public incomeTarget;
 
+    address public otherRandomMintCaller;
+
     constructor(address payable _incomeTarget, string memory _initialBaseURI)
         ERC721("Nym", "NYM")
         {
             incomeTarget = _incomeTarget;
             baseURI = _initialBaseURI;
+            otherRandomMintCaller = address(0x0);
 
             for (uint8 i=0; i < NUM_BIDDING_NYMS; i++) {
                 offeredNyms[i] = newNym();
             }
+        }
+    
+    function changeOtherRandomMintCaller(address _addr)
+        external
+        onlyOwner()
+        {
+            otherRandomMintCaller = _addr;
         }
 
     function changeBaseURI(string memory _newBaseURI)
@@ -138,6 +148,13 @@ contract Nyms is Ownable, ERC721, NymDataCycler {
             offeredNyms[bidId] = newNym();
 
             return true;
+        }
+    
+    function externalMint(uint _nymData, address _to)
+        external
+        {
+            require(msg.sender == otherRandomMintCaller);
+            _safeMint(_to, _nymData);
         }
     
     function newNym()
