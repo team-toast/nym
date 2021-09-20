@@ -184,25 +184,23 @@ randomBinarySources masterSeed =
     List.Extra.initialize 8 initFunc
 
 
-demoNymTemplates : Int -> Bool -> List ( Int, NymTemplate )
-demoNymTemplates seed defaultErrors =
+remainingBitsAndDemoNymTemplates : Int -> Bool -> ( List Int, List NymTemplate )
+remainingBitsAndDemoNymTemplates seed defaultErrors =
     demoNymSources seed
         |> List.map (binarySourceToNym defaultErrors)
+        |> List.unzip
 
 
 genNymEntitiesAndPositions : Int -> Bool -> List ( Scene3d.Entity (), Point3dM )
 genNymEntitiesAndPositions seed defaultErrors =
     let
-        bitsLeftAndTemplates =
-            demoNymTemplates seed defaultErrors
+        ( bitsLeftList, templates ) =
+            remainingBitsAndDemoNymTemplates seed defaultErrors
     in
-    bitsLeftAndTemplates
+    templates
         |> List.indexedMap
-            (\i ( bitsLeft, nymTemplate ) ->
+            (\i nymTemplate ->
                 let
-                    _ =
-                        Debug.log "bits left" bitsLeft
-
                     nymPosition =
                         let
                             xFactor =
@@ -212,8 +210,8 @@ genNymEntitiesAndPositions seed defaultErrors =
                                 ((i // 4 |> toFloat) / 3.0) - 0.5
 
                             ( x, y ) =
-                                ( xFactor * 6
-                                , yFactor * -6
+                                ( xFactor * 8
+                                , yFactor * -8
                                 )
                         in
                         Point3d.meters x y 0
@@ -263,7 +261,7 @@ view model =
                                         Viewpoint3d.lookAt
                                             { focalPoint = Point3d.origin
                                             , eyePoint =
-                                                Point3d.meters 0 0 16
+                                                Point3d.meters 0 0 20
                                             , upDirection = Direction3d.positiveY
                                             }
                                     , verticalFieldOfView = Angle.degrees 30
