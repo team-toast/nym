@@ -19,13 +19,20 @@ type alias Point3dM =
     Point3d Length.Meters ()
 
 
-type alias CoreStructureTemplate =
-    { point : Result GenError Vector3
+type alias BaseStructureTemplate =
+    { crown : Result GenError Vector3
+    , outerTop : Result GenError Vector3
+    , jawBottom : Result GenError Vector3
+    , chinBottom : Result GenError Vector3
+    , mouthCorner : Result GenError Vector3
+    , noseTip : Result GenError Vector3
+    , brow : Result GenError Vector3
     }
 
 
 type alias ColoringTemplate =
-    { color : Result GenError Color
+    { middle : Result GenError Color
+    , side : Result GenError Color
     }
 
 
@@ -52,7 +59,7 @@ testEye =
 
 
 type alias NymTemplate =
-    { coreStructure : CoreStructureTemplate
+    { baseStructure : BaseStructureTemplate
     , eye : EyeTemplate
     , coloring : ColoringTemplate
     }

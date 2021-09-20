@@ -3,22 +3,23 @@ module BinarySource exposing
     , BinarySource
     , allColors
     , andThenConsume
+    , consume2
+    , consume3
     , consumeChunk
     , consumeColorFromPallette
+    , consumeDouble
     , consumeFloat0to1
     , consumeFloatRange
     , consumeIntWithBits
     , consumeSeveralValues
     , consumeTriple
-    , consume3
-    , consumeDouble
-    , consume2
     , consumeUnsignedFloat
     , consumeVectorDimNeg1to1
     , consumeVectorFromBounds
     , empty
     , fromBitsString
     , map
+    , remainingBits
     , unsafeFromBitsString
     )
 
@@ -57,6 +58,11 @@ fromBitsString str =
 unsafeFromBitsString : String -> BinarySource
 unsafeFromBitsString str =
     BinarySource str
+
+
+remainingBits : BinarySource -> Int
+remainingBits (BinarySource source) =
+    String.length source
 
 
 consumeChunk : Int -> BinarySource -> Maybe ( BinarySource, BinaryChunk )

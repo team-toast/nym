@@ -184,7 +184,7 @@ randomBinarySources masterSeed =
     List.Extra.initialize 8 initFunc
 
 
-demoNymTemplates : Int -> Bool -> List NymTemplate
+demoNymTemplates : Int -> Bool -> List ( Int, NymTemplate )
 demoNymTemplates seed defaultErrors =
     demoNymSources seed
         |> List.map (binarySourceToNym defaultErrors)
@@ -193,13 +193,16 @@ demoNymTemplates seed defaultErrors =
 genNymEntitiesAndPositions : Int -> Bool -> List ( Scene3d.Entity (), Point3dM )
 genNymEntitiesAndPositions seed defaultErrors =
     let
-        errorsAndTemplates =
+        bitsLeftAndTemplates =
             demoNymTemplates seed defaultErrors
     in
-    errorsAndTemplates
+    bitsLeftAndTemplates
         |> List.indexedMap
-            (\i nymTemplate ->
+            (\i ( bitsLeft, nymTemplate ) ->
                 let
+                    _ =
+                        Debug.log "bits left" bitsLeft
+
                     nymPosition =
                         let
                             xFactor =

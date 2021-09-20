@@ -14,15 +14,9 @@ import Vector3 exposing (Vector3)
 import Vector3d
 
 
-coreStructureTransforms : List (BinarySource -> CoreStructureTemplate -> ( BinarySource, CoreStructureTemplate ))
+coreStructureTransforms : List (BinarySource -> BaseStructureTemplate -> ( BinarySource, BaseStructureTemplate ))
 coreStructureTransforms =
-    [ \source template ->
-        ( source
-        , { template
-            | point = Ok <| Vector3 0 0 1
-          }
-        )
-    ]
+    []
 
 
 
@@ -73,13 +67,7 @@ coreStructureTransforms =
 
 testColoringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
 testColoringTransforms =
-    [ \source template ->
-        ( source
-        , { template
-            | color = Ok Color.red
-          }
-        )
-    ]
+    []
 
 
 tryApplyToTemplate : (Result GenError val -> template) -> Maybe ( BinarySource, val ) -> ( BinarySource, template )

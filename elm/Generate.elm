@@ -15,12 +15,12 @@ import Vector3d
 
 blankColoringTemplate : ColoringTemplate
 blankColoringTemplate =
-    ColoringTemplate (Err NotYetSet)
+    ColoringTemplate (Err NotYetSet) (Err NotYetSet)
 
 
-blankCoreStructureTemplate : CoreStructureTemplate
+blankCoreStructureTemplate : BaseStructureTemplate
 blankCoreStructureTemplate =
-    CoreStructureTemplate (Err NotYetSet)
+    BaseStructureTemplate (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet)
 
 
 blankEyeTemplate : EyeTemplate
@@ -44,10 +44,10 @@ consumeColoringToTemplate fullSource =
     remainingSourceAndTemplate
 
 
-consumeCoreStructureToTemplate : BinarySource -> ( BinarySource, CoreStructureTemplate )
+consumeCoreStructureToTemplate : BinarySource -> ( BinarySource, BaseStructureTemplate )
 consumeCoreStructureToTemplate fullSource =
     let
-        trfunc : (BinarySource -> CoreStructureTemplate -> ( BinarySource, CoreStructureTemplate )) -> ( BinarySource, CoreStructureTemplate ) -> ( BinarySource, CoreStructureTemplate )
+        trfunc : (BinarySource -> BaseStructureTemplate -> ( BinarySource, BaseStructureTemplate )) -> ( BinarySource, BaseStructureTemplate ) -> ( BinarySource, BaseStructureTemplate )
         trfunc tr ( s, te ) =
             tr s te
 

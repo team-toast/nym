@@ -30,17 +30,197 @@ makeNymEntity nymTemplate =
     let
         allFeatures =
             Scene3d.group
-                [ testEntity
+                [ middleGroup
+                , symmetryGroup
+                , copiedSymmetryGroup
+                , testEntity
                 ]
 
-        testEntity =
-            Scene3d.point
-                { radius = Pixels.pixels 10 }
-                (Material.color Color.black)
-                (nymTemplate.coreStructure.point
-                    |> Result.withDefault Vector3.zero
-                    |> Vector3.toMetersPoint
+        middleGroup : Scene3d.Entity ()
+        middleGroup =
+            Scene3d.group
+                [ crownFace
+                , noseBridgeFace
+                , noseFrontFace
+                , chinFrontFace
+                , chinBottomFace
+                ]
+
+        crownFace : Scene3d.Entity ()
+        crownFace =
+            Result.map2
+                (\crown brow ->
+                    meterQuad
+                        (defaultAndLogColorError "crown" nymTemplate.coloring.middle)
+                        brow
+                        crown
+                        (crown |> mirrorPoint)
+                        (brow |> mirrorPoint)
                 )
+                nymTemplate.baseStructure.crown
+                nymTemplate.baseStructure.brow
+                |> defaultAndLogEntityError "crown"
+
+        noseBridgeFace : Scene3d.Entity ()
+        noseBridgeFace =
+            Result.map2
+                (\brow noseTip ->
+                    meterQuad
+                        (defaultAndLogColorError "noseBridge" nymTemplate.coloring.middle)
+                        noseTip
+                        brow
+                        (brow |> mirrorPoint)
+                        (noseTip |> mirrorPoint)
+                )
+                nymTemplate.baseStructure.brow
+                nymTemplate.baseStructure.noseTip
+                |> defaultAndLogEntityError "noseBridge"
+
+        noseFrontFace : Scene3d.Entity ()
+        noseFrontFace =
+            Result.map2
+                (\mouthCorner noseTip ->
+                    meterQuad
+                        (defaultAndLogColorError "noseFront" nymTemplate.coloring.middle)
+                        mouthCorner
+                        noseTip
+                        (noseTip |> mirrorPoint)
+                        (mouthCorner |> mirrorPoint)
+                )
+                nymTemplate.baseStructure.mouthCorner
+                nymTemplate.baseStructure.noseTip
+                |> defaultAndLogEntityError "noseFront"
+
+        chinFrontFace : Scene3d.Entity ()
+        chinFrontFace =
+            Result.map2
+                (\mouthCorner chinBottom ->
+                    meterQuad
+                        (defaultAndLogColorError "chinFront" nymTemplate.coloring.middle)
+                        mouthCorner
+                        chinBottom
+                        (chinBottom |> mirrorPoint)
+                        (mouthCorner |> mirrorPoint)
+                )
+                nymTemplate.baseStructure.mouthCorner
+                nymTemplate.baseStructure.chinBottom
+                |> defaultAndLogEntityError "chinFront"
+
+        chinBottomFace : Scene3d.Entity ()
+        chinBottomFace =
+            Result.map2
+                (\jawBottom chinBottom ->
+                    meterQuad
+                        (defaultAndLogColorError "chinFront" nymTemplate.coloring.middle)
+                        chinBottom
+                        jawBottom
+                        (jawBottom |> mirrorPoint)
+                        (chinBottom |> mirrorPoint)
+                )
+                nymTemplate.baseStructure.jawBottom
+                nymTemplate.baseStructure.chinBottom
+                |> defaultAndLogEntityError "chinFront"
+
+        symmetryGroup =
+            Scene3d.group
+                [ upperTempleFace
+                , lowerTempleFace
+                , cheekFace
+                , upperJawSideFace
+                , lowerJawSideFace
+                ]
+
+        upperTempleFace : Scene3d.Entity ()
+        upperTempleFace =
+            Result.map3
+                (\brow outerTop crown ->
+                    meterTriangle
+                        (defaultAndLogColorError "templeFace" nymTemplate.coloring.side)
+                        brow
+                        outerTop
+                        crown
+                )
+                nymTemplate.baseStructure.brow
+                nymTemplate.baseStructure.outerTop
+                nymTemplate.baseStructure.crown
+                    |> defaultAndLogEntityError "templeFace"
+        
+        lowerTempleFace : Scene3d.Entity ()
+        lowerTempleFace =
+            Result.map3
+                (\jawBottom outerTop brow ->
+                    meterTriangle
+                        (defaultAndLogColorError "templeFace" nymTemplate.coloring.side)
+                        jawBottom
+                        outerTop
+                        brow
+                )
+                nymTemplate.baseStructure.jawBottom
+                nymTemplate.baseStructure.outerTop
+                nymTemplate.baseStructure.brow
+                    |> defaultAndLogEntityError "templeFace"
+
+        cheekFace : Scene3d.Entity ()
+        cheekFace =
+            Result.map3
+                (\jawBottom brow noseTip ->
+                    meterTriangle
+                        (defaultAndLogColorError "cheekFace" nymTemplate.coloring.side)
+                        jawBottom
+                        brow
+                        noseTip
+                )
+                nymTemplate.baseStructure.jawBottom
+                nymTemplate.baseStructure.brow
+                nymTemplate.baseStructure.noseTip
+                    |> defaultAndLogEntityError "cheekFace"
+
+        upperJawSideFace : Scene3d.Entity ()
+        upperJawSideFace =
+            Result.map3
+                (\jawBottom noseTip mouthCorner ->
+                    meterTriangle
+                        (defaultAndLogColorError "upperJawSideFace" nymTemplate.coloring.side)
+                        jawBottom
+                        noseTip
+                        mouthCorner
+                )
+                nymTemplate.baseStructure.jawBottom
+                nymTemplate.baseStructure.noseTip
+                nymTemplate.baseStructure.mouthCorner
+                    |> defaultAndLogEntityError "upperJawSideFace"
+
+        lowerJawSideFace : Scene3d.Entity ()
+        lowerJawSideFace =
+            Result.map3
+                (\jawBottom mouthCorner chinBottom ->
+                    meterTriangle
+                        (defaultAndLogColorError "lowerJawSideFace" nymTemplate.coloring.side)
+                        jawBottom
+                        mouthCorner
+                        chinBottom
+                )
+                nymTemplate.baseStructure.jawBottom
+                nymTemplate.baseStructure.mouthCorner
+                nymTemplate.baseStructure.chinBottom
+                    |> defaultAndLogEntityError "lowerJawSideFace"
+
+
+        copiedSymmetryGroup =
+            symmetryGroup
+                |> mirrorGroup
+
+        -- todo: add back in symmetry
+        testEntity =
+            Scene3d.nothing
+
+        -- Scene3d.point
+        --     { radius = Pixels.pixels 10 }
+        --     (Material.color Color.black)
+        --     (nymTemplate.coreStructure.point
+        --         |> Result.withDefault Vector3.zero
+        --         |> Vector3.toMetersPoint
+        --     )
     in
     allFeatures
 
@@ -55,7 +235,19 @@ meterQuad material v1 v2 v3 v4 =
         (v4 |> Vector3.toMetersPoint)
 
 
-binarySourceToNym : Bool -> BinarySource -> NymTemplate
+meterTriangle : Material.Plain () -> Vector3 -> Vector3 -> Vector3 -> Scene3d.Entity ()
+meterTriangle material v1 v2 v3 =
+    Scene3d.triangle
+        material
+    <|
+        Triangle3d.fromVertices
+            ( v1 |> Vector3.toMetersPoint
+            , v2 |> Vector3.toMetersPoint
+            , v3 |> Vector3.toMetersPoint
+            )
+
+
+binarySourceToNym : Bool -> BinarySource -> ( Int, NymTemplate )
 binarySourceToNym defaultErrors source =
     let
         ( rSource1, coreStructureTemplate ) =
@@ -67,7 +259,8 @@ binarySourceToNym defaultErrors source =
         ( rSource3, coloringTemplate ) =
             Generate.consumeColoringToTemplate rSource2
     in
-    NymTemplate
+    ( BinarySource.remainingBits rSource3
+    , NymTemplate
         coreStructureTemplate
         eyeTemplate
         coloringTemplate
@@ -77,6 +270,7 @@ binarySourceToNym defaultErrors source =
             else
                 identity
            )
+    )
 
 
 defaultAndLogEntityError : String -> Result GenError (Scene3d.Entity ()) -> Scene3d.Entity ()
@@ -113,14 +307,21 @@ fillTemplateWithDefaults template =
                     template.coloring
             in
             { coloring
-                | color = template.coloring.color |> Result.withDefault Color.darkOrange |> Ok
+                | middle = template.coloring.middle |> Result.withDefault Color.darkOrange |> Ok
+                , side = template.coloring.side |> Result.withDefault Color.red |> Ok
             }
-        , coreStructure =
+        , baseStructure =
             let
                 coreStructure =
-                    template.coreStructure
+                    template.baseStructure
             in
             { coreStructure
-                | point = template.coreStructure.point |> Result.withDefault (Vector3 0.1 0.2 0.3) |> Ok
+                | crown = coreStructure.crown |> Result.withDefault (Vector3 0.5 1 0) |> Ok
+                , outerTop = coreStructure.outerTop |> Result.withDefault (Vector3 1 0.5 0) |> Ok
+                , jawBottom = coreStructure.jawBottom |> Result.withDefault (Vector3 1 -1 0) |> Ok
+                , chinBottom = coreStructure.chinBottom |> Result.withDefault (Vector3 0.2 -1 0.9) |> Ok
+                , mouthCorner = coreStructure.mouthCorner |> Result.withDefault (Vector3 0.23 -0.9 1) |> Ok
+                , noseTip = coreStructure.noseTip |> Result.withDefault (Vector3 0.18 -0.8 1) |> Ok
+                , brow = coreStructure.brow |> Result.withDefault (Vector3 0.3 0.4 0.3) |> Ok
             }
     }
