@@ -19,54 +19,8 @@ coreStructureTransforms =
     []
 
 
-
--- structureTransforms : List (BinarySource -> StructureTemplate -> ( BinarySource, StructureTemplate ))
--- structureTransforms =
---     [ \source template ->
---         source
---             -- x values of crown and innerTemple
---             |> BinarySource.consumeDouble
---                 (BinarySource.consumeFloatRange 2 0.1 0.5)
---             |> BinarySource.andThenConsume
---                 (BinarySource.consume2
---                     -- crown angle
---                     ( BinarySource.consumeFloatRange 2 -(pi / 8) (pi / 8)
---                       -- length of line from crown to forehead
---                     , BinarySource.consumeFloatRange 2 0.1 0.4
---                     )
---                 )
---                 (\( crownX, templeX ) ( yzAngle, crownLength ) ->
---                     let
---                         crown =
---                             Vector3 crownX 0.5 0
---                         temple =
---                             Vector3
---                                 templeX
---                                 (sin yzAngle * crownLength + crown.y)
---                                 (cos yzAngle * crownLength + crown.z)
---                     in
---                     ( crown, temple )
---                 )
---             |> tryApplyToTemplate
---                 (Result.Extra.unpack
---                     (\e ->
---                         { template
---                             | crown = Err e
---                             , innerTemple = Err e
---                         }
---                     )
---                     (\( crown, temple ) ->
---                         { template
---                             | crown = Ok crown
---                             , innerTemple = Ok temple
---                         }
---                     )
---                 )
---     ]
-
-
-testColoringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
-testColoringTransforms =
+coloringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
+coloringTransforms =
     []
 
 
