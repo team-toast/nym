@@ -103,8 +103,8 @@ consumeUnsignedFloat bits max =
         >> map ((*) max)
 
 
-consumeFloatRange : Int -> Float -> Float -> BinarySource -> Maybe ( BinarySource, Float )
-consumeFloatRange bits min max =
+consumeFloatRange : Int -> (Float, Float) -> BinarySource -> Maybe ( BinarySource, Float )
+consumeFloatRange bits (min, max) =
     consumeFloat0to1 bits
         >> map
             (\uFloat ->

@@ -196,6 +196,10 @@ genNymEntitiesAndPositions seed defaultErrors =
     let
         ( bitsLeftList, templates ) =
             remainingBitsAndDemoNymTemplates seed defaultErrors
+
+        _ =
+            Debug.log "bits left" <|
+                List.Extra.unique bitsLeftList
     in
     templates
         |> List.indexedMap
