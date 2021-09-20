@@ -51,7 +51,7 @@ makeNymEntity nymTemplate =
             Result.map2
                 (\crown brow ->
                     meterQuad
-                        (defaultAndLogColorError "crown" nymTemplate.coloring.middle)
+                        (defaultAndLogColorError "crown" nymTemplate.coloring.crown)
                         brow
                         crown
                         (crown |> mirrorPoint)
@@ -66,7 +66,7 @@ makeNymEntity nymTemplate =
             Result.map2
                 (\brow noseTip ->
                     meterQuad
-                        (defaultAndLogColorError "noseBridge" nymTemplate.coloring.middle)
+                        (defaultAndLogColorError "noseBridge" nymTemplate.coloring.bridge)
                         noseTip
                         brow
                         (brow |> mirrorPoint)
@@ -81,7 +81,7 @@ makeNymEntity nymTemplate =
             Result.map2
                 (\mouthCorner noseTip ->
                     meterQuad
-                        (defaultAndLogColorError "noseFront" nymTemplate.coloring.middle)
+                        (defaultAndLogColorError "noseFront" nymTemplate.coloring.noseTip)
                         mouthCorner
                         noseTip
                         (noseTip |> mirrorPoint)
@@ -96,7 +96,7 @@ makeNymEntity nymTemplate =
             Result.map2
                 (\mouthCorner chinBottom ->
                     meterQuad
-                        (defaultAndLogColorError "chinFront" nymTemplate.coloring.middle)
+                        (defaultAndLogColorError "chinFront" nymTemplate.coloring.chinFront)
                         mouthCorner
                         chinBottom
                         (chinBottom |> mirrorPoint)
@@ -111,7 +111,7 @@ makeNymEntity nymTemplate =
             Result.map2
                 (\jawBottom chinBottom ->
                     meterQuad
-                        (defaultAndLogColorError "chinFront" nymTemplate.coloring.middle)
+                        (defaultAndLogColorError "chinFront" nymTemplate.coloring.chinBottom)
                         chinBottom
                         jawBottom
                         (jawBottom |> mirrorPoint)
@@ -135,7 +135,7 @@ makeNymEntity nymTemplate =
             Result.map3
                 (\brow outerTop crown ->
                     meterTriangle
-                        (defaultAndLogColorError "templeFace" nymTemplate.coloring.side)
+                        (defaultAndLogColorError "templeFace" nymTemplate.coloring.upperTemple)
                         brow
                         outerTop
                         crown
@@ -143,14 +143,14 @@ makeNymEntity nymTemplate =
                 nymTemplate.baseStructure.brow
                 nymTemplate.baseStructure.outerTop
                 nymTemplate.baseStructure.crown
-                    |> defaultAndLogEntityError "templeFace"
-        
+                |> defaultAndLogEntityError "templeFace"
+
         lowerTempleFace : Scene3d.Entity ()
         lowerTempleFace =
             Result.map3
                 (\jawBottom outerTop brow ->
                     meterTriangle
-                        (defaultAndLogColorError "templeFace" nymTemplate.coloring.side)
+                        (defaultAndLogColorError "templeFace" nymTemplate.coloring.lowerTemple)
                         jawBottom
                         outerTop
                         brow
@@ -158,14 +158,14 @@ makeNymEntity nymTemplate =
                 nymTemplate.baseStructure.jawBottom
                 nymTemplate.baseStructure.outerTop
                 nymTemplate.baseStructure.brow
-                    |> defaultAndLogEntityError "templeFace"
+                |> defaultAndLogEntityError "templeFace"
 
         cheekFace : Scene3d.Entity ()
         cheekFace =
             Result.map3
                 (\jawBottom brow noseTip ->
                     meterTriangle
-                        (defaultAndLogColorError "cheekFace" nymTemplate.coloring.side)
+                        (defaultAndLogColorError "cheekFace" nymTemplate.coloring.cheek)
                         jawBottom
                         brow
                         noseTip
@@ -173,14 +173,14 @@ makeNymEntity nymTemplate =
                 nymTemplate.baseStructure.jawBottom
                 nymTemplate.baseStructure.brow
                 nymTemplate.baseStructure.noseTip
-                    |> defaultAndLogEntityError "cheekFace"
+                |> defaultAndLogEntityError "cheekFace"
 
         upperJawSideFace : Scene3d.Entity ()
         upperJawSideFace =
             Result.map3
                 (\jawBottom noseTip mouthCorner ->
                     meterTriangle
-                        (defaultAndLogColorError "upperJawSideFace" nymTemplate.coloring.side)
+                        (defaultAndLogColorError "upperJawSideFace" nymTemplate.coloring.upperJawSide)
                         jawBottom
                         noseTip
                         mouthCorner
@@ -188,14 +188,14 @@ makeNymEntity nymTemplate =
                 nymTemplate.baseStructure.jawBottom
                 nymTemplate.baseStructure.noseTip
                 nymTemplate.baseStructure.mouthCorner
-                    |> defaultAndLogEntityError "upperJawSideFace"
+                |> defaultAndLogEntityError "upperJawSideFace"
 
         lowerJawSideFace : Scene3d.Entity ()
         lowerJawSideFace =
             Result.map3
                 (\jawBottom mouthCorner chinBottom ->
                     meterTriangle
-                        (defaultAndLogColorError "lowerJawSideFace" nymTemplate.coloring.side)
+                        (defaultAndLogColorError "lowerJawSideFace" nymTemplate.coloring.lowerJawSide)
                         jawBottom
                         mouthCorner
                         chinBottom
@@ -203,8 +203,7 @@ makeNymEntity nymTemplate =
                 nymTemplate.baseStructure.jawBottom
                 nymTemplate.baseStructure.mouthCorner
                 nymTemplate.baseStructure.chinBottom
-                    |> defaultAndLogEntityError "lowerJawSideFace"
-
+                |> defaultAndLogEntityError "lowerJawSideFace"
 
         copiedSymmetryGroup =
             symmetryGroup
@@ -307,8 +306,16 @@ fillTemplateWithDefaults template =
                     template.coloring
             in
             { coloring
-                | middle = template.coloring.middle |> Result.withDefault Color.darkOrange |> Ok
-                , side = template.coloring.side |> Result.withDefault Color.red |> Ok
+                | crown = coloring.crown |> Result.withDefault Color.lightRed |> Ok
+                , bridge = coloring.bridge |> Result.withDefault Color.red |> Ok
+                , noseTip = coloring.noseTip |> Result.withDefault Color.darkRed |> Ok
+                , chinFront = coloring.chinFront |> Result.withDefault Color.lightOrange |> Ok
+                , chinBottom = coloring.chinBottom |> Result.withDefault Color.orange |> Ok
+                , upperTemple = coloring.upperTemple |> Result.withDefault Color.darkOrange |> Ok
+                , lowerTemple = coloring.lowerTemple |> Result.withDefault Color.lightYellow |> Ok
+                , cheek = coloring.cheek |> Result.withDefault Color.yellow |> Ok
+                , upperJawSide = coloring.upperJawSide |> Result.withDefault Color.darkYellow |> Ok
+                , lowerJawSide = coloring.lowerJawSide |> Result.withDefault Color.lightGreen |> Ok
             }
         , baseStructure =
             let

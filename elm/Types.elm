@@ -31,8 +31,16 @@ type alias BaseStructureTemplate =
 
 
 type alias ColoringTemplate =
-    { middle : Result GenError Color
-    , side : Result GenError Color
+    { crown : Result GenError Color
+    , bridge : Result GenError Color
+    , noseTip : Result GenError Color
+    , chinFront : Result GenError Color
+    , chinBottom : Result GenError Color
+    , upperTemple : Result GenError Color
+    , lowerTemple : Result GenError Color
+    , cheek : Result GenError Color
+    , upperJawSide : Result GenError Color
+    , lowerJawSide : Result GenError Color
     }
 
 
