@@ -17,7 +17,9 @@ import Vector3d
 coreStructureTransforms : List (BinarySource -> BaseStructureTemplate -> ( BinarySource, BaseStructureTemplate ))
 coreStructureTransforms =
     [ \source template ->
+        -- crown X
         source
+            -- 11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
             |> BinarySource.consumeFloatRange 2
                 ( 0, 0.7 )
             |> tryApplyToTemplate
@@ -34,7 +36,52 @@ coreStructureTransforms =
                                 xResult
                     }
                 )
+    , \source template ->
+        -- outerTop X and Y
+        source
+            |> BinarySource.consume2
+                ( BinarySource.consumeFloatRange 2
+                    ( 0.7, 1 )
+                , BinarySource.consumeFloatRange 2
+                    ( 0, 0.7 )
+                )
+            |> BinarySource.map
+                (\( x, y ) ->
+                    Vector3 x y 0
+                )
+            |> tryApplyToTemplate
+                (\pointResult ->
+                    { template
+                        | outerTop = pointResult
+                    }
+                )
+    , \source template ->
+        -- jawBottom x and y
+        source
+            |> BinarySource.consume2
+                ( BinarySource.consumeFloatRange 2
+                    ( 0.4, 1 )
+                , BinarySource.consumeFloatRange 2
+                    ( -0.7, -1 )
+                )
+            |> BinarySource.map
+                (\( x, y ) ->
+                    Vector3 x y 0
+                )
+            |> tryApplyToTemplate
+                (\pointResult ->
+                    { template
+                        | jawBottom = pointResult
+                    }
+                )
+    -- , actually at this point I should define a rough nose point first.
+
+        --   0.2 -1 0.9
+-- mouthCorner   0.23 -0.9 1
+-- noseTip   0.18 -0.8 1
+-- brow   0.3 0.4 0.3
     ]
+
 
 
 coloringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
