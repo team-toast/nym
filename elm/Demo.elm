@@ -198,8 +198,19 @@ genNymEntitiesAndPositions seed defaultErrors =
             remainingBitsAndDemoNymTemplates seed defaultErrors
 
         _ =
-            Debug.log "bits left" <|
-                List.Extra.unique bitsLeftList
+            Debug.log "bits left"
+                (List.Extra.unique bitsLeftList
+                    |> List.map
+                        (\bitsLeft ->
+                            ( bitsLeft
+                            , (toFloat bitsLeft / 256)
+                                * 100
+                                |> floor
+                                |> String.fromInt
+                                |> (\p -> p ++ "%")
+                            )
+                        )
+                )
     in
     templates
         |> List.indexedMap
