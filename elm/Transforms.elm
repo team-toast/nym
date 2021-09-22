@@ -116,19 +116,34 @@ coreStructureTransforms =
                         | jawBottom = pointResult
                     }
                 )
+    , \source template ->
+        -- nose y and z
+        source
+            |> BinarySource.consume2
+                -- y (ratio from brow to jaw)
+                ( BinarySource.consumeFloatRange 2
+                    (0.2, 1)
+                  -- z (from brow)
+                , BinarySource.consumeFloatRange 2
+                    (0, 0.8)
+                )
+            |> tryApplyToTemplate
+                (\valsResult ->
+                    { template
+                        | noseYandZ =
+                            Result.map3
+                                (\brow jawBottom ( yRatio, relZ ) ->
+                                    ( (jawBottom.y - brow.y) * yRatio + brow.y
+                                    , brow.z + relZ
+                                    )
+                                )
+                                template.brow
+                                template.jawBottom
+                                valsResult
+                    }
+                )
 
-    -- , \source template ->
-    --     -- nose y and z
-    --     source
-    --         |> BinarySource.consume2
-    --             ( BinarySource.consumeFloatRange 2
-    --                 ()
-    --             , BinarySource.consumeFloatRange 2
-    --             )
     --   0.2 -1 0.9
-    -- mouthCorner   0.23 -0.9 1
-    -- noseTip   0.18 -0.8 1
-    -- brow   0.3 0.4 0.3
     ]
 
 
