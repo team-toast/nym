@@ -122,10 +122,10 @@ coreStructureTransforms =
             |> BinarySource.consume2
                 -- y (ratio from brow to jaw)
                 ( BinarySource.consumeFloatRange 2
-                    (0.2, 1)
+                    ( 0.2, 1 )
                   -- z (from brow)
                 , BinarySource.consumeFloatRange 2
-                    (0, 0.8)
+                    ( 0, 0.8 )
                 )
             |> tryApplyToTemplate
                 (\valsResult ->
@@ -142,28 +142,12 @@ coreStructureTransforms =
                                 valsResult
                     }
                 )
-
-    --   0.2 -1 0.9
     ]
 
 
 coloringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
 coloringTransforms =
     []
-
-
-
--- [ \source template ->
---     source
---         |> BinarySource.consumeColorFromPallette
---         |> tryApplyToTemplate
---             (\colorResult ->
---                 { template
---                     | crown =
---                         colorResult
---                 }
---             )
--- ]
 
 
 tryApplyToTemplate :
