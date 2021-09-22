@@ -3,3 +3,4 @@ sol/build
 sol/migrations
 Migrations.sol
 **/node_modules
+org/
