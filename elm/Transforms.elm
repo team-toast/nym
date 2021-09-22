@@ -17,15 +17,15 @@ import Vector3d
 coreStructureTransforms : List (BinarySource -> BaseStructureTemplate -> ( BinarySource, BaseStructureTemplate ))
 coreStructureTransforms =
     [ \source template ->
-        -- crown X
+        -- crownBack X
         source
             -- 11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
             |> BinarySource.consumeFloatRange 2
-                ( 0, 0.7 )
+                ( 0.2, 0.7 )
             |> tryApplyToTemplate
                 (\xResult ->
                     { template
-                        | crown =
+                        | crownBack =
                             Result.map
                                 (\x ->
                                     Vector3
@@ -34,6 +34,32 @@ coreStructureTransforms =
                                         0
                                 )
                                 xResult
+                    }
+                )
+    , \source template ->
+        -- crownFront
+        source
+            |> BinarySource.consumeVectorFromBounds 2
+                ( Vector3 0.2 1 0.2
+                , Vector3 0.7 0.7 0.4
+                )
+            |> tryApplyToTemplate
+                (\pointResult ->
+                    { template
+                        | crownFront = pointResult
+                    }
+                )
+    , \source template ->
+        -- brow
+        source
+            |> BinarySource.consumeVectorFromBounds 2
+                ( Vector3 0.2 0.7 0.2
+                , Vector3 0.6 0.1 0.4
+                )
+            |> tryApplyToTemplate
+                (\pointResult ->
+                    { template
+                        | brow = pointResult
                     }
                 )
     , \source template ->
@@ -74,29 +100,36 @@ coreStructureTransforms =
                         | jawBottom = pointResult
                     }
                 )
-    -- , actually at this point I should define a rough nose point first.
 
-        --   0.2 -1 0.9
--- mouthCorner   0.23 -0.9 1
--- noseTip   0.18 -0.8 1
--- brow   0.3 0.4 0.3
+    -- , \source template ->
+    --     -- nose y and z
+    --     source
+    --         |> BinarySource.consume2
+    --             ( BinarySource.consumeFloatRange 2
+    --                 ()
+    --             , BinarySource.consumeFloatRange 2
+    --             )
+    --   0.2 -1 0.9
+    -- mouthCorner   0.23 -0.9 1
+    -- noseTip   0.18 -0.8 1
+    -- brow   0.3 0.4 0.3
     ]
-
 
 
 coloringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
 coloringTransforms =
-    [ \source template ->
-        source
-            |> BinarySource.consumeColorFromPallette
-            |> tryApplyToTemplate
-                (\colorResult ->
-                    { template
-                        | crown =
-                            colorResult
-                    }
-                )
-    ]
+    []
+    -- [ \source template ->
+    --     source
+    --         |> BinarySource.consumeColorFromPallette
+    --         |> tryApplyToTemplate
+    --             (\colorResult ->
+    --                 { template
+    --                     | crown =
+    --                         colorResult
+    --                 }
+    --             )
+    -- ]
 
 
 tryApplyToTemplate :

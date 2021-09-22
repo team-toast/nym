@@ -20,18 +20,18 @@ type alias Point3dM =
 
 
 type alias BaseStructureTemplate =
-    { crown : Result GenError Vector3
+    { crownBack : Result GenError Vector3
+    , crownFront : Result GenError Vector3
+    , brow : Result GenError Vector3
     , outerTop : Result GenError Vector3
     , jawBottom : Result GenError Vector3
-    , chinBottom : Result GenError Vector3
-    , mouthCorner : Result GenError Vector3
-    , noseTip : Result GenError Vector3
-    , brow : Result GenError Vector3
+    , noseYandZ : Result GenError (Float, Float)
     }
 
 
 type alias ColoringTemplate =
     { crown : Result GenError Color
+    , forehead : Result GenError Color
     , bridge : Result GenError Color
     , noseTip : Result GenError Color
     , chinFront : Result GenError Color
