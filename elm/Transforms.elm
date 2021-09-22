@@ -40,8 +40,8 @@ coreStructureTransforms =
         -- crownFront
         source
             |> BinarySource.consumeVectorFromBounds 2
-                ( Vector3 0.2 1 0.2
-                , Vector3 0.7 0.7 0.4
+                ( Vector3 0.2 0.7 0.4
+                , Vector3 0.7 1 0.8
                 )
             |> tryApplyToTemplate
                 (\pointResult ->
@@ -50,16 +50,32 @@ coreStructureTransforms =
                     }
                 )
     , \source template ->
-        -- brow
+        -- brow (forehead)
         source
-            |> BinarySource.consumeVectorFromBounds 2
-                ( Vector3 0.2 0.7 0.2
-                , Vector3 0.6 0.1 0.4
+            |> BinarySource.consume3
+                -- x
+                ( BinarySource.consumeFloatRange 2
+                    ( 0.2, 0.6 )
+                  -- YZ angle from -Y (from crownFront)
+                , BinarySource.consumeFloatRange 2
+                    ( 0, pi / 6 )
+                  -- length of angled line (from crownFront)
+                , BinarySource.consumeFloatRange 2
+                    ( 0.2, 0.8 )
                 )
             |> tryApplyToTemplate
-                (\pointResult ->
+                (\valsResult ->
                     { template
-                        | brow = pointResult
+                        | brow =
+                            Result.map2
+                                (\crownFront ( x, angle, length ) ->
+                                    Vector3
+                                        x
+                                        (crownFront.y + (-length * cos angle))
+                                        (crownFront.z + (length * sin angle))
+                                )
+                                template.crownFront
+                                valsResult
                     }
                 )
     , \source template ->
@@ -119,17 +135,20 @@ coreStructureTransforms =
 coloringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
 coloringTransforms =
     []
-    -- [ \source template ->
-    --     source
-    --         |> BinarySource.consumeColorFromPallette
-    --         |> tryApplyToTemplate
-    --             (\colorResult ->
-    --                 { template
-    --                     | crown =
-    --                         colorResult
-    --                 }
-    --             )
-    -- ]
+
+
+
+-- [ \source template ->
+--     source
+--         |> BinarySource.consumeColorFromPallette
+--         |> tryApplyToTemplate
+--             (\colorResult ->
+--                 { template
+--                     | crown =
+--                         colorResult
+--                 }
+--             )
+-- ]
 
 
 tryApplyToTemplate :
