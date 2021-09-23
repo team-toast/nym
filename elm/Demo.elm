@@ -130,19 +130,6 @@ demoNymSources seed =
         |> Maybe.Extra.values
     )
         ++ randomBinarySources seed
-        ++ ([ "111111111111000000000000"
-            , "000000000000111111111111"
-            , "000000111111000000111111"
-            , "111111000000111111000000"
-            ]
-                |> List.map
-                    (String.toList
-                        >> List.Extra.cycle demoBinarySourceLength
-                        >> String.fromList
-                    )
-                |> List.map BinarySource.fromBitsString
-                |> Maybe.Extra.values
-           )
 
 
 randomBinarySources : Int -> List BinarySource
@@ -181,7 +168,7 @@ randomBinarySources masterSeed =
                 |> String.fromList
                 |> BinarySource.unsafeFromBitsString
     in
-    List.Extra.initialize 8 initFunc
+    List.Extra.initialize 12 initFunc
 
 
 remainingBitsAndDemoNymTemplates : Int -> Bool -> ( List Int, List NymTemplate )
