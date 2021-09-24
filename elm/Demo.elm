@@ -7,6 +7,7 @@ import Browser
 import Browser.Events
 import Camera3d
 import Color
+import Crypto.Hash as Hash
 import Direction3d
 import Element exposing (Element)
 import Element.Background as Background
@@ -311,21 +312,29 @@ subscriptions : Model -> Sub.Sub Msg
 subscriptions _ =
     Browser.Events.onKeyDown keyDecoder
         |> Sub.map
-            (\keyInt ->
-                if keyInt == 32 then
+            (\keyString ->
+                if keyString == " " then
                     ToggleDefaultErrors
 
                 else
-                    NewSeed keyInt
+                    NewSeed <| badHashFunction <| keyString
             )
 
 
-keyDecoder : Decode.Decoder Int
+keyDecoder : Decode.Decoder String
 keyDecoder =
     Decode.field "key" Decode.string
-        |> Decode.map
-            (String.toList
-                >> List.head
-                >> Maybe.map Char.toCode
-                >> Maybe.withDefault 0
-            )
+
+
+badHashFunction : String -> Int
+badHashFunction =
+    Hash.sha224
+        >> String.toList
+        >> List.map Char.toCode
+        >> List.map String.fromInt
+        >> List.foldl (++) ""
+        >> String.toList
+        >> List.take 8
+        >> String.fromList
+        >> String.toInt
+        >> Maybe.withDefault 0
