@@ -22,7 +22,10 @@ type alias Point3dM =
 type alias BaseStructureTemplate =
     { crownBack : Result GenError Vector3
     , crownFront : Result GenError Vector3
-    , brow : Result GenError Vector3
+    , innerBrow : Result GenError Vector3
+    , outerBrow : Result GenError Vector3
+    , outerEyeBottom : Result GenError Vector3
+    , innerEyeBottom : Result GenError Vector3
     , outerTop : Result GenError Vector3
     , jawBottom : Result GenError Vector3
     , noseYandZ : Result GenError (Float, Float)

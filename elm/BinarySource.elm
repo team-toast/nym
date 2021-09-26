@@ -14,10 +14,13 @@ module BinarySource exposing
     , consumeSeveralValues
     , consumeTriple
     , consumeUnsignedFloat
+    , consumeVector
     , consumeVectorDimNeg1to1
     , consumeVectorFromBounds
+    , debugLogAboutToConsume
     , empty
     , fromBitsString
+    , getBitsString
     , map
     , remainingBits
     , unsafeFromBitsString
@@ -44,6 +47,20 @@ type BinaryChunk
 empty : BinarySource
 empty =
     BinarySource ""
+
+
+debugLogAboutToConsume : BinarySource -> BinarySource
+debugLogAboutToConsume s =
+    let
+        _ =
+            Debug.log "about to consume" (getBitsString s)
+    in
+    s
+
+
+getBitsString : BinarySource -> String
+getBitsString (BinarySource s) =
+    s
 
 
 fromBitsString : String -> Maybe BinarySource
@@ -103,8 +120,8 @@ consumeUnsignedFloat bits max =
         >> map ((*) max)
 
 
-consumeFloatRange : Int -> (Float, Float) -> BinarySource -> Maybe ( BinarySource, Float )
-consumeFloatRange bits (min, max) =
+consumeFloatRange : Int -> ( Float, Float ) -> BinarySource -> Maybe ( BinarySource, Float )
+consumeFloatRange bits ( min, max ) =
     consumeFloat0to1 bits
         >> map
             (\uFloat ->
@@ -158,6 +175,14 @@ consumeVectorFromBounds bitsPerComponent ( boundsStart, boundsEnd ) source =
                                     )
                         )
             )
+
+
+consumeVector : Int -> Vector3 -> BinarySource -> Maybe ( BinarySource, Vector3 )
+consumeVector bitsPerComponent maxVector =
+    consumeVectorFromBounds bitsPerComponent
+        ( Vector3.zero
+        , maxVector
+        )
 
 
 chunkToInt32 : BinaryChunk -> Int

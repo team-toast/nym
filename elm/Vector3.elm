@@ -22,6 +22,11 @@ zero =
     Vector3 0 0 0
 
 
+fromMetersPoint : Point3d Length.Meters () -> Vector3
+fromMetersPoint p =
+    p |> Point3d.toRecord (Length.inMeters)
+
+
 toMetersVector : Vector3 -> Vector3d Length.Meters ()
 toMetersVector v =
     Vector3d.unsafe v

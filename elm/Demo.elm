@@ -26,6 +26,7 @@ import Point2d exposing (Point2d, xCoordinate, yCoordinate)
 import Point3d
 import Random
 import Scene3d
+import TupleHelpers
 import Types exposing (..)
 import Vector3 exposing (Vector3)
 import Vector3d
@@ -172,22 +173,44 @@ randomBinarySources masterSeed =
     List.Extra.initialize 12 initFunc
 
 
-remainingBitsAndDemoNymTemplates : Int -> Bool -> ( List Int, List NymTemplate )
+remainingBitsAndDemoNymTemplates : Int -> Bool -> List ( String, Int, NymTemplate )
 remainingBitsAndDemoNymTemplates seed defaultErrors =
     demoNymSources seed
         |> List.map (binarySourceToNym defaultErrors)
-        |> List.unzip
 
 
 genNymEntitiesAndPositions : Int -> Bool -> List ( Scene3d.Entity (), Point3dM )
 genNymEntitiesAndPositions seed defaultErrors =
+    genNymEntitiesBitsUsedAndPositions seed defaultErrors
+        |> List.indexedMap
+            (\i ( bitsUsed, entity, point ) ->
+                ( entity, point )
+            )
+
+genNymEntitiesAndPositionsAndLogBitsUsed : Int -> Bool -> List ( Scene3d.Entity (), Point3dM )
+genNymEntitiesAndPositionsAndLogBitsUsed seed defaultErrors =
+    genNymEntitiesBitsUsedAndPositions seed defaultErrors
+        |> List.indexedMap
+            (\i ( bitsUsed, entity, point ) ->
+                let
+                    _ =
+                        Debug.log ("bitsUsed for " ++ String.fromInt i) bitsUsed
+                in
+                ( entity, point )
+            )
+
+
+genNymEntitiesBitsUsedAndPositions : Int -> Bool -> List ( String, Scene3d.Entity (), Point3dM )
+genNymEntitiesBitsUsedAndPositions seed defaultErrors =
     let
-        ( bitsLeftList, templates ) =
+        bitsLeftAndTemplates =
             remainingBitsAndDemoNymTemplates seed defaultErrors
 
         _ =
             Debug.log "bits left"
-                (List.Extra.unique bitsLeftList
+                (bitsLeftAndTemplates
+                    |> List.map TupleHelpers.tuple3Middle
+                    |> List.Extra.unique
                     |> List.map
                         (\bitsLeft ->
                             ( bitsLeft
@@ -200,9 +223,9 @@ genNymEntitiesAndPositions seed defaultErrors =
                         )
                 )
     in
-    templates
+    bitsLeftAndTemplates
         |> List.indexedMap
-            (\i nymTemplate ->
+            (\i ( usedBitsString, _, nymTemplate ) ->
                 let
                     nymPosition =
                         let
@@ -219,7 +242,7 @@ genNymEntitiesAndPositions seed defaultErrors =
                         in
                         Point3d.meters x y 0
                 in
-                ( Nym.makeNymEntity nymTemplate, nymPosition )
+                ( usedBitsString, Nym.makeNymEntity nymTemplate, nymPosition )
             )
 
 

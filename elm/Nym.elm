@@ -5,6 +5,7 @@ import Color exposing (Color)
 import Generate
 import Html exposing (Html)
 import Length
+import LineSegment3d exposing (LineSegment3d)
 import List exposing (range)
 import List.Extra
 import Maybe.Extra
@@ -40,7 +41,6 @@ makeNymEntity nymTemplate =
                 [ middleGroup
                 , symmetryGroup
                 , copiedSymmetryGroup
-                , testEntity
                 ]
 
         middleGroup : Scene3d.Entity ()
@@ -50,6 +50,17 @@ makeNymEntity nymTemplate =
                 , foreheadFace
                 , noseBridgeFace
                 , chinBottomFace
+                ]
+
+        symmetryGroup =
+            Scene3d.group
+                [ upperTempleFace
+
+                -- , lowerTempleFace
+                -- , cheekFace
+                , jawSideFace
+                , testEye
+                , testEntity
                 ]
 
         crownFace : Scene3d.Entity ()
@@ -67,10 +78,10 @@ makeNymEntity nymTemplate =
             meterQuadWithDefaults
                 "forehead"
                 nymTemplate.coloring.forehead
-                nymTemplate.baseStructure.brow
+                nymTemplate.baseStructure.innerBrow
                 nymTemplate.baseStructure.crownFront
                 (nymTemplate.baseStructure.crownFront |> Result.map mirrorPoint)
-                (nymTemplate.baseStructure.brow |> Result.map mirrorPoint)
+                (nymTemplate.baseStructure.innerBrow |> Result.map mirrorPoint)
 
         noseBridgeFace : Scene3d.Entity ()
         noseBridgeFace =
@@ -78,8 +89,8 @@ makeNymEntity nymTemplate =
                 "noseBridge"
                 nymTemplate.coloring.bridge
                 noseTip
-                nymTemplate.baseStructure.brow
-                (nymTemplate.baseStructure.brow |> Result.map mirrorPoint)
+                nymTemplate.baseStructure.innerBrow
+                (nymTemplate.baseStructure.innerBrow |> Result.map mirrorPoint)
                 (noseTip |> Result.map mirrorPoint)
 
         chinBottomFace : Scene3d.Entity ()
@@ -91,14 +102,6 @@ makeNymEntity nymTemplate =
                 nymTemplate.baseStructure.jawBottom
                 (nymTemplate.baseStructure.jawBottom |> Result.map mirrorPoint)
                 (noseTip |> Result.map mirrorPoint)
-
-        symmetryGroup =
-            Scene3d.group
-                [ upperTempleFace
-                , lowerTempleFace
-                , cheekFace
-                , jawSideFace
-                ]
 
         upperTempleFace : Scene3d.Entity ()
         upperTempleFace =
@@ -116,7 +119,7 @@ makeNymEntity nymTemplate =
                 nymTemplate.coloring.upperTemple
                 nymTemplate.baseStructure.crownFront
                 nymTemplate.baseStructure.outerTop
-                nymTemplate.baseStructure.brow
+                nymTemplate.baseStructure.innerBrow
 
         cheekFace : Scene3d.Entity ()
         cheekFace =
@@ -125,7 +128,7 @@ makeNymEntity nymTemplate =
                 nymTemplate.coloring.lowerTemple
                 nymTemplate.baseStructure.jawBottom
                 nymTemplate.baseStructure.outerTop
-                nymTemplate.baseStructure.brow
+                nymTemplate.baseStructure.innerBrow
 
         jawSideFace : Scene3d.Entity ()
         jawSideFace =
@@ -133,15 +136,43 @@ makeNymEntity nymTemplate =
                 "jawSideFace"
                 nymTemplate.coloring.cheek
                 nymTemplate.baseStructure.jawBottom
-                nymTemplate.baseStructure.brow
+                nymTemplate.baseStructure.innerBrow
                 noseTip
 
         copiedSymmetryGroup =
             symmetryGroup
                 |> mirrorGroup
 
-        testEntity =
+        testEye =
             Scene3d.nothing
+
+        -- nymTemplate.baseStructure.innerBrow
+        --     |> Result.map
+        --         (\brow ->
+        --             meterTriangle (Material.color Color.black)
+        --                 brow
+        --                 (Vector3.plus brow (Vector3 0.2 -0.1 -0.05))
+        --                 (Vector3.plus brow (Vector3 0.2 0.1 -0.05))
+        --         )
+        --     |> Result.withDefault Scene3d.nothing
+        testEntity =
+            Scene3d.group
+                (List.map
+                    (Scene3d.lineSegment (Material.color Color.blue) << LineSegment3d.fromEndpoints)
+                    [ ( nymTemplate.baseStructure.innerBrow |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
+                      , nymTemplate.baseStructure.outerBrow |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
+                      )
+                    , ( nymTemplate.baseStructure.outerBrow |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
+                      , nymTemplate.baseStructure.outerEyeBottom |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
+                      )
+                    , ( nymTemplate.baseStructure.outerEyeBottom |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
+                      , nymTemplate.baseStructure.innerEyeBottom |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
+                      )
+                    , ( nymTemplate.baseStructure.innerEyeBottom |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
+                      , nymTemplate.baseStructure.innerBrow |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
+                      )
+                    ]
+                )
 
         -- Scene3d.point
         --     { radius = Pixels.pixels 10 }
@@ -223,7 +254,7 @@ meterTriangleWithDefaults name colorResult v1Result v2Result v3Result =
         |> defaultAndLogEntityError name
 
 
-binarySourceToNym : Bool -> BinarySource -> ( Int, NymTemplate )
+binarySourceToNym : Bool -> BinarySource -> ( String, Int, NymTemplate )
 binarySourceToNym defaultErrors source =
     let
         ( rSource1, coreStructureTemplate ) =
@@ -234,8 +265,14 @@ binarySourceToNym defaultErrors source =
 
         ( rSource3, coloringTemplate ) =
             Generate.consumeColoringToTemplate rSource2
+
+        bitsLeft =
+            BinarySource.remainingBits rSource3
     in
-    ( BinarySource.remainingBits rSource3
+    ( source
+        |> BinarySource.getBitsString
+        |> String.dropRight bitsLeft
+    , bitsLeft
     , NymTemplate
         coreStructureTemplate
         eyeTemplate
@@ -303,7 +340,8 @@ fillTemplateWithDefaults template =
             { coreStructure
                 | crownBack = coreStructure.crownBack |> Result.withDefault (Vector3 0.5 1 0) |> Ok
                 , crownFront = coreStructure.crownFront |> Result.withDefault (Vector3 0.5 1 0.25) |> Ok
-                , brow = coreStructure.brow |> Result.withDefault (Vector3 0.3 0.4 0.3) |> Ok
+                , innerBrow = coreStructure.innerBrow |> Result.withDefault (Vector3 0.3 0.4 0.3) |> Ok
+                , outerBrow = coreStructure.outerBrow |> Result.withDefault (Vector3 0.7 0.45 0.2) |> Ok
                 , outerTop = coreStructure.outerTop |> Result.withDefault (Vector3 1 0.5 0) |> Ok
                 , jawBottom = coreStructure.jawBottom |> Result.withDefault (Vector3 1 -1 0) |> Ok
                 , noseYandZ = coreStructure.noseYandZ |> Result.withDefault ( -0.8, 1 ) |> Ok
