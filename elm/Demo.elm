@@ -328,6 +328,7 @@ keyDecoder =
 
 badHashFunction : String -> Int
 badHashFunction =
+    -- take a string and turn it into an int. Unique strings map to unique ints.
     Hash.sha224
         >> String.toList
         >> List.map Char.toCode
