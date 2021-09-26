@@ -187,6 +187,7 @@ genNymEntitiesAndPositions seed defaultErrors =
                 ( entity, point )
             )
 
+
 genNymEntitiesAndPositionsAndLogBitsUsed : Int -> Bool -> List ( Scene3d.Entity (), Point3dM )
 genNymEntitiesAndPositionsAndLogBitsUsed seed defaultErrors =
     genNymEntitiesBitsUsedAndPositions seed defaultErrors
@@ -207,19 +208,21 @@ genNymEntitiesBitsUsedAndPositions seed defaultErrors =
             remainingBitsAndDemoNymTemplates seed defaultErrors
 
         _ =
-            Debug.log "bits left"
+            Debug.log "bits used"
                 (bitsLeftAndTemplates
                     |> List.map TupleHelpers.tuple3Middle
                     |> List.Extra.unique
                     |> List.map
                         (\bitsLeft ->
-                            ( bitsLeft
-                            , (toFloat bitsLeft / 256)
+                            let
+                                bitsUsed =
+                                    256 - bitsLeft
+                            in
+                            (toFloat bitsUsed / 256)
                                 * 100
                                 |> floor
                                 |> String.fromInt
-                                |> (\p -> p ++ "%")
-                            )
+                                |> (\p -> p ++ "% (" ++ String.fromInt bitsUsed ++ ")")
                         )
                 )
     in
