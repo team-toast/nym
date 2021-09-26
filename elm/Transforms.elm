@@ -1,12 +1,14 @@
 module Transforms exposing (..)
 
 import Angle
+import Axis3d
 import BinarySource exposing (BinarySource)
 import Color exposing (Color)
 import Length
 import List
 import List.Extra
 import Maybe.Extra
+import Plane3d
 import Point2d exposing (Point2d)
 import Point3d exposing (Point3d)
 import Result.Extra
@@ -126,7 +128,7 @@ coreStructureTransforms =
                     )
                   -- Angle to transform the eye plane around [innerBrow -> outerBrow] line. Positive angles the eyeplane up.
                 , BinarySource.consumeFloatRange 2
-                    ( 0.5 , 0.5 )
+                    ( 0.5, 0.5 )
                 )
             |> tryApplyToTemplate
                 (\valsResult ->
@@ -138,12 +140,26 @@ coreStructureTransforms =
                                         upFromOuterBrow =
                                             Vector3.plus outerBrow (Vector3 0 1 0)
 
+                                        planeRotateAxis : Axis3d.Axis3d u c
+                                        planeRotateAxis =
+                                            Axis3d.through
+                                                innerBrow
+                                                outerBrow
+                                                |> Axis3d.projectOnto Plane3d.zx
+                                                |> Maybe.withDefault
+                                                    (let
+                                                        _ =
+                                                            Debug.log "can't make a plane for rotation plane eye face math!"
+                                                     in
+                                                     Axis3d.x
+                                                    )
+
                                         sketchPlane =
                                             SketchPlane3d.throughPoints
                                                 (innerBrow |> Vector3.toMetersPoint)
                                                 (outerBrow |> Vector3.toMetersPoint)
                                                 (upFromOuterBrow |> Vector3.toMetersPoint)
-                                                |> Maybe.map (SketchPlane3d.rotateAroundOwn SketchPlane3d.xAxis (Angle.radians -angle))
+                                                |> Maybe.map (SketchPlane3d.rotateAround planeRotateAxis (Angle.radians -angle))
                                                 |> Maybe.withDefault
                                                     (let
                                                         _ =
