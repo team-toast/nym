@@ -122,7 +122,7 @@ coreStructureTransforms =
             |> BinarySource.consume2
                 -- y (ratio from brow to jaw)
                 ( BinarySource.consumeFloatRange 2
-                    ( 0.2, 1 )
+                    ( 0.4, 1 )
                   -- z (from brow)
                 , BinarySource.consumeFloatRange 2
                     ( 0, 0.8 )
