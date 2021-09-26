@@ -105,7 +105,6 @@ coreStructureTransforms =
         -- we first determine x and y info, assume these points land on a vertical plane with the brow points,
         -- then transform the points by a final angle (angle of eye plane)
         source
-            |> BinarySource.debugLogAboutToConsume
             |> BinarySource.consume3
                 -- outerEyeBottom x and y info
                 ( BinarySource.consume2
