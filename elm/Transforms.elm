@@ -140,12 +140,12 @@ coreStructureTransforms =
                                         upFromOuterBrow =
                                             Vector3.plus outerBrow (Vector3 0 1 0)
 
-                                        planeRotateAxis : Axis3d.Axis3d u c
+                                        planeRotateAxis : Axis3d.Axis3d Length.Meters ()
                                         planeRotateAxis =
-                                            Axis3d.through
-                                                innerBrow
-                                                outerBrow
-                                                |> Axis3d.projectOnto Plane3d.zx
+                                            Axis3d.throughPoints
+                                                (Vector3.toMetersPoint innerBrow)
+                                                (Vector3.toMetersPoint outerBrow)
+                                                |> Maybe.andThen (Axis3d.projectOnto Plane3d.zx)
                                                 |> Maybe.withDefault
                                                     (let
                                                         _ =
