@@ -20,7 +20,7 @@ blankColoringTemplate =
 
 blankCoreStructureTemplate : BaseStructureTemplate
 blankCoreStructureTemplate =
-    BaseStructureTemplate (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet)
+    BaseStructureTemplate (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet)
 
 
 blankEyeTemplate : EyeTemplate

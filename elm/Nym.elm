@@ -2,6 +2,7 @@ module Nym exposing (..)
 
 import BinarySource exposing (BinarySource)
 import Color exposing (Color)
+import Direction3d exposing (Direction3d)
 import Generate
 import Html exposing (Html)
 import Length
@@ -18,10 +19,13 @@ import Result.Extra
 import Scene3d
 import Scene3d.Material as Material
 import Scene3dHelpers exposing (..)
+import SketchPlane3d exposing (SketchPlane3d)
+import Triangle2d exposing (Triangle2d)
 import Triangle3d exposing (Triangle3d)
 import TupleHelpers
 import Types exposing (..)
 import Utils exposing (..)
+import Vector2 exposing (Vector2)
 import Vector3 exposing (Vector3)
 import Vector3d
 
@@ -45,22 +49,64 @@ makeNymEntity nymTemplate =
 
         middleGroup : Scene3d.Entity ()
         middleGroup =
-            Scene3d.group
-                [ crownFace
-                , foreheadFace
-                , noseBridgeFace
-                , chinBottomFace
-                ]
+            Scene3d.nothing
 
+        -- Scene3d.group
+        --     [ crownFace
+        --     -- , foreheadFace
+        --     -- , noseBridgeFace
+        --     , chinBottomFace
+        --     ]
         symmetryGroup =
             Scene3d.group
-                [ upperTempleFace
+                [ eyeQuadAndPupil
 
+                -- , upperTempleFace
                 -- , lowerTempleFace
                 -- , cheekFace
-                , jawSideFace
-                , testEye
+                -- , jawSideFace
+                -- , testEye
                 , testEntity
+                ]
+
+        eyeQuadAndPupil : Scene3d.Entity ()
+        eyeQuadAndPupil =
+            let
+                sketchplane =
+                    SketchPlane3d.xy
+                        |> SketchPlane3d.moveTo (Point3d.meters 0.2 0 0.5)
+
+                to3d offset v2 =
+                    Point3d.on
+                        (sketchplane
+                            |> SketchPlane3d.offsetBy (Length.meters offset)
+                        )
+                        (Vector2.toMetersPoint v2)
+                        |> Vector3.fromMetersPoint
+
+                pupilTriangleResult =
+                    nymTemplate.baseStructure.eyeQuadAndPupil2d |> Result.map .pupil
+            in
+            Scene3d.group
+                [ meterQuadWithDefaults "eyeQuad"
+                    (Ok Color.green)
+                    (nymTemplate.baseStructure.eyeQuadAndPupil2d |> Result.map (.eyeQuad >> .bottomRight >> to3d 0))
+                    (nymTemplate.baseStructure.eyeQuadAndPupil2d |> Result.map (.eyeQuad >> .bottomLeft >> to3d 0))
+                    (nymTemplate.baseStructure.eyeQuadAndPupil2d |> Result.map (.eyeQuad >> .topLeft >> to3d 0))
+                    (nymTemplate.baseStructure.eyeQuadAndPupil2d |> Result.map (.eyeQuad >> .topRight >> to3d 0))
+                , pupilTriangleResult
+                    |> Result.map
+                        (List.map
+                            (\triangle ->
+                                meterTriangle
+                                    Color.red
+                                    (triangle |> TupleHelpers.tuple3First |> to3d 0.01)
+                                    (triangle |> TupleHelpers.tuple3Middle |> to3d 0.01)
+                                    (triangle |> TupleHelpers.tuple3Last |> to3d 0.01)
+                            )
+                        )
+                    |> Result.map Scene3d.group
+                    |> defaultAndLogEntityError "pupil"
                 ]
 
         crownFace : Scene3d.Entity ()
@@ -73,26 +119,24 @@ makeNymEntity nymTemplate =
                 (nymTemplate.baseStructure.crownBack |> Result.map mirrorPoint)
                 (nymTemplate.baseStructure.crownFront |> Result.map mirrorPoint)
 
-        foreheadFace : Scene3d.Entity ()
-        foreheadFace =
-            meterQuadWithDefaults
-                "forehead"
-                nymTemplate.coloring.forehead
-                nymTemplate.baseStructure.innerBrow
-                nymTemplate.baseStructure.crownFront
-                (nymTemplate.baseStructure.crownFront |> Result.map mirrorPoint)
-                (nymTemplate.baseStructure.innerBrow |> Result.map mirrorPoint)
-
-        noseBridgeFace : Scene3d.Entity ()
-        noseBridgeFace =
-            meterQuadWithDefaults
-                "noseBridge"
-                nymTemplate.coloring.bridge
-                noseTip
-                nymTemplate.baseStructure.innerBrow
-                (nymTemplate.baseStructure.innerBrow |> Result.map mirrorPoint)
-                (noseTip |> Result.map mirrorPoint)
-
+        -- foreheadFace : Scene3d.Entity ()
+        -- foreheadFace =
+        --     meterQuadWithDefaults
+        --         "forehead"
+        --         nymTemplate.coloring.forehead
+        --         nymTemplate.baseStructure.innerBrow
+        --         nymTemplate.baseStructure.crownFront
+        --         (nymTemplate.baseStructure.crownFront |> Result.map mirrorPoint)
+        --         (nymTemplate.baseStructure.innerBrow |> Result.map mirrorPoint)
+        -- noseBridgeFace : Scene3d.Entity ()
+        -- noseBridgeFace =
+        --     meterQuadWithDefaults
+        --         "noseBridge"
+        --         nymTemplate.coloring.bridge
+        --         noseTip
+        --         nymTemplate.baseStructure.innerBrow
+        --         (nymTemplate.baseStructure.innerBrow |> Result.map mirrorPoint)
+        --         (noseTip |> Result.map mirrorPoint)
         chinBottomFace : Scene3d.Entity ()
         chinBottomFace =
             meterQuadWithDefaults
@@ -112,33 +156,30 @@ makeNymEntity nymTemplate =
                 nymTemplate.baseStructure.outerTop
                 nymTemplate.baseStructure.crownBack
 
-        lowerTempleFace : Scene3d.Entity ()
-        lowerTempleFace =
-            meterTriangleWithDefaults
-                "lowerTempleFace"
-                nymTemplate.coloring.upperTemple
-                nymTemplate.baseStructure.crownFront
-                nymTemplate.baseStructure.outerTop
-                nymTemplate.baseStructure.innerBrow
-
-        cheekFace : Scene3d.Entity ()
-        cheekFace =
-            meterTriangleWithDefaults
-                "cheekFace"
-                nymTemplate.coloring.lowerTemple
-                nymTemplate.baseStructure.jawBottom
-                nymTemplate.baseStructure.outerTop
-                nymTemplate.baseStructure.innerBrow
-
-        jawSideFace : Scene3d.Entity ()
-        jawSideFace =
-            meterTriangleWithDefaults
-                "jawSideFace"
-                nymTemplate.coloring.cheek
-                nymTemplate.baseStructure.jawBottom
-                nymTemplate.baseStructure.innerBrow
-                noseTip
-
+        -- lowerTempleFace : Scene3d.Entity ()
+        -- lowerTempleFace =
+        --     meterTriangleWithDefaults
+        --         "lowerTempleFace"
+        --         nymTemplate.coloring.upperTemple
+        --         nymTemplate.baseStructure.crownFront
+        --         nymTemplate.baseStructure.outerTop
+        --         nymTemplate.baseStructure.innerBrow
+        -- cheekFace : Scene3d.Entity ()
+        -- cheekFace =
+        --     meterTriangleWithDefaults
+        --         "cheekFace"
+        --         nymTemplate.coloring.lowerTemple
+        --         nymTemplate.baseStructure.jawBottom
+        --         nymTemplate.baseStructure.outerTop
+        --         nymTemplate.baseStructure.innerBrow
+        -- jawSideFace : Scene3d.Entity ()
+        -- jawSideFace =
+        --     meterTriangleWithDefaults
+        --         "jawSideFace"
+        --         nymTemplate.coloring.cheek
+        --         nymTemplate.baseStructure.jawBottom
+        --         nymTemplate.baseStructure.innerBrow
+        --         noseTip
         copiedSymmetryGroup =
             symmetryGroup
                 |> mirrorGroup
@@ -156,24 +197,25 @@ makeNymEntity nymTemplate =
         --         )
         --     |> Result.withDefault Scene3d.nothing
         testEntity =
-            Scene3d.group
-                (List.map
-                    (Scene3d.lineSegment (Material.color Color.blue) << LineSegment3d.fromEndpoints)
-                    [ ( nymTemplate.baseStructure.innerBrow |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
-                      , nymTemplate.baseStructure.outerBrow |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
-                      )
-                    , ( nymTemplate.baseStructure.outerBrow |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
-                      , nymTemplate.baseStructure.outerEyeBottom |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
-                      )
-                    , ( nymTemplate.baseStructure.outerEyeBottom |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
-                      , nymTemplate.baseStructure.innerEyeBottom |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
-                      )
-                    , ( nymTemplate.baseStructure.innerEyeBottom |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
-                      , nymTemplate.baseStructure.innerBrow |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
-                      )
-                    ]
-                )
+            Scene3d.nothing
 
+        -- Scene3d.group
+        --     (List.map
+        --         (Scene3d.lineSegment (Material.color Color.blue) << LineSegment3d.fromEndpoints)
+        --         [ ( nymTemplate.baseStructure.innerBrow |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
+        --           , nymTemplate.baseStructure.outerBrow |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
+        --           )
+        --         , ( nymTemplate.baseStructure.outerBrow |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
+        --           , nymTemplate.baseStructure.outerEyeBottom |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
+        --           )
+        --         , ( nymTemplate.baseStructure.outerEyeBottom |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
+        --           , nymTemplate.baseStructure.innerEyeBottom |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
+        --           )
+        --         , ( nymTemplate.baseStructure.innerEyeBottom |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
+        --           , nymTemplate.baseStructure.innerBrow |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
+        --           )
+        --         ]
+        --     )
         -- Scene3d.point
         --     { radius = Pixels.pixels 10 }
         --     (Material.color Color.black)
@@ -185,10 +227,10 @@ makeNymEntity nymTemplate =
     allFeatures
 
 
-meterQuad : Material.Textured () -> Vector3 -> Vector3 -> Vector3 -> Vector3 -> Scene3d.Entity ()
-meterQuad material v1 v2 v3 v4 =
+meterQuad : Color -> Vector3 -> Vector3 -> Vector3 -> Vector3 -> Scene3d.Entity ()
+meterQuad color v1 v2 v3 v4 =
     Scene3d.quad
-        material
+        (Material.color color)
         (v1 |> Vector3.toMetersPoint)
         (v2 |> Vector3.toMetersPoint)
         (v3 |> Vector3.toMetersPoint)
@@ -220,10 +262,10 @@ meterQuadWithDefaults name colorResult v1Result v2Result v3Result v4Result =
         |> defaultAndLogEntityError name
 
 
-meterTriangle : Material.Plain () -> Vector3 -> Vector3 -> Vector3 -> Scene3d.Entity ()
-meterTriangle material v1 v2 v3 =
+meterTriangle : Color -> Vector3 -> Vector3 -> Vector3 -> Scene3d.Entity ()
+meterTriangle color v1 v2 v3 =
     Scene3d.triangle
-        material
+        (Material.color color)
     <|
         Triangle3d.fromVertices
             ( v1 |> Vector3.toMetersPoint
@@ -298,7 +340,7 @@ defaultAndLogEntityError name =
         )
 
 
-defaultAndLogColorError : String -> Result GenError Color -> Material.Material coordinates attributes
+defaultAndLogColorError : String -> Result GenError Color -> Color
 defaultAndLogColorError name =
     Result.Extra.unpack
         (\err ->
@@ -306,9 +348,9 @@ defaultAndLogColorError name =
                 _ =
                     Debug.log ("Color " ++ name ++ " failed") err
             in
-            Material.color Color.black
+            Color.black
         )
-        Material.color
+        identity
 
 
 fillTemplateWithDefaults : NymTemplate -> NymTemplate
@@ -338,12 +380,44 @@ fillTemplateWithDefaults template =
                     template.baseStructure
             in
             { coreStructure
-                | crownBack = coreStructure.crownBack |> Result.withDefault (Vector3 0.5 1 0) |> Ok
+                | eyeQuadAndPupil2d = coreStructure.eyeQuadAndPupil2d |> Result.withDefault defaultEyeQuadAndPupil2d |> Ok
+                , crownBack = coreStructure.crownBack |> Result.withDefault (Vector3 0.5 1 0) |> Ok
                 , crownFront = coreStructure.crownFront |> Result.withDefault (Vector3 0.5 1 0.25) |> Ok
-                , innerBrow = coreStructure.innerBrow |> Result.withDefault (Vector3 0.3 0.4 0.3) |> Ok
-                , outerBrow = coreStructure.outerBrow |> Result.withDefault (Vector3 0.7 0.45 0.2) |> Ok
+
+                -- , innerBrow = coreStructure.innerBrow |> Result.withDefault (Vector3 0.3 0.4 0.3) |> Ok
+                -- , outerBrow = coreStructure.outerBrow |> Result.withDefault (Vector3 0.7 0.45 0.2) |> Ok
                 , outerTop = coreStructure.outerTop |> Result.withDefault (Vector3 1 0.5 0) |> Ok
                 , jawBottom = coreStructure.jawBottom |> Result.withDefault (Vector3 1 -1 0) |> Ok
                 , noseYandZ = coreStructure.noseYandZ |> Result.withDefault ( -0.8, 1 ) |> Ok
             }
+    }
+
+
+defaultEyeQuadAndPupil2d : EyeQuadAndPupil2d
+defaultEyeQuadAndPupil2d =
+    { pupil = [( Vector2 0 0, Vector2 0 0, Vector2 0 0 )]
+    , eyeQuad =
+        EyeQuad2d
+            (Vector2 0 0)
+            (Vector2 0 0)
+            (Vector2 0 0)
+            (Vector2 0 0)
+    }
+
+
+type alias EyeQuadAndPupil2d =
+    { pupil : Pupil2d
+    , eyeQuad : EyeQuad2d
+    }
+
+
+type alias Pupil2d =
+    List ( Vector2, Vector2, Vector2 )
+
+
+type alias EyeQuad2d =
+    { bottomRight : Vector2
+    , bottomLeft : Vector2
+    , topLeft : Vector2
+    , topRight : Vector2
     }
