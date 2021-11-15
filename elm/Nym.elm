@@ -71,43 +71,43 @@ makeNymEntity nymTemplate =
 
         eyeQuadAndPupil : Scene3d.Entity ()
         eyeQuadAndPupil =
-            let
-                sketchplane =
-                    SketchPlane3d.xy
-                        |> SketchPlane3d.moveTo (Point3d.meters 0.2 0 0.5)
-
-                to3d offset v2 =
-                    Point3d.on
-                        (sketchplane
-                            |> SketchPlane3d.offsetBy (Length.meters offset)
-                        )
-                        (Vector2.toMetersPoint v2)
-                        |> Vector3.fromMetersPoint
-
-                pupilTriangleResult =
-                    nymTemplate.baseStructure.eyeQuadAndPupil2d |> Result.map .pupil
-            in
-            Scene3d.group
-                [ meterQuadWithDefaults "eyeQuad"
-                    (Ok Color.green)
-                    (nymTemplate.baseStructure.eyeQuadAndPupil2d |> Result.map (.eyeQuad >> .bottomRight >> to3d 0))
-                    (nymTemplate.baseStructure.eyeQuadAndPupil2d |> Result.map (.eyeQuad >> .bottomLeft >> to3d 0))
-                    (nymTemplate.baseStructure.eyeQuadAndPupil2d |> Result.map (.eyeQuad >> .topLeft >> to3d 0))
-                    (nymTemplate.baseStructure.eyeQuadAndPupil2d |> Result.map (.eyeQuad >> .topRight >> to3d 0))
-                , pupilTriangleResult
-                    |> Result.map
-                        (List.map
-                            (\triangle ->
-                                meterTriangle
-                                    Color.red
-                                    (triangle |> TupleHelpers.tuple3First |> to3d 0.01)
-                                    (triangle |> TupleHelpers.tuple3Middle |> to3d 0.01)
-                                    (triangle |> TupleHelpers.tuple3Last |> to3d 0.01)
-                            )
-                        )
-                    |> Result.map Scene3d.group
-                    |> defaultAndLogEntityError "pupil"
-                ]
+            Result.map2
+                (\sketchPlane eyeQuadAndPupil2d ->
+                    let
+                        to3d offset v2 =
+                            Point3d.on
+                                (sketchPlane
+                                    |> SketchPlane3d.offsetBy (Length.meters offset)
+                                )
+                                (Vector2.toMetersPoint v2)
+                                |> Vector3.fromMetersPoint
+                    in
+                    Scene3d.group
+                        [ meterQuad
+                            (Color.green)
+                            (eyeQuadAndPupil2d.eyeQuad.bottomRight |> to3d 0)
+                            (eyeQuadAndPupil2d.eyeQuad.bottomLeft |> to3d 0)
+                            (eyeQuadAndPupil2d.eyeQuad.topLeft |> to3d 0)
+                            (eyeQuadAndPupil2d.eyeQuad.topRight |> to3d 0)
+                        , eyeQuadAndPupil2d.pupil
+                                |> (List.map
+                                    (\triangle ->
+                                        meterTriangle
+                                            Color.red
+                                            (triangle |> TupleHelpers.tuple3First |> to3d 0.01)
+                                            (triangle |> TupleHelpers.tuple3Middle |> to3d 0.01)
+                                            (triangle |> TupleHelpers.tuple3Last |> to3d 0.01)
+                                    )
+                                )
+                            |> Scene3d.group
+                        ]
+                )
+                nymTemplate.baseStructure.eyeQuadSketchplane
+                nymTemplate.baseStructure.eyeQuadAndPupil2d
+                |> defaultAndLogEntityError "eyeQuadAndPupil"
+                
+            
+            
 
         crownFace : Scene3d.Entity ()
         crownFace =

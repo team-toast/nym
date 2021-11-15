@@ -1,9 +1,10 @@
 module Transforms exposing (..)
 
 import Angle
-import Axis3d
+import Axis3d exposing (Axis3d)
 import BinarySource exposing (BinarySource)
 import Color exposing (Color)
+import Direction3d exposing (Direction3d)
 import Length
 import LineSegment2d exposing (LineSegment2d)
 import List
@@ -23,8 +24,8 @@ import Vector3 exposing (Vector3)
 import Vector3d
 
 
-make2dEyeQuadAndPupil : BinarySource -> Maybe ( BinarySource, Result GenError EyeQuadAndPupil2d )
-make2dEyeQuadAndPupil source =
+consumeEyeQuadAndPupil2d : BinarySource -> Maybe ( BinarySource, Result GenError EyeQuadAndPupil2d )
+consumeEyeQuadAndPupil2d source =
     let
         -- _ =
         --     Debug.log "from source" source
@@ -64,7 +65,7 @@ make2dEyeQuadAndPupil source =
                               -- y in real world units
                             , BinarySource.consumeFloatRange 2 ( 0.1, 0.25 )
                             )
-                        -- top right
+                          -- top right
                         , BinarySource.consume2
                             -- x in terms of length of bottom line
                             ( BinarySource.consumeFloatRange 2 ( -0.3, 0.5 )
@@ -207,12 +208,63 @@ make2dEyeQuadAndPupil source =
 coreStructureTransforms : List (BinarySource -> BaseStructureTemplate -> ( BinarySource, BaseStructureTemplate ))
 coreStructureTransforms =
     [ \source template ->
+        -- eyequad and pupil, in 2d
         source
-            |> make2dEyeQuadAndPupil
+            |> consumeEyeQuadAndPupil2d
             |> tryApplyToTemplate
                 (\eyeQuadAndPupilResult ->
                     { template
                         | eyeQuadAndPupil2d = Result.Extra.join eyeQuadAndPupilResult
+                    }
+                )
+
+    -- sketchplane of eyequad
+    , \source template ->
+        source
+            |> BinarySource.consume3
+                ( -- XY angle of axis to rotate the eyeQuad (do eyes pull back toward top of head or toward side?)
+                  BinarySource.consumeFloatRange 2 ( pi, pi / 2 )
+                  -- rotation amount (how much do eyes pull back?)
+                , BinarySource.consumeFloatRange 2 ( 0, 0.85 * (pi / 2) )
+                  -- x distance from center to furthest left point of eyeQuad
+                , BinarySource.consumeFloatRange 2 ( 0.1, 0.4 )
+                )
+            |> tryApplyToTemplate
+                (\valResult ->
+                    { template
+                        | eyeQuadSketchplane =
+                            Result.map2
+                                (\eyeQuadAndPupil ( rotationAxisAngle, rotationAmount, xOffset ) ->
+                                    let
+                                        rotateAxis =
+                                            Direction3d.xy (Angle.radians rotationAxisAngle)
+                                                |> Axis3d.through Point3d.origin
+
+                                        sketchPlaneBeforeTranslate =
+                                            SketchPlane3d.xy
+                                                |> SketchPlane3d.rotateAround
+                                                    rotateAxis
+                                                    (Angle.radians rotationAmount)
+
+                                        furthestLeftX =
+                                            [ eyeQuadAndPupil.eyeQuad.bottomLeft
+                                            , eyeQuadAndPupil.eyeQuad.topLeft
+                                            ]
+                                                |> List.map Vector2.toMetersPoint
+                                                |> List.map (Point3d.on sketchPlaneBeforeTranslate)
+                                                |> List.map Vector3.fromMetersPoint
+                                                |> List.map .x
+                                                |> List.minimum
+                                                |> Maybe.withDefault 0
+
+                                        translateRightBy =
+                                            -furthestLeftX + xOffset
+                                    in
+                                    sketchPlaneBeforeTranslate
+                                        |> SketchPlane3d.translateIn Direction3d.positiveX (Length.meters translateRightBy)
+                                )
+                                template.eyeQuadAndPupil2d
+                                valResult
                     }
                 )
     ]

@@ -5,9 +5,10 @@ import Color exposing (Color)
 import Length
 import Point2d exposing (Point2d)
 import Point3d exposing (Point3d)
+import SketchPlane3d exposing (SketchPlane3d)
+import Triangle2d exposing (Triangle2d)
 import Vector2 exposing (Vector2)
 import Vector3 exposing (Vector3)
-import Triangle2d exposing (Triangle2d)
 
 
 type GenError
@@ -24,6 +25,7 @@ type alias Point3dM =
 
 type alias BaseStructureTemplate =
     { eyeQuadAndPupil2d : Result GenError EyeQuadAndPupil2d
+    , eyeQuadSketchplane : Result GenError (SketchPlane3d Length.Meters () {})
     , crownBack : Result GenError Vector3
     , crownFront : Result GenError Vector3
 
@@ -37,6 +39,8 @@ type alias BaseStructureTemplate =
     }
 
 
+
+
 type alias EyeQuadAndPupil2d =
     { pupil : Pupil2d
     , eyeQuad : Vector2.Quad
@@ -44,7 +48,7 @@ type alias EyeQuadAndPupil2d =
 
 
 type alias Pupil2d =
-    List (Vector2, Vector2, Vector2)
+    List ( Vector2, Vector2, Vector2 )
 
 
 type alias ColoringTemplate =
