@@ -23,9 +23,12 @@ type alias Point3dM =
     Point3d Length.Meters ()
 
 
-type alias BaseStructureTemplate =
-    { eyeQuadAndPupil2d : Result GenError EyeQuadAndPupil2d
-    , eyeQuadSketchplane : Result GenError (SketchPlane3d Length.Meters () {})
+type alias StructureTemplate =
+    { eyeQuadAndPupil : Result GenError (EyeQuad, Pupil)
+    
+
+    -- , eyeQuadAndPupil2d : Result GenError EyeQuadAndPupil2d
+    -- , eyeQuadSketchplane : Result GenError (SketchPlane3d Length.Meters () {})
     , crownBack : Result GenError Vector3
     , crownFront : Result GenError Vector3
 
@@ -39,6 +42,12 @@ type alias BaseStructureTemplate =
     }
 
 
+type alias EyeQuad =
+    Vector3.Quad
+
+
+type alias Pupil =
+    List (Vector3, Vector3, Vector3)
 
 
 type alias EyeQuadAndPupil2d =
@@ -89,8 +98,7 @@ testEye =
 
 
 type alias NymTemplate =
-    { baseStructure : BaseStructureTemplate
-    , eye : EyeTemplate
+    { structure : StructureTemplate
     , coloring : ColoringTemplate
     }
 

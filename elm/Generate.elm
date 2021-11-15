@@ -18,9 +18,9 @@ blankColoringTemplate =
     ColoringTemplate (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet)
 
 
-blankCoreStructureTemplate : BaseStructureTemplate
-blankCoreStructureTemplate =
-    BaseStructureTemplate (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet)
+blankStructureTemplate : StructureTemplate
+blankStructureTemplate =
+    StructureTemplate (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet)
 
 
 blankEyeTemplate : EyeTemplate
@@ -44,20 +44,17 @@ consumeColoringToTemplate fullSource =
     remainingSourceAndTemplate
 
 
-consumeCoreStructureToTemplate : BinarySource -> ( BinarySource, BaseStructureTemplate )
+consumeCoreStructureToTemplate : BinarySource -> ( BinarySource, StructureTemplate )
 consumeCoreStructureToTemplate fullSource =
     let
-        trfunc : (BinarySource -> BaseStructureTemplate -> ( BinarySource, BaseStructureTemplate )) -> ( BinarySource, BaseStructureTemplate ) -> ( BinarySource, BaseStructureTemplate )
+        trfunc : (BinarySource -> StructureTemplate -> ( BinarySource, StructureTemplate )) -> ( BinarySource, StructureTemplate ) -> ( BinarySource, StructureTemplate )
         trfunc tr ( s, te ) =
             tr s te
-
-        remainingSourceAndTransformResults =
-            List.foldl
-                trfunc
-                ( fullSource, blankCoreStructureTemplate )
-                Transforms.coreStructureTransforms
     in
-    remainingSourceAndTransformResults
+    List.foldl
+        trfunc
+        ( fullSource, blankStructureTemplate )
+        Transforms.coreStructureTransforms
 
 
 consumeEyeToTemplate : BinarySource -> ( BinarySource, EyeTemplate )

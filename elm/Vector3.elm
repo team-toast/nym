@@ -24,7 +24,7 @@ zero =
 
 fromMetersPoint : Point3d Length.Meters () -> Vector3
 fromMetersPoint p =
-    p |> Point3d.toRecord (Length.inMeters)
+    p |> Point3d.toRecord Length.inMeters
 
 
 toMetersVector : Vector3 -> Vector3d Length.Meters ()
@@ -88,3 +88,11 @@ magnitude v =
     Vector3d.unsafe v
         |> Vector3d.length
         |> Quantity.unwrap
+
+
+type alias Quad =
+    { bottomRight : Vector3
+    , bottomLeft : Vector3
+    , topLeft : Vector3
+    , topRight : Vector3
+    }

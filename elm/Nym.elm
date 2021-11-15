@@ -34,7 +34,7 @@ makeNymEntity : NymTemplate -> Scene3d.Entity ()
 makeNymEntity nymTemplate =
     let
         noseTip =
-            nymTemplate.baseStructure.noseYandZ
+            nymTemplate.structure.noseYandZ
                 |> Result.map
                     (\( y, z ) ->
                         Vector3 0.18 y z
@@ -71,53 +71,39 @@ makeNymEntity nymTemplate =
 
         eyeQuadAndPupil : Scene3d.Entity ()
         eyeQuadAndPupil =
-            Result.map2
-                (\sketchPlane eyeQuadAndPupil2d ->
-                    let
-                        to3d offset v2 =
-                            Point3d.on
-                                (sketchPlane
-                                    |> SketchPlane3d.offsetBy (Length.meters offset)
-                                )
-                                (Vector2.toMetersPoint v2)
-                                |> Vector3.fromMetersPoint
-                    in
-                    Scene3d.group
-                        [ meterQuad
-                            (Color.green)
-                            (eyeQuadAndPupil2d.eyeQuad.bottomRight |> to3d 0)
-                            (eyeQuadAndPupil2d.eyeQuad.bottomLeft |> to3d 0)
-                            (eyeQuadAndPupil2d.eyeQuad.topLeft |> to3d 0)
-                            (eyeQuadAndPupil2d.eyeQuad.topRight |> to3d 0)
-                        , eyeQuadAndPupil2d.pupil
-                                |> (List.map
+            nymTemplate.structure.eyeQuadAndPupil
+                |> Result.map
+                    (\( eyeQuad, pupil ) ->
+                        Scene3d.group
+                            [ meterQuad
+                                Color.green
+                                eyeQuad.bottomRight
+                                eyeQuad.bottomLeft
+                                eyeQuad.topLeft
+                                eyeQuad.topRight
+                            , pupil
+                                |> List.map
                                     (\triangle ->
                                         meterTriangle
                                             Color.red
-                                            (triangle |> TupleHelpers.tuple3First |> to3d 0.01)
-                                            (triangle |> TupleHelpers.tuple3Middle |> to3d 0.01)
-                                            (triangle |> TupleHelpers.tuple3Last |> to3d 0.01)
+                                            (triangle |> TupleHelpers.tuple3First)
+                                            (triangle |> TupleHelpers.tuple3Middle)
+                                            (triangle |> TupleHelpers.tuple3Last)
                                     )
-                                )
-                            |> Scene3d.group
-                        ]
-                )
-                nymTemplate.baseStructure.eyeQuadSketchplane
-                nymTemplate.baseStructure.eyeQuadAndPupil2d
+                                |> Scene3d.group
+                            ]
+                    )
                 |> defaultAndLogEntityError "eyeQuadAndPupil"
-                
-            
-            
 
         crownFace : Scene3d.Entity ()
         crownFace =
             meterQuadWithDefaults
                 "crown"
                 nymTemplate.coloring.crown
-                nymTemplate.baseStructure.crownFront
-                nymTemplate.baseStructure.crownBack
-                (nymTemplate.baseStructure.crownBack |> Result.map mirrorPoint)
-                (nymTemplate.baseStructure.crownFront |> Result.map mirrorPoint)
+                nymTemplate.structure.crownFront
+                nymTemplate.structure.crownBack
+                (nymTemplate.structure.crownBack |> Result.map mirrorPoint)
+                (nymTemplate.structure.crownFront |> Result.map mirrorPoint)
 
         -- foreheadFace : Scene3d.Entity ()
         -- foreheadFace =
@@ -143,8 +129,8 @@ makeNymEntity nymTemplate =
                 "chinFront"
                 nymTemplate.coloring.chinBottom
                 noseTip
-                nymTemplate.baseStructure.jawBottom
-                (nymTemplate.baseStructure.jawBottom |> Result.map mirrorPoint)
+                nymTemplate.structure.jawBottom
+                (nymTemplate.structure.jawBottom |> Result.map mirrorPoint)
                 (noseTip |> Result.map mirrorPoint)
 
         upperTempleFace : Scene3d.Entity ()
@@ -152,9 +138,9 @@ makeNymEntity nymTemplate =
             meterTriangleWithDefaults
                 "upperTempleFace"
                 nymTemplate.coloring.upperTemple
-                nymTemplate.baseStructure.crownFront
-                nymTemplate.baseStructure.outerTop
-                nymTemplate.baseStructure.crownBack
+                nymTemplate.structure.crownFront
+                nymTemplate.structure.outerTop
+                nymTemplate.structure.crownBack
 
         -- lowerTempleFace : Scene3d.Entity ()
         -- lowerTempleFace =
@@ -317,7 +303,6 @@ binarySourceToNym defaultErrors source =
     , bitsLeft
     , NymTemplate
         coreStructureTemplate
-        eyeTemplate
         coloringTemplate
         |> (if defaultErrors then
                 fillTemplateWithDefaults
@@ -374,13 +359,13 @@ fillTemplateWithDefaults template =
                 , upperJawSide = coloring.upperJawSide |> Result.withDefault Color.lightGreen |> Ok
                 , lowerJawSide = coloring.lowerJawSide |> Result.withDefault Color.green |> Ok
             }
-        , baseStructure =
+        , structure =
             let
                 coreStructure =
-                    template.baseStructure
+                    template.structure
             in
             { coreStructure
-                | eyeQuadAndPupil2d = coreStructure.eyeQuadAndPupil2d |> Result.withDefault defaultEyeQuadAndPupil2d |> Ok
+                | eyeQuadAndPupil = coreStructure.eyeQuadAndPupil |> Result.withDefault defaultEyeQuadAndPupil |> Ok
                 , crownBack = coreStructure.crownBack |> Result.withDefault (Vector3 0.5 1 0) |> Ok
                 , crownFront = coreStructure.crownFront |> Result.withDefault (Vector3 0.5 1 0.25) |> Ok
 
@@ -393,16 +378,15 @@ fillTemplateWithDefaults template =
     }
 
 
-defaultEyeQuadAndPupil2d : EyeQuadAndPupil2d
-defaultEyeQuadAndPupil2d =
-    { pupil = [( Vector2 0 0, Vector2 0 0, Vector2 0 0 )]
-    , eyeQuad =
-        EyeQuad2d
-            (Vector2 0 0)
-            (Vector2 0 0)
-            (Vector2 0 0)
-            (Vector2 0 0)
-    }
+defaultEyeQuadAndPupil : ( EyeQuad, Pupil )
+defaultEyeQuadAndPupil =
+    ( Vector3.Quad
+        (Vector3 0 0 0)
+        (Vector3 0 0 0)
+        (Vector3 0 0 0)
+        (Vector3 0 0 0)
+    , [ ( Vector3 0 0 0, Vector3 0 0 0, Vector3 0 0 0 ) ]
+    )
 
 
 type alias EyeQuadAndPupil2d =
