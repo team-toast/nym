@@ -46,10 +46,31 @@ coreStructureTransforms =
 
     -- noseTop
     , \source template ->
-        (source
-        , { template
-            | noseTop = Ok <| Vector3 0.1 0 1
-        })
+        source
+            |> BinarySource.consume3
+                (-- x offset
+                BinarySource.consumeFloatRange 2 (0.03, 0.3)
+                , -- length of line (in YZ plane) from eyeQuad.bottomLeft to this point
+                BinarySource.consumeFloatRange 2 (0.2, 0.8)
+                , -- angle of line (in YZ plane) from eyeQuad.bottomLeft to this point, measured downward from +Z
+                BinarySource.consumeFloatRange 2 (0, pi/2)
+                )
+            |> tryApplyMaybeValToTemplate
+                (\valResult ->
+                    { template
+                        | noseTop =
+                            Result.map2
+                                (\(x, length, angle) eyeQuadBottomLeft ->
+                                    Vector3
+                                        x
+                                        (eyeQuadBottomLeft.y - (length * cos angle))
+                                        (eyeQuadBottomLeft.z + (length * sin angle))
+                                )
+                                valResult
+                                (template.eyeQuadAndPupil |> Result.map (Tuple.first >> .bottomLeft))
+                    }
+                )
+        
     ]
 
 
@@ -316,8 +337,6 @@ coloringTransforms =
 consumeEyeQuadAndPupil2d : BinarySource -> Result GenError ( BinarySource, EyeQuadAndPupil2d )
 consumeEyeQuadAndPupil2d source =
     let
-        -- _ =
-        --     Debug.log "from source" source
         consumeData :
             BinarySource
             ->
