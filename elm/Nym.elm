@@ -30,33 +30,43 @@ import Vector3 exposing (Vector3)
 import Vector3d
 
 
-makeNymEntity : NymTemplate -> Scene3d.Entity ()
-makeNymEntity nymTemplate =
+makeNymEntity : Bool -> NymTemplate -> Scene3d.Entity ()
+makeNymEntity showDebugLines nymTemplate =
     let
-        noseTip =
-            nymTemplate.structure.noseYandZ
-                |> Result.map
-                    (\( y, z ) ->
-                        Vector3 0.18 y z
-                    )
+        maybeDebugLines =
+            if showDebugLines then
+                Scene3d.group
+                    [ Scene3d.lineSegment
+                        (Material.color Color.black)
+                        (LineSegment3d.fromEndpoints
+                            ( Vector3 0 0 0 |> Vector3.toMetersPoint
+                            , Vector3 0 0 2 |> Vector3.toMetersPoint
+                            )
+                        )
+                    ]
+
+            else
+                Scene3d.nothing
 
         allFeatures =
-            Scene3d.group
+            Scene3d.group <|
                 [ middleGroup
                 , symmetryGroup
                 , copiedSymmetryGroup
+                , maybeDebugLines
                 ]
 
         middleGroup : Scene3d.Entity ()
         middleGroup =
-            Scene3d.nothing
+            Scene3d.group
+                [ snoutTop
 
-        -- Scene3d.group
-        --     [ crownFace
-        --     -- , foreheadFace
-        --     -- , noseBridgeFace
-        --     , chinBottomFace
-        --     ]
+                -- , crownFace
+                -- , foreheadFace
+                -- , noseBridgeFace
+                -- , chinBottomFace
+                ]
+
         symmetryGroup =
             Scene3d.group
                 [ eyeQuadAndPupil
@@ -95,15 +105,27 @@ makeNymEntity nymTemplate =
                     )
                 |> defaultAndLogEntityError "eyeQuadAndPupil"
 
-        crownFace : Scene3d.Entity ()
-        crownFace =
+        -- crownFace : Scene3d.Entity ()
+        -- crownFace =
+        --     meterQuadWithDefaults
+        --         "crown"
+        --         nymTemplate.coloring.crown
+        --         nymTemplate.structure.crownFront
+        --         nymTemplate.structure.crownBack
+        --         (nymTemplate.structure.crownBack |> Result.map mirrorPoint)
+        --         (nymTemplate.structure.crownFront |> Result.map mirrorPoint)
+        eyeQuadResult =
+            nymTemplate.structure.eyeQuadAndPupil |> Result.map Tuple.first
+
+        snoutTop : Scene3d.Entity ()
+        snoutTop =
             meterQuadWithDefaults
-                "crown"
-                nymTemplate.coloring.crown
-                nymTemplate.structure.crownFront
-                nymTemplate.structure.crownBack
-                (nymTemplate.structure.crownBack |> Result.map mirrorPoint)
-                (nymTemplate.structure.crownFront |> Result.map mirrorPoint)
+                "snoutTop"
+                (Ok Color.orange)
+                nymTemplate.structure.noseTop
+                (eyeQuadResult |> Result.map .bottomLeft)
+                (eyeQuadResult |> Result.map .bottomLeft |> Result.map mirrorPoint)
+                (nymTemplate.structure.noseTop |> Result.map mirrorPoint)
 
         -- foreheadFace : Scene3d.Entity ()
         -- foreheadFace =
@@ -123,25 +145,23 @@ makeNymEntity nymTemplate =
         --         nymTemplate.baseStructure.innerBrow
         --         (nymTemplate.baseStructure.innerBrow |> Result.map mirrorPoint)
         --         (noseTip |> Result.map mirrorPoint)
-        chinBottomFace : Scene3d.Entity ()
-        chinBottomFace =
-            meterQuadWithDefaults
-                "chinFront"
-                nymTemplate.coloring.chinBottom
-                noseTip
-                nymTemplate.structure.jawBottom
-                (nymTemplate.structure.jawBottom |> Result.map mirrorPoint)
-                (noseTip |> Result.map mirrorPoint)
-
-        upperTempleFace : Scene3d.Entity ()
-        upperTempleFace =
-            meterTriangleWithDefaults
-                "upperTempleFace"
-                nymTemplate.coloring.upperTemple
-                nymTemplate.structure.crownFront
-                nymTemplate.structure.outerTop
-                nymTemplate.structure.crownBack
-
+        -- chinBottomFace : Scene3d.Entity ()
+        -- chinBottomFace =
+        --     meterQuadWithDefaults
+        --         "chinFront"
+        --         nymTemplate.coloring.chinBottom
+        --         noseTip
+        --         nymTemplate.structure.jawBottom
+        --         (nymTemplate.structure.jawBottom |> Result.map mirrorPoint)
+        --         (noseTip |> Result.map mirrorPoint)
+        -- upperTempleFace : Scene3d.Entity ()
+        -- upperTempleFace =
+        --     meterTriangleWithDefaults
+        --         "upperTempleFace"
+        --         nymTemplate.coloring.upperTemple
+        --         nymTemplate.structure.crownFront
+        --         nymTemplate.structure.outerTop
+        --         nymTemplate.structure.crownBack
         -- lowerTempleFace : Scene3d.Entity ()
         -- lowerTempleFace =
         --     meterTriangleWithDefaults
@@ -346,19 +366,21 @@ fillTemplateWithDefaults template =
                 coloring =
                     template.coloring
             in
-            { coloring
-                | crown = coloring.crown |> Result.withDefault Color.lightRed |> Ok
-                , forehead = coloring.forehead |> Result.withDefault Color.red |> Ok
-                , bridge = coloring.bridge |> Result.withDefault Color.darkRed |> Ok
-                , noseTip = coloring.noseTip |> Result.withDefault Color.lightOrange |> Ok
-                , chinFront = coloring.chinFront |> Result.withDefault Color.orange |> Ok
-                , chinBottom = coloring.chinBottom |> Result.withDefault Color.darkOrange |> Ok
-                , upperTemple = coloring.upperTemple |> Result.withDefault Color.lightYellow |> Ok
-                , lowerTemple = coloring.lowerTemple |> Result.withDefault Color.yellow |> Ok
-                , cheek = coloring.cheek |> Result.withDefault Color.darkYellow |> Ok
-                , upperJawSide = coloring.upperJawSide |> Result.withDefault Color.lightGreen |> Ok
-                , lowerJawSide = coloring.lowerJawSide |> Result.withDefault Color.green |> Ok
-            }
+            {}
+
+        -- { coloring
+        --     | crown = coloring.crown |> Result.withDefault Color.lightRed |> Ok
+        --     , forehead = coloring.forehead |> Result.withDefault Color.red |> Ok
+        --     , bridge = coloring.bridge |> Result.withDefault Color.darkRed |> Ok
+        --     , noseTip = coloring.noseTip |> Result.withDefault Color.lightOrange |> Ok
+        --     , chinFront = coloring.chinFront |> Result.withDefault Color.orange |> Ok
+        --     , chinBottom = coloring.chinBottom |> Result.withDefault Color.darkOrange |> Ok
+        --     , upperTemple = coloring.upperTemple |> Result.withDefault Color.lightYellow |> Ok
+        --     , lowerTemple = coloring.lowerTemple |> Result.withDefault Color.yellow |> Ok
+        --     , cheek = coloring.cheek |> Result.withDefault Color.darkYellow |> Ok
+        --     , upperJawSide = coloring.upperJawSide |> Result.withDefault Color.lightGreen |> Ok
+        --     , lowerJawSide = coloring.lowerJawSide |> Result.withDefault Color.green |> Ok
+        -- }
         , structure =
             let
                 coreStructure =
@@ -366,14 +388,15 @@ fillTemplateWithDefaults template =
             in
             { coreStructure
                 | eyeQuadAndPupil = coreStructure.eyeQuadAndPupil |> Result.withDefault defaultEyeQuadAndPupil |> Ok
-                , crownBack = coreStructure.crownBack |> Result.withDefault (Vector3 0.5 1 0) |> Ok
-                , crownFront = coreStructure.crownFront |> Result.withDefault (Vector3 0.5 1 0.25) |> Ok
+                , noseTop = coreStructure.noseTop |> Result.withDefault (Vector3 0.1 0 1) |> Ok
 
+                -- , crownBack = coreStructure.crownBack |> Result.withDefault (Vector3 0.5 1 0) |> Ok
+                -- , crownFront = coreStructure.crownFront |> Result.withDefault (Vector3 0.5 1 0.25) |> Ok
                 -- , innerBrow = coreStructure.innerBrow |> Result.withDefault (Vector3 0.3 0.4 0.3) |> Ok
                 -- , outerBrow = coreStructure.outerBrow |> Result.withDefault (Vector3 0.7 0.45 0.2) |> Ok
-                , outerTop = coreStructure.outerTop |> Result.withDefault (Vector3 1 0.5 0) |> Ok
-                , jawBottom = coreStructure.jawBottom |> Result.withDefault (Vector3 1 -1 0) |> Ok
-                , noseYandZ = coreStructure.noseYandZ |> Result.withDefault ( -0.8, 1 ) |> Ok
+                -- , outerTop = coreStructure.outerTop |> Result.withDefault (Vector3 1 0.5 0) |> Ok
+                -- , jawBottom = coreStructure.jawBottom |> Result.withDefault (Vector3 1 -1 0) |> Ok
+                -- , noseYandZ = coreStructure.noseYandZ |> Result.withDefault ( -0.8, 1 ) |> Ok
             }
     }
 

@@ -14,9 +14,9 @@ module BinarySource exposing
     , consumeSeveralValues
     , consumeTriple
     , consumeUnsignedFloat
-    , consumeVector
-    , consumeVectorDimNeg1to1
-    , consumeVectorFromBounds
+    , consumeVector3
+    , consumeVector3DimNeg1to1
+    , consumeVector3FromBounds
     , debugLogAboutToConsume
     , empty
     , fakeConsume
@@ -130,8 +130,8 @@ consumeFloatRange bits ( min, max ) =
             )
 
 
-consumeVectorDimNeg1to1 : Int -> BinarySource -> Maybe ( BinarySource, Vector3 )
-consumeVectorDimNeg1to1 bitsPerComponent source =
+consumeVector3DimNeg1to1 : Int -> BinarySource -> Maybe ( BinarySource, Vector3 )
+consumeVector3DimNeg1to1 bitsPerComponent source =
     consumeFloat0to1 bitsPerComponent source
         |> Maybe.andThen
             (\( source1, x ) ->
@@ -152,8 +152,8 @@ consumeVectorDimNeg1to1 bitsPerComponent source =
             )
 
 
-consumeVectorFromBounds : Int -> Vector3.RectBounds -> BinarySource -> Maybe ( BinarySource, Vector3 )
-consumeVectorFromBounds bitsPerComponent ( boundsStart, boundsEnd ) source =
+consumeVector3FromBounds : Int -> Vector3.RectBounds -> BinarySource -> Maybe ( BinarySource, Vector3 )
+consumeVector3FromBounds bitsPerComponent ( boundsStart, boundsEnd ) source =
     consumeFloat0to1 bitsPerComponent source
         |> Maybe.andThen
             (\( source1, x ) ->
@@ -178,9 +178,9 @@ consumeVectorFromBounds bitsPerComponent ( boundsStart, boundsEnd ) source =
             )
 
 
-consumeVector : Int -> Vector3 -> BinarySource -> Maybe ( BinarySource, Vector3 )
-consumeVector bitsPerComponent maxVector =
-    consumeVectorFromBounds bitsPerComponent
+consumeVector3 : Int -> Vector3 -> BinarySource -> Maybe ( BinarySource, Vector3 )
+consumeVector3 bitsPerComponent maxVector =
+    consumeVector3FromBounds bitsPerComponent
         ( Vector3.zero
         , maxVector
         )
