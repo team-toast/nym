@@ -72,6 +72,7 @@ makeNymEntity showDebugLines nymTemplate =
             Scene3d.group
                 [ eyeQuadAndPupil
                 , snoutSideTop
+                , cheek
 
                 -- , upperTempleFace
                 -- , lowerTempleFace
@@ -107,15 +108,6 @@ makeNymEntity showDebugLines nymTemplate =
                     )
                 |> defaultAndLogEntityError "eyeQuadAndPupil"
 
-        -- crownFace : Scene3d.Entity ()
-        -- crownFace =
-        --     meterQuadWithDefaults
-        --         "crown"
-        --         nymTemplate.coloring.crown
-        --         nymTemplate.structure.crownFront
-        --         nymTemplate.structure.crownBack
-        --         (nymTemplate.structure.crownBack |> Result.map mirrorPoint)
-        --         (nymTemplate.structure.crownFront |> Result.map mirrorPoint)
         eyeQuadResult =
             nymTemplate.structure.eyeQuadAndPupil |> Result.map Tuple.first
 
@@ -148,6 +140,15 @@ makeNymEntity showDebugLines nymTemplate =
                 nymTemplate.structure.noseTop
                 (nymTemplate.structure.noseTop |> Result.map mirrorPoint)
                 (nymTemplate.structure.noseBottom |> Result.map mirrorPoint)
+        
+        cheek : Scene3d.Entity ()
+        cheek =
+            meterTriangleWithDefaults
+                "cheek"
+                (Ok Color.darkRed)
+                (eyeQuadResult |> Result.map .bottomRight)
+                (eyeQuadResult |> Result.map .topRight)
+                nymTemplate.structure.cheekbone
 
         -- foreheadFace : Scene3d.Entity ()
         -- foreheadFace =
