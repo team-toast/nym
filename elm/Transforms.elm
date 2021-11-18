@@ -7,6 +7,7 @@ import Color exposing (Color)
 import Direction3d exposing (Direction3d)
 import Length
 import LineSegment2d exposing (LineSegment2d)
+import LineSegment3d exposing (LineSegment3d)
 import List
 import List.Extra
 import Maybe.Extra
@@ -48,19 +49,19 @@ coreStructureTransforms =
     , \source template ->
         source
             |> BinarySource.consume3
-                (-- x offset
-                BinarySource.consumeFloatRange 2 (0.03, 0.3)
+                ( -- x offset
+                  BinarySource.consumeFloatRange 2 ( 0.03, 0.3 )
                 , -- length of line (in YZ plane) from eyeQuad.bottomLeft to this point
-                BinarySource.consumeFloatRange 2 (0.2, 0.8)
+                  BinarySource.consumeFloatRange 2 ( 0.2, 0.8 )
                 , -- angle of line (in YZ plane) from eyeQuad.bottomLeft to this point, measured downward from +Z
-                BinarySource.consumeFloatRange 2 (pi/6, pi/2)
+                  BinarySource.consumeFloatRange 2 ( pi / 6, pi / 2 )
                 )
             |> tryApplyMaybeValToTemplate
                 (\valResult ->
                     { template
                         | noseTop =
                             Result.map2
-                                (\(x, length, angle) eyeQuadBottomLeft ->
+                                (\( x, length, angle ) eyeQuadBottomLeft ->
                                     Vector3
                                         x
                                         (eyeQuadBottomLeft.y - (length * cos angle))
@@ -70,21 +71,22 @@ coreStructureTransforms =
                                 (template.eyeQuadAndPupil |> Result.map (Tuple.first >> .bottomLeft))
                     }
                 )
+
     -- nose bottom
     , \source template ->
         source
             |> BinarySource.consume2
-                (-- x offset
-                BinarySource.consumeFloatRange 2 (0.03, 0.2)
+                ( -- x offset
+                  BinarySource.consumeFloatRange 2 ( 0.03, 0.2 )
                 , -- y distance from noseTop
-                BinarySource.consumeFloatRange 2 (0.08, 0.2)
+                  BinarySource.consumeFloatRange 2 ( 0.08, 0.2 )
                 )
             |> tryApplyMaybeValToTemplate
                 (\valResult ->
                     { template
                         | noseBottom =
                             Result.map2
-                                (\(x, yDistance) noseTop ->
+                                (\( x, yDistance ) noseTop ->
                                     Vector3
                                         x
                                         (noseTop.y - yDistance)
@@ -94,23 +96,34 @@ coreStructureTransforms =
                                 template.noseTop
                     }
                 )
+
     -- cheekbone
     , \source template ->
-        (source
-        , { template
-            | cheekbone =
-                template.eyeQuadAndPupil
-                    |> Result.map (Tuple.first >> .bottomLeft)
-                    |> Result.map
-                        (Vector3.plus
-                            (Vector3 0.1 -0.3 0.1)
-                        )
-        })
+        source
+            -- choose a point interpolated between eyeQuad.bottomRight and noseTop
+            |> BinarySource.fakeConsume ()
+            |> tryApplyMaybeValToTemplate
+                (\_ ->
+                    { template
+                        | cheekbone =
+                            Result.map2
+                                (\eyeQuadBottomRight noseTop ->
+                                    let
+                                        interpLine =
+                                            ( eyeQuadBottomRight, noseTop )
+                                                |> TupleHelpers.mapTuple2 Vector3.toMetersPoint
+                                                |> LineSegment3d.fromEndpoints
+                                    in
+                                    LineSegment3d.interpolate interpLine 0.3
+                                        |> Vector3.fromMetersPoint
+                                        |> Vector3.plus
+                                            (Vector3 0.15 -0.2 0)
+                                )
+                                (template.eyeQuadAndPupil |> Result.map (Tuple.first >> .bottomRight))
+                                template.noseTop
+                    }
+                )
     ]
-
-
-
-
 
 
 consumeEyeQuadAndPupil2d : BinarySource -> Result GenError ( BinarySource, EyeQuadAndPupil2d )
@@ -382,6 +395,7 @@ coloringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, C
 coloringTransforms =
     []
 
+
 tryApplyMaybeValToTemplate :
     (Result GenError val -> template)
     -> Maybe ( BinarySource, val )
@@ -401,7 +415,6 @@ tryApplyMaybeValToTemplate func maybeSourceAndVal =
     ( remainingSource
     , func result
     )
-
 
 
 
