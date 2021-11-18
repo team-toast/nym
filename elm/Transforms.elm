@@ -53,7 +53,7 @@ coreStructureTransforms =
                 , -- length of line (in YZ plane) from eyeQuad.bottomLeft to this point
                 BinarySource.consumeFloatRange 2 (0.2, 0.8)
                 , -- angle of line (in YZ plane) from eyeQuad.bottomLeft to this point, measured downward from +Z
-                BinarySource.consumeFloatRange 2 (0, pi/2)
+                BinarySource.consumeFloatRange 2 (pi/6, pi/2)
                 )
             |> tryApplyMaybeValToTemplate
                 (\valResult ->
@@ -527,7 +527,7 @@ consumeEyeQuadSketchPlane eyeQuadAndPupil2d source =
     source
         |> BinarySource.consume3
             ( -- XY angle of axis to rotate the eyeQuad (do eyes pull back toward top of head or toward side?)
-              BinarySource.consumeFloatRange 2 ( pi, pi / 2 )
+              BinarySource.consumeFloatRange 2 ( pi * 0.9, pi / 2 )
               -- rotation amount (how much do eyes pull back?)
             , BinarySource.consumeFloatRange 2 ( 0, 0.85 * (pi / 2) )
               -- x distance from center to furthest left point of eyeQuad
