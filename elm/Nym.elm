@@ -60,6 +60,7 @@ makeNymEntity showDebugLines nymTemplate =
         middleGroup =
             Scene3d.group
                 [ snoutTop
+                , noseTip
 
                 -- , crownFace
                 -- , foreheadFace
@@ -70,6 +71,7 @@ makeNymEntity showDebugLines nymTemplate =
         symmetryGroup =
             Scene3d.group
                 [ eyeQuadAndPupil
+                , snoutSideTop
 
                 -- , upperTempleFace
                 -- , lowerTempleFace
@@ -126,6 +128,26 @@ makeNymEntity showDebugLines nymTemplate =
                 (eyeQuadResult |> Result.map .bottomLeft)
                 (eyeQuadResult |> Result.map .bottomLeft |> Result.map mirrorPoint)
                 (nymTemplate.structure.noseTop |> Result.map mirrorPoint)
+
+        snoutSideTop : Scene3d.Entity ()
+        snoutSideTop =
+            meterQuadWithDefaults
+                "snoutSideTop"
+                (Ok Color.red)
+                (eyeQuadResult |> Result.map .bottomLeft)
+                nymTemplate.structure.noseTop
+                nymTemplate.structure.cheekbone
+                (eyeQuadResult |> Result.map .bottomRight)
+
+        noseTip : Scene3d.Entity ()
+        noseTip =
+            meterQuadWithDefaults
+                "noseTip"
+                (Ok Color.black)
+                nymTemplate.structure.noseBottom
+                nymTemplate.structure.noseTop
+                (nymTemplate.structure.noseTop |> Result.map mirrorPoint)
+                (nymTemplate.structure.noseBottom |> Result.map mirrorPoint)
 
         -- foreheadFace : Scene3d.Entity ()
         -- foreheadFace =
