@@ -58,7 +58,7 @@ type alias Model =
 initModel : Model
 initModel =
     { mouseInput = MouseInput 0 0
-    , nymEntitiesAndPositions = genNymEntitiesAndPositions 0 False True
+    , nymEntitiesAndPositions = genNymEntitiesAndPositions 0 False False
     , seed = 0
     , defaultErrors = False
     }
@@ -99,7 +99,7 @@ update msg model =
             ( { model
                 | seed = newSeed
                 , nymEntitiesAndPositions =
-                    genNymEntitiesAndPositions newSeed model.defaultErrors True
+                    genNymEntitiesAndPositions newSeed model.defaultErrors False
               }
             , Cmd.none
             )
@@ -108,7 +108,7 @@ update msg model =
             ( { model
                 | defaultErrors = not model.defaultErrors
                 , nymEntitiesAndPositions =
-                    genNymEntitiesAndPositions model.seed (not model.defaultErrors) True
+                    genNymEntitiesAndPositions model.seed (not model.defaultErrors) False
               }
             , Cmd.none
             )
