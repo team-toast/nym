@@ -531,7 +531,7 @@ consumeEyeQuadSketchPlane eyeQuadAndPupil2d source =
               -- rotation amount (how much do eyes pull back?)
             , BinarySource.consumeFloatRange 2 ( 0, 0.85 * (pi / 2) )
               -- x distance from center to furthest left point of eyeQuad
-            , BinarySource.consumeFloatRange 2 ( 0.1, 0.4 )
+            , BinarySource.consumeFloatRange 2 ( 0.1, 0.3 )
             )
         |> BinarySource.map
             (\( rotationAxisAngle, rotationAmount, xOffset ) ->
