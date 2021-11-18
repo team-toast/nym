@@ -97,7 +97,7 @@ makeNymEntity showDebugLines nymTemplate =
                                 |> List.map
                                     (\triangle ->
                                         meterTriangle
-                                            Color.red
+                                            Color.black
                                             (triangle |> TupleHelpers.tuple3First)
                                             (triangle |> TupleHelpers.tuple3Middle)
                                             (triangle |> TupleHelpers.tuple3Last)
