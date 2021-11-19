@@ -24,7 +24,7 @@ type alias Point3dM =
 
 
 type alias StructureTemplate =
-    { eyeQuadAndPupil : Result GenError ( EyeQuad, Pupil )
+    { eyeQuadInfo : Result GenError EyeQuadInfo
     , noseTop : Result GenError Vector3
     , noseBottom : Result GenError Vector3
     , cheekbone : Result GenError Vector3
@@ -41,8 +41,11 @@ type alias StructureTemplate =
     }
 
 
-type alias EyeQuad =
-    Vector3.Quad
+type alias EyeQuadInfo =
+    { sketchPlane : SketchPlane3d Length.Meters () {}
+    , eyeQuad : Vector3.Quad
+    , pupil : Pupil
+    }
 
 
 type alias Pupil =
@@ -61,18 +64,21 @@ type alias Pupil2d =
 
 type alias ColoringTemplate =
     {}
-    -- { crown : Result GenError Color
-    -- , forehead : Result GenError Color
-    -- , bridge : Result GenError Color
-    -- , noseTip : Result GenError Color
-    -- , chinFront : Result GenError Color
-    -- , chinBottom : Result GenError Color
-    -- , upperTemple : Result GenError Color
-    -- , lowerTemple : Result GenError Color
-    -- , cheek : Result GenError Color
-    -- , upperJawSide : Result GenError Color
-    -- , lowerJawSide : Result GenError Color
-    -- }
+
+
+
+-- { crown : Result GenError Color
+-- , forehead : Result GenError Color
+-- , bridge : Result GenError Color
+-- , noseTip : Result GenError Color
+-- , chinFront : Result GenError Color
+-- , chinBottom : Result GenError Color
+-- , upperTemple : Result GenError Color
+-- , lowerTemple : Result GenError Color
+-- , cheek : Result GenError Color
+-- , upperJawSide : Result GenError Color
+-- , lowerJawSide : Result GenError Color
+-- }
 
 
 type alias EyeTemplate =

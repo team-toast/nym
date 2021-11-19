@@ -85,17 +85,17 @@ makeNymEntity showDebugLines nymTemplate =
 
         eyeQuadAndPupil : Scene3d.Entity ()
         eyeQuadAndPupil =
-            nymTemplate.structure.eyeQuadAndPupil
+            nymTemplate.structure.eyeQuadInfo
                 |> Result.map
-                    (\( eyeQuad, pupil ) ->
+                    (\eyeQuadInfo ->
                         Scene3d.group
                             [ meterQuad
                                 Color.green
-                                eyeQuad.bottomRight
-                                eyeQuad.bottomLeft
-                                eyeQuad.topLeft
-                                eyeQuad.topRight
-                            , pupil
+                                eyeQuadInfo.eyeQuad.bottomRight
+                                eyeQuadInfo.eyeQuad.bottomLeft
+                                eyeQuadInfo.eyeQuad.topLeft
+                                eyeQuadInfo.eyeQuad.topRight
+                            , eyeQuadInfo.pupil
                                 |> List.map
                                     (\triangle ->
                                         meterTriangle
@@ -110,7 +110,7 @@ makeNymEntity showDebugLines nymTemplate =
                 |> defaultAndLogEntityError "eyeQuadAndPupil"
 
         eyeQuadResult =
-            nymTemplate.structure.eyeQuadAndPupil |> Result.map Tuple.first
+            nymTemplate.structure.eyeQuadInfo |> Result.map .eyeQuad
 
         snoutTop : Scene3d.Entity ()
         snoutTop =
@@ -421,7 +421,7 @@ fillTemplateWithDefaults template =
                     template.structure
             in
             { coreStructure
-                | eyeQuadAndPupil = coreStructure.eyeQuadAndPupil |> Result.withDefault defaultEyeQuadAndPupil |> Ok
+                | eyeQuadInfo = coreStructure.eyeQuadInfo |> Result.withDefault defaultEyeQuadAndPupil |> Ok
                 , noseTop = coreStructure.noseTop |> Result.withDefault (Vector3 0.1 0 1) |> Ok
 
                 -- , crownBack = coreStructure.crownBack |> Result.withDefault (Vector3 0.5 1 0) |> Ok
@@ -435,15 +435,17 @@ fillTemplateWithDefaults template =
     }
 
 
-defaultEyeQuadAndPupil : ( EyeQuad, Pupil )
+defaultEyeQuadAndPupil : EyeQuadInfo
 defaultEyeQuadAndPupil =
-    ( Vector3.Quad
-        (Vector3 0 0 0)
-        (Vector3 0 0 0)
-        (Vector3 0 0 0)
-        (Vector3 0 0 0)
-    , [ ( Vector3 0 0 0, Vector3 0 0 0, Vector3 0 0 0 ) ]
-    )
+    EyeQuadInfo
+        SketchPlane3d.xy
+        (Vector3.Quad
+            (Vector3 0 0 0)
+            (Vector3 0 0 0)
+            (Vector3 0 0 0)
+            (Vector3 0 0 0)
+        )
+        [ ( Vector3 0 0 0, Vector3 0 0 0, Vector3 0 0 0 ) ]
 
 
 type alias EyeQuadAndPupil2d =

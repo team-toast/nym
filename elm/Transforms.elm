@@ -33,7 +33,7 @@ coreStructureTransforms =
             Ok ( s, val ) ->
                 ( s
                 , { template
-                    | eyeQuadAndPupil =
+                    | eyeQuadInfo =
                         Ok val
                   }
                 )
@@ -41,9 +41,45 @@ coreStructureTransforms =
             Err e ->
                 ( source
                 , { template
-                    | eyeQuadAndPupil = Err e
+                    | eyeQuadInfo = Err e
                   }
                 )
+
+    -- cheekbone (determined by above, no randomness)
+    , \source template ->
+        ( source
+        , { template
+            | cheekbone =
+                template.eyeQuadInfo
+                    |> Result.map
+                        (\eyeQuadInfo ->
+                            let
+                                vectorOffsetInPlane =
+                                    ( Vector3d.from
+                                        (eyeQuadInfo.eyeQuad.bottomRight |> Vector3.toMetersPoint)
+                                        (eyeQuadInfo.eyeQuad.topRight |> Vector3.toMetersPoint)
+                                    , Vector3d.from
+                                        (eyeQuadInfo.eyeQuad.bottomRight |> Vector3.toMetersPoint)
+                                        (eyeQuadInfo.eyeQuad.bottomLeft |> Vector3.toMetersPoint)
+                                    )
+                                        |> TupleHelpers.mapTuple2 (Vector3d.scaleBy 0.3)
+                                        |> TupleHelpers.mapTuple2 Vector3d.reverse
+                                        |> TupleHelpers.combineTuple2 Vector3d.plus
+
+                                vectorOffsetAlongSketchplaneNormal =
+                                    SketchPlane3d.normalDirection eyeQuadInfo.sketchPlane
+                                        |> Vector3d.withLength (Vector3d.length vectorOffsetInPlane)
+                            in
+                            Vector3.plus
+                                eyeQuadInfo.eyeQuad.bottomRight
+                                (Vector3d.plus
+                                    vectorOffsetInPlane
+                                    vectorOffsetAlongSketchplaneNormal
+                                    |> Vector3.fromMetersVector
+                                )
+                        )
+          }
+        )
 
     -- noseTop
     , \source template ->
@@ -68,7 +104,7 @@ coreStructureTransforms =
                                         (eyeQuadBottomLeft.z + (length * sin angle))
                                 )
                                 valResult
-                                (template.eyeQuadAndPupil |> Result.map (Tuple.first >> .bottomLeft))
+                                (template.eyeQuadInfo |> Result.map (.eyeQuad >> .bottomLeft))
                     }
                 )
 
@@ -97,32 +133,32 @@ coreStructureTransforms =
                     }
                 )
 
-    -- cheekbone
-    , \source template ->
-        source
-            -- choose a point interpolated between eyeQuad.bottomRight and noseTop
-            |> BinarySource.fakeConsume ()
-            |> tryApplyMaybeValToTemplate
-                (\_ ->
-                    { template
-                        | cheekbone =
-                            Result.map2
-                                (\eyeQuadBottomRight noseTop ->
-                                    let
-                                        interpLine =
-                                            ( eyeQuadBottomRight, noseTop )
-                                                |> TupleHelpers.mapTuple2 Vector3.toMetersPoint
-                                                |> LineSegment3d.fromEndpoints
-                                    in
-                                    LineSegment3d.interpolate interpLine 0.3
-                                        |> Vector3.fromMetersPoint
-                                        |> Vector3.plus
-                                            (Vector3 0.15 -0.2 0)
-                                )
-                                (template.eyeQuadAndPupil |> Result.map (Tuple.first >> .bottomRight))
-                                template.noseTop
-                    }
-                )
+    -- -- cheekbone
+    -- , \source template ->
+    --     source
+    --         -- choose a point interpolated between eyeQuad.bottomRight and noseTop
+    --         |> BinarySource.fakeConsume ()
+    --         |> tryApplyMaybeValToTemplate
+    --             (\_ ->
+    --                 { template
+    --                     | cheekbone =
+    --                         Result.map2
+    --                             (\eyeQuadBottomRight noseTop ->
+    --                                 let
+    --                                     interpLine =
+    --                                         ( eyeQuadBottomRight, noseTop )
+    --                                             |> TupleHelpers.mapTuple2 Vector3.toMetersPoint
+    --                                             |> LineSegment3d.fromEndpoints
+    --                                 in
+    --                                 LineSegment3d.interpolate interpLine 0
+    --                                     |> Vector3.fromMetersPoint
+    --                                     |> Vector3.plus
+    --                                         (Vector3 0.05 -0.1 0)
+    --                             )
+    --                             (template.eyeQuadAndPupil |> Result.map (Tuple.first >> .bottomRight))
+    --                             template.noseTop
+    --                 }
+    --             )
     ]
 
 
@@ -357,7 +393,7 @@ consumeEyeQuadSketchPlane eyeQuadAndPupil2d source =
             )
 
 
-consumeFullEyeQuadAndPupil : BinarySource -> Result GenError ( BinarySource, ( EyeQuad, Pupil ) )
+consumeFullEyeQuadAndPupil : BinarySource -> Result GenError ( BinarySource, EyeQuadInfo )
 consumeFullEyeQuadAndPupil source =
     source
         |> consumeEyeQuadAndPupil2d
@@ -378,14 +414,16 @@ consumeFullEyeQuadAndPupil source =
                                             (Vector2.toMetersPoint v2)
                                             |> Vector3.fromMetersPoint
                                 in
-                                ( { bottomRight = eyeQuadAndPupil2d.eyeQuad.bottomRight |> to3d 0
-                                  , bottomLeft = eyeQuadAndPupil2d.eyeQuad.bottomLeft |> to3d 0
-                                  , topLeft = eyeQuadAndPupil2d.eyeQuad.topLeft |> to3d 0
-                                  , topRight = eyeQuadAndPupil2d.eyeQuad.topRight |> to3d 0
-                                  }
-                                , eyeQuadAndPupil2d.pupil
-                                    |> List.map (TupleHelpers.mapTuple3 (to3d 0.01))
-                                )
+                                EyeQuadInfo
+                                    sketchPlane
+                                    { bottomRight = eyeQuadAndPupil2d.eyeQuad.bottomRight |> to3d 0
+                                    , bottomLeft = eyeQuadAndPupil2d.eyeQuad.bottomLeft |> to3d 0
+                                    , topLeft = eyeQuadAndPupil2d.eyeQuad.topLeft |> to3d 0
+                                    , topRight = eyeQuadAndPupil2d.eyeQuad.topRight |> to3d 0
+                                    }
+                                    (eyeQuadAndPupil2d.pupil
+                                        |> List.map (TupleHelpers.mapTuple3 (to3d 0.01))
+                                    )
                             )
                         )
             )

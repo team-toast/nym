@@ -76,3 +76,8 @@ mapTuple3Middle f ( a, b, c ) =
 mapTuple3Last : (c -> z) -> ( a, b, c ) -> ( a, b, z )
 mapTuple3Last f ( a, b, c ) =
     ( a, b, f c )
+
+
+combineTuple2 : (a -> b -> c) -> ( a, b ) -> c
+combineTuple2 f ( a, b ) =
+    f a b
