@@ -118,8 +118,8 @@ makeNymEntity showDebugLines nymTemplate =
                 "snoutTop"
                 (Ok Color.orange)
                 nymTemplate.structure.noseTop
-                (eyeQuadResult |> Result.map .bottomLeft)
-                (eyeQuadResult |> Result.map .bottomLeft |> Result.map mirrorPoint)
+                (nymTemplate.structure.noseBridge)
+                (nymTemplate.structure.noseBridge |> Result.map mirrorPoint)
                 (nymTemplate.structure.noseTop |> Result.map mirrorPoint)
 
         snoutSideTop : Scene3d.Entity ()

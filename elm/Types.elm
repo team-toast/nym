@@ -26,6 +26,7 @@ type alias Point3dM =
 type alias StructureTemplate =
     { eyeQuadInfo : Result GenError EyeQuadInfo
     , noseTop : Result GenError Vector3
+    , noseBridge : Result GenError Vector3
     , noseBottom : Result GenError Vector3
     , cheekbone : Result GenError Vector3
 
