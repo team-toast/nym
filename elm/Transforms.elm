@@ -136,56 +136,32 @@ coreStructureTransforms =
                                                 , noseTop |> Vector3.toMetersPoint
                                                 )
 
-                                        intersectionPlaneResult =
-                                            Maybe.map
-                                                (Plane3d.through
-                                                    (eyeQuadPoint |> Vector3.toMetersPoint)
-                                                )
-                                                (LineSegment3d.direction straightBridgeLine)
-                                                |> Result.fromMaybe (UnexpectedNothing "Failed to build direction from zero-length line in noseBridge")
+                                        intermediateBridgePoint =
+                                            LineSegment3d.interpolate
+                                                straightBridgeLine
+                                                0.2
+                                                |> Vector3.fromMetersPoint
 
-                                        intersectionPointResult =
-                                            Result.andThen
-                                                (\intersectionPlane ->
-                                                    LineSegment3d.intersectionWithPlane intersectionPlane straightBridgeLine
-                                                    |> Result.fromMaybe (UnexpectedNothing "line segment does not intersect with plane")
-                                                )
-                                                intersectionPlaneResult
-
-                                        
-                                        bridgeOffsetZYResult =
-                                            Result.map
-                                                (\intersectionPoint ->
-                                                    let
-                                                        ( eyeQuadPointZY, intersectionPointZY ) =
-                                                            ( eyeQuadPoint, intersectionPoint )
-                                                                |> TupleHelpers.mapTuple2 (\v3 -> Vector2 v3.z v3.y)
-                                                    in
-                                                    Vector2.minus
-                                                        eyeQuadPointZY
-                                                        intersectionPointZY
-                                                        |> Vector2.scaleBy archValue
-                                                )
-                                                (intersectionPointResult |> Result.map Vector3.fromMetersPoint)
+                                        bridgeOffsetZY =
+                                            let
+                                                ( eyeQuadPointZY, intermediatPointZY ) =
+                                                    ( eyeQuadPoint, intermediateBridgePoint )
+                                                        |> TupleHelpers.mapTuple2 (\v3 -> Vector2 v3.z v3.y)
+                                            in
+                                            Vector2.minus
+                                                eyeQuadPointZY
+                                                intermediatPointZY
+                                                |> Vector2.scaleBy archValue
                                     in
-                                    -- maybeIntersectionPoint |> Result.fromMaybe (UnexpectedNothing "wut") |> Result.map Vector3.fromMetersPoint
-                                    case bridgeOffsetZYResult of
-                                        Ok bridgeOffsetZY ->
-                                            Ok <|
-                                                Vector3
-                                                    x
-                                                    (eyeQuadPoint.y + bridgeOffsetZY.y)
-                                                        -- remember, here x is actually z :D
-                                                    (eyeQuadPoint.z + bridgeOffsetZY.x)
-                                        Err e ->
-                                            Err e
-                                            
-                                 
+                                    Vector3
+                                        x
+                                        (eyeQuadPoint.y + bridgeOffsetZY.y)
+                                        -- remember, here x is actually z :D
+                                        (eyeQuadPoint.z + bridgeOffsetZY.x)
                                 )
                                 valResult
                                 template.eyeQuadInfo
                                 template.noseTop
-                                |> Result.Extra.join
                     }
                 )
 
