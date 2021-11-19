@@ -57,9 +57,13 @@ type alias Model =
 
 initModel : Model
 initModel =
+    let
+        firstSeed =
+            badHashFunction "1"
+    in
     { mouseInput = MouseInput 0 0
-    , nymEntitiesAndPositions = genNymEntitiesAndPositions 0 False False
-    , seed = 0
+    , nymEntitiesAndPositions = genNymEntitiesAndPositions firstSeed False False
+    , seed = firstSeed
     , defaultErrors = False
     }
 
