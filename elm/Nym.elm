@@ -72,8 +72,9 @@ makeNymEntity showDebugLines nymTemplate =
         symmetryGroup =
             Scene3d.group
                 [ eyeQuadAndPupil
-                , snoutSideTop
-                , cheek
+                , snoutSideTopMajor
+                , snoutSideTopMinor
+                , aboveCheekbone
 
                 -- , upperTempleFace
                 -- , lowerTempleFace
@@ -118,19 +119,36 @@ makeNymEntity showDebugLines nymTemplate =
                 "snoutTop"
                 (Ok Color.orange)
                 nymTemplate.structure.noseTop
-                (nymTemplate.structure.noseBridge)
+                nymTemplate.structure.noseBridge
                 (nymTemplate.structure.noseBridge |> Result.map mirrorPoint)
                 (nymTemplate.structure.noseTop |> Result.map mirrorPoint)
 
-        snoutSideTop : Scene3d.Entity ()
-        snoutSideTop =
+        snoutSideTopMajor : Scene3d.Entity ()
+        snoutSideTopMajor =
             meterQuadWithDefaults
-                "snoutSideTop"
+                "snoutSideTopMajor"
                 (Ok Color.red)
                 (eyeQuadResult |> Result.map .bottomLeft)
                 nymTemplate.structure.noseTop
                 nymTemplate.structure.cheekbone
                 (eyeQuadResult |> Result.map .bottomRight)
+
+        snoutSideTopMinor : Scene3d.Entity ()
+        snoutSideTopMinor =
+            Scene3d.group
+                [ meterTriangleWithDefaults
+                    "snoutSideTopMinor"
+                    (Ok Color.darkOrange)
+                    nymTemplate.structure.noseTop
+                    nymTemplate.structure.noseBridge
+                    (eyeQuadResult |> Result.map .bottomLeft)
+                , meterTriangleWithDefaults
+                    "snoutSideTopMinor"
+                    (Ok Color.darkOrange)
+                    nymTemplate.structure.noseBridge
+                    (eyeQuadResult |> Result.map .topLeft)
+                    (eyeQuadResult |> Result.map .bottomLeft)
+                ]
 
         noseTip : Scene3d.Entity ()
         noseTip =
@@ -142,10 +160,10 @@ makeNymEntity showDebugLines nymTemplate =
                 (nymTemplate.structure.noseTop |> Result.map mirrorPoint)
                 (nymTemplate.structure.noseBottom |> Result.map mirrorPoint)
 
-        cheek : Scene3d.Entity ()
-        cheek =
+        aboveCheekbone : Scene3d.Entity ()
+        aboveCheekbone =
             meterTriangleWithDefaults
-                "cheek"
+                "aboveCheekbone"
                 (Ok Color.darkRed)
                 (eyeQuadResult |> Result.map .bottomRight)
                 (eyeQuadResult |> Result.map .topRight)
@@ -156,10 +174,10 @@ makeNymEntity showDebugLines nymTemplate =
             meterQuadWithDefaults
                 "bridge"
                 (Ok Color.lightBrown)
-                (eyeQuadResult |> Result.map .bottomLeft)
+                nymTemplate.structure.noseBridge
                 (eyeQuadResult |> Result.map .topLeft)
                 (eyeQuadResult |> Result.map .topLeft |> Result.map mirrorPoint)
-                (eyeQuadResult |> Result.map .bottomLeft |> Result.map mirrorPoint)
+                (nymTemplate.structure.noseBridge |> Result.map mirrorPoint)
 
         -- foreheadFace : Scene3d.Entity ()
         -- foreheadFace =
