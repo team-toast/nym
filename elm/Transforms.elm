@@ -115,7 +115,7 @@ coreStructureTransforms =
                 ( -- x as ratio of eyeQuad.topRight.x
                   BinarySource.consumeFloatRange 2 ( 0.1, 0.9 )
                 , -- arch of noseBridge where 1 indicates a totally flat bridge
-                  BinarySource.consumeFloatRange 2 ( 0.2, 2 )
+                  BinarySource.consumeFloatRange 2 ( 0.2, 1.5 )
                 )
             |> tryApplyMaybeValToTemplate
                 (\valResult ->
@@ -151,6 +151,14 @@ coreStructureTransforms =
                                             Vector2.minus
                                                 eyeQuadPointZY
                                                 intermediatPointZY
+                                                |> (\v ->
+                                                    -- in some cases this results in a vector opposite of what we expect.
+                                                    -- Here we detect and correct that.
+                                                    if v.x < 0 then
+                                                        v |> Vector2.scaleBy -1
+                                                    else
+                                                        v
+                                                )
                                                 |> Vector2.scaleBy archValue
                                     in
                                     Vector3
