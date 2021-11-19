@@ -154,7 +154,7 @@ coreStructureTransforms =
                                                 |> (\v ->
                                                     -- in some cases this results in a vector opposite of what we expect.
                                                     -- Here we detect and correct that.
-                                                    if v.x < 0 then
+                                                    if v.y + v.x < 0 then
                                                         v |> Vector2.scaleBy -1
                                                     else
                                                         v
