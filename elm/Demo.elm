@@ -35,6 +35,10 @@ import Vector3d
 import Viewpoint3d
 
 
+showDebugLines =
+    True
+
+
 type Msg
     = MouseMove Mouse.MoveData
     | NewSeed Int
@@ -62,7 +66,7 @@ initModel =
             badHashFunction "1"
     in
     { mouseInput = MouseInput 0 0
-    , nymEntitiesAndPositions = genNymEntitiesAndPositions firstSeed False False
+    , nymEntitiesAndPositions = genNymEntitiesAndPositions firstSeed False
     , seed = firstSeed
     , defaultErrors = False
     }
@@ -103,7 +107,7 @@ update msg model =
             ( { model
                 | seed = newSeed
                 , nymEntitiesAndPositions =
-                    genNymEntitiesAndPositions newSeed model.defaultErrors False
+                    genNymEntitiesAndPositions newSeed model.defaultErrors
               }
             , Cmd.none
             )
@@ -112,7 +116,7 @@ update msg model =
             ( { model
                 | defaultErrors = not model.defaultErrors
                 , nymEntitiesAndPositions =
-                    genNymEntitiesAndPositions model.seed (not model.defaultErrors) False
+                    genNymEntitiesAndPositions model.seed (not model.defaultErrors)
               }
             , Cmd.none
             )
@@ -186,18 +190,18 @@ remainingBitsAndDemoNymTemplates seed defaultErrors =
         |> List.map (binarySourceToNym defaultErrors)
 
 
-genNymEntitiesAndPositions : Int -> Bool -> Bool -> List ( Scene3d.Entity (), Point3dM )
-genNymEntitiesAndPositions seed defaultErrors showDebugLines =
-    genNymEntitiesBitsUsedAndPositions seed defaultErrors showDebugLines
+genNymEntitiesAndPositions : Int -> Bool -> List ( Scene3d.Entity (), Point3dM )
+genNymEntitiesAndPositions seed defaultErrors =
+    genNymEntitiesBitsUsedAndPositions seed defaultErrors
         |> List.indexedMap
             (\i ( _, entity, point ) ->
                 ( entity, point )
             )
 
 
-genNymEntitiesAndPositionsAndLogBitsUsed : Int -> Bool -> Bool -> List ( Scene3d.Entity (), Point3dM )
-genNymEntitiesAndPositionsAndLogBitsUsed seed defaultErrors showDebugLines =
-    genNymEntitiesBitsUsedAndPositions seed defaultErrors showDebugLines
+genNymEntitiesAndPositionsAndLogBitsUsed : Int -> Bool -> List ( Scene3d.Entity (), Point3dM )
+genNymEntitiesAndPositionsAndLogBitsUsed seed defaultErrors =
+    genNymEntitiesBitsUsedAndPositions seed defaultErrors
         |> List.indexedMap
             (\i ( bitsUsed, entity, point ) ->
                 let
@@ -208,8 +212,8 @@ genNymEntitiesAndPositionsAndLogBitsUsed seed defaultErrors showDebugLines =
             )
 
 
-genNymEntitiesBitsUsedAndPositions : Int -> Bool -> Bool -> List ( String, Scene3d.Entity (), Point3dM )
-genNymEntitiesBitsUsedAndPositions seed defaultErrors showDebugLines =
+genNymEntitiesBitsUsedAndPositions : Int -> Bool -> List ( String, Scene3d.Entity (), Point3dM )
+genNymEntitiesBitsUsedAndPositions seed defaultErrors =
     let
         bitsLeftAndTemplates =
             remainingBitsAndDemoNymTemplates seed defaultErrors
