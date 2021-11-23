@@ -25,6 +25,85 @@ import Vector3 exposing (Vector3)
 import Vector3d
 
 
+consumeEyeQuadSketchPlane : EyeQuadAndPupil2d -> BinarySource -> Maybe ( BinarySource, SketchPlane3d Length.Meters () {} )
+consumeEyeQuadSketchPlane eyeQuadAndPupil2d source =
+    source
+        |> BinarySource.consume3
+            ( -- XY angle of axis to rotate the eyeQuad (do eyes pull back toward top of head or toward side?)
+              BinarySource.consumeFloatRange 2 ( pi * 0.9, pi / 2 )
+              -- rotation amount (how much do eyes pull back?)
+            , BinarySource.consumeFloatRange 2 ( 0, 0.85 * (pi / 2) )
+              -- x distance from center to furthest left point of eyeQuad
+            , BinarySource.consumeFloatRange 2 ( 0.1, 0.3 )
+            )
+        |> BinarySource.map
+            (\( rotationAxisAngle, rotationAmount, xOffset ) ->
+                let
+                    rotateAxis =
+                        Direction3d.xy (Angle.radians rotationAxisAngle)
+                            |> Axis3d.through Point3d.origin
+
+                    sketchPlaneBeforeTranslate =
+                        SketchPlane3d.xy
+                            |> SketchPlane3d.rotateAround
+                                rotateAxis
+                                (Angle.radians rotationAmount)
+
+                    furthestLeftX =
+                        [ eyeQuadAndPupil2d.eyeQuad.bottomLeft
+                        , eyeQuadAndPupil2d.eyeQuad.topLeft
+                        ]
+                            |> List.map Vector2.toMetersPoint
+                            |> List.map (Point3d.on sketchPlaneBeforeTranslate)
+                            |> List.map Vector3.fromMetersPoint
+                            |> List.map .x
+                            |> List.minimum
+                            |> Maybe.withDefault 0
+
+                    translateRightBy =
+                        -furthestLeftX + xOffset
+                in
+                sketchPlaneBeforeTranslate
+                    |> SketchPlane3d.translateIn Direction3d.positiveX (Length.meters translateRightBy)
+            )
+
+
+consumeFullEyeQuadAndPupil : BinarySource -> Result GenError ( BinarySource, EyeQuadInfo )
+consumeFullEyeQuadAndPupil source =
+    source
+        |> consumeEyeQuadAndPupil2d
+        |> Result.andThen
+            (\( source1, eyeQuadAndPupil2d ) ->
+                source1
+                    |> consumeEyeQuadSketchPlane eyeQuadAndPupil2d
+                    |> Result.fromMaybe NotEnoughSource
+                    |> Result.map
+                        (Tuple.mapSecond
+                            (\sketchPlane ->
+                                let
+                                    to3d offset v2 =
+                                        Point3d.on
+                                            (sketchPlane
+                                                |> SketchPlane3d.offsetBy (Length.meters offset)
+                                            )
+                                            (Vector2.toMetersPoint v2)
+                                            |> Vector3.fromMetersPoint
+                                in
+                                EyeQuadInfo
+                                    sketchPlane
+                                    { bottomRight = eyeQuadAndPupil2d.eyeQuad.bottomRight |> to3d 0
+                                    , bottomLeft = eyeQuadAndPupil2d.eyeQuad.bottomLeft |> to3d 0
+                                    , topLeft = eyeQuadAndPupil2d.eyeQuad.topLeft |> to3d 0
+                                    , topRight = eyeQuadAndPupil2d.eyeQuad.topRight |> to3d 0
+                                    }
+                                    (eyeQuadAndPupil2d.pupil
+                                        |> List.map (TupleHelpers.mapTuple3 (to3d 0.01))
+                                    )
+                            )
+                        )
+            )
+
+
 coreStructureTransforms : List (BinarySource -> StructureTemplate -> ( BinarySource, StructureTemplate ))
 coreStructureTransforms =
     [ -- eyeQuad and pupil
@@ -419,85 +498,6 @@ consumeEyeQuadAndPupil2d source =
 
                     Err e ->
                         Err e
-            )
-
-
-consumeEyeQuadSketchPlane : EyeQuadAndPupil2d -> BinarySource -> Maybe ( BinarySource, SketchPlane3d Length.Meters () {} )
-consumeEyeQuadSketchPlane eyeQuadAndPupil2d source =
-    source
-        |> BinarySource.consume3
-            ( -- XY angle of axis to rotate the eyeQuad (do eyes pull back toward top of head or toward side?)
-              BinarySource.consumeFloatRange 2 ( pi * 0.9, pi / 2 )
-              -- rotation amount (how much do eyes pull back?)
-            , BinarySource.consumeFloatRange 2 ( 0, 0.85 * (pi / 2) )
-              -- x distance from center to furthest left point of eyeQuad
-            , BinarySource.consumeFloatRange 2 ( 0.1, 0.3 )
-            )
-        |> BinarySource.map
-            (\( rotationAxisAngle, rotationAmount, xOffset ) ->
-                let
-                    rotateAxis =
-                        Direction3d.xy (Angle.radians rotationAxisAngle)
-                            |> Axis3d.through Point3d.origin
-
-                    sketchPlaneBeforeTranslate =
-                        SketchPlane3d.xy
-                            |> SketchPlane3d.rotateAround
-                                rotateAxis
-                                (Angle.radians rotationAmount)
-
-                    furthestLeftX =
-                        [ eyeQuadAndPupil2d.eyeQuad.bottomLeft
-                        , eyeQuadAndPupil2d.eyeQuad.topLeft
-                        ]
-                            |> List.map Vector2.toMetersPoint
-                            |> List.map (Point3d.on sketchPlaneBeforeTranslate)
-                            |> List.map Vector3.fromMetersPoint
-                            |> List.map .x
-                            |> List.minimum
-                            |> Maybe.withDefault 0
-
-                    translateRightBy =
-                        -furthestLeftX + xOffset
-                in
-                sketchPlaneBeforeTranslate
-                    |> SketchPlane3d.translateIn Direction3d.positiveX (Length.meters translateRightBy)
-            )
-
-
-consumeFullEyeQuadAndPupil : BinarySource -> Result GenError ( BinarySource, EyeQuadInfo )
-consumeFullEyeQuadAndPupil source =
-    source
-        |> consumeEyeQuadAndPupil2d
-        |> Result.andThen
-            (\( source1, eyeQuadAndPupil2d ) ->
-                source1
-                    |> consumeEyeQuadSketchPlane eyeQuadAndPupil2d
-                    |> Result.fromMaybe NotEnoughSource
-                    |> Result.map
-                        (Tuple.mapSecond
-                            (\sketchPlane ->
-                                let
-                                    to3d offset v2 =
-                                        Point3d.on
-                                            (sketchPlane
-                                                |> SketchPlane3d.offsetBy (Length.meters offset)
-                                            )
-                                            (Vector2.toMetersPoint v2)
-                                            |> Vector3.fromMetersPoint
-                                in
-                                EyeQuadInfo
-                                    sketchPlane
-                                    { bottomRight = eyeQuadAndPupil2d.eyeQuad.bottomRight |> to3d 0
-                                    , bottomLeft = eyeQuadAndPupil2d.eyeQuad.bottomLeft |> to3d 0
-                                    , topLeft = eyeQuadAndPupil2d.eyeQuad.topLeft |> to3d 0
-                                    , topRight = eyeQuadAndPupil2d.eyeQuad.topRight |> to3d 0
-                                    }
-                                    (eyeQuadAndPupil2d.pupil
-                                        |> List.map (TupleHelpers.mapTuple3 (to3d 0.01))
-                                    )
-                            )
-                        )
             )
 
 
