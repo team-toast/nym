@@ -76,6 +76,10 @@ makeNymEntity showDebugLines nymTemplate =
                 , belowEar
                 , testEntity
                 ]
+        
+        copiedSymmetryGroup =
+            symmetryGroup
+                |> mirrorGroup
 
         eyeQuadAndPupil : Scene3d.Entity ()
         eyeQuadAndPupil =
@@ -210,9 +214,7 @@ makeNymEntity showDebugLines nymTemplate =
                 nymTemplate.structure.crownFront
                 nymTemplate.structure.faceSideMid
 
-        copiedSymmetryGroup =
-            symmetryGroup
-                |> mirrorGroup
+        
 
         testEntity =
             Scene3d.nothing
