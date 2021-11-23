@@ -30,6 +30,7 @@ type alias StructureTemplate =
     , noseBottom : Result GenError Vector3
     , cheekbone : Result GenError Vector3
     , crownFront : Result GenError Vector3
+    , faceSideMid : Result GenError Vector3
 
     -- , crownBack : Result GenError Vector3
     -- , crownFront : Result GenError Vector3
@@ -75,6 +76,7 @@ type alias ColoringTemplate =
     , forehead : Result GenError Color
     , aboveEye : Result GenError Color
     , eyeQuad : Result GenError Color
+    , belowEar : Result GenError Color
     }
 
 

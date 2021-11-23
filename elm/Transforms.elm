@@ -465,6 +465,8 @@ coreStructureTransforms =
                                 template.noseTop
                     }
                 )
+
+    -- crownFront
     , \source template ->
         source
             |> BinarySource.consume3
@@ -496,6 +498,32 @@ coreStructureTransforms =
                                 )
                                 valResult
                                 (template.eyeQuadInfo |> Result.map .eyeQuad)
+                    }
+                )
+    , --faceSideMid
+      \source template ->
+        source
+            |> BinarySource.consume3
+                -- from eyeQuad.topRight...
+                ( -- x distance out
+                  BinarySource.consumeFloatRange 2 ( 0, 0.3 )
+                , -- y variance
+                  BinarySource.consumeFloatRange 2 ( -0.15, 0.15 )
+                , -- z distance back
+                  BinarySource.consumeFloatRange 2 ( 0.1, 0.2 )
+                )
+            |> tryApplyMaybeValToTemplate
+                (\valResult ->
+                    { template
+                        | faceSideMid =
+                            Result.map2
+                                (\( xAdd, yVariance, zSub ) eyeQuadTopRight ->
+                                    Vector3.plus
+                                        eyeQuadTopRight
+                                        (Vector3 xAdd yVariance -zSub)
+                                )
+                                valResult
+                                (template.eyeQuadInfo |> Result.map (.eyeQuad >> .topRight))
                     }
                 )
     ]
@@ -571,6 +599,13 @@ coloringTransforms =
         ( source
         , { template
             | eyeQuad = Ok Color.darkYellow
+          }
+        )
+    , --belowEar
+      \source template ->
+        ( source
+        , { template
+            | belowEar = Ok Color.yellow
           }
         )
     ]

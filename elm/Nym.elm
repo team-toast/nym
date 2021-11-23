@@ -78,6 +78,7 @@ makeNymEntity showDebugLines nymTemplate =
                 , snoutSideMiddle
                 , aboveCheekbone
                 , aboveEye
+                , belowEar
 
                 -- , upperTempleFace
                 -- , lowerTempleFace
@@ -210,6 +211,15 @@ makeNymEntity showDebugLines nymTemplate =
                 (eyeQuadResult |> Result.map .topLeft)
                 nymTemplate.structure.crownFront
                 (eyeQuadResult |> Result.map .topRight)
+
+        belowEar : Scene3d.Entity ()
+        belowEar =
+            meterTriangleWithDefaults
+                "belowEar"
+                nymTemplate.coloring.belowEar
+                (eyeQuadResult |> Result.map .topRight)
+                nymTemplate.structure.crownFront
+                nymTemplate.structure.faceSideMid
 
         -- foreheadFace : Scene3d.Entity ()
         -- foreheadFace =
@@ -460,6 +470,7 @@ fillTemplateWithDefaults template =
             , forehead = coloring.forehead |> Result.withDefault Color.yellow |> Ok
             , aboveEye = coloring.aboveEye |> Result.withDefault Color.darkYellow |> Ok
             , eyeQuad = coloring.eyeQuad |> Result.withDefault Color.lightGreen |> Ok
+            , belowEar = coloring.eyeQuad |> Result.withDefault Color.darkGreen |> Ok
             }
         , structure =
             let
