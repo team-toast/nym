@@ -500,32 +500,86 @@ coreStructureTransforms =
                                 (template.eyeQuadInfo |> Result.map .eyeQuad)
                     }
                 )
-    , --faceSideMid
+    , -- backZ
       \source template ->
         source
-            |> BinarySource.consume3
-                -- from eyeQuad.topRight...
-                ( -- x distance out
+            -- how far back is the 'back' of the face from the furthest back currently set point?
+            |> BinarySource.consumeFloatRange 2 ( 0.1, 0.4 )
+            |> tryApplyMaybeValToTemplate
+                (\zSubResult ->
+                    let
+                        furthestBackPointResult =
+                            template
+                                |> allSetStructurePoints
+                                |> Result.map (List.Extra.minimumBy .z)
+                                |> Result.map (Result.fromMaybe <| UnexpectedNothing "allSetStructurePoints returning empty list")
+                                |> Result.Extra.join
+                    in
+                    { template
+                        | backZ =
+                            Result.map2
+                                (\furthestBackPoint zSub ->
+                                    furthestBackPoint.z - zSub
+                                )
+                                furthestBackPointResult
+                                zSubResult
+                    }
+                )
+    , --faceSideTop
+      \source template ->
+        source
+            |> BinarySource.consume2
+                ( -- x distance out from eyeQuad.topRight
                   BinarySource.consumeFloatRange 2 ( 0, 0.3 )
-                , -- y variance
+                , -- y variance from eyeQuad.topRight
                   BinarySource.consumeFloatRange 2 ( -0.15, 0.15 )
-                , -- z distance back
-                  BinarySource.consumeFloatRange 2 ( 0.1, 0.3 )
                 )
             |> tryApplyMaybeValToTemplate
                 (\valResult ->
                     { template
                         | faceSideMid =
-                            Result.map2
-                                (\( xAdd, yVariance, zSub ) eyeQuadTopRight ->
-                                    Vector3.plus
-                                        eyeQuadTopRight
-                                        (Vector3 xAdd yVariance -zSub)
+                            Result.map3
+                                (\( xAdd, yVariance ) eyeQuadTopRight backZ ->
+                                    Vector3
+                                        (eyeQuadTopRight.x + xAdd)
+                                        (eyeQuadTopRight.y + yVariance)
+                                        backZ
                                 )
                                 valResult
                                 (template.eyeQuadInfo |> Result.map (.eyeQuad >> .topRight))
+                                template.backZ
                     }
                 )
+    , --faceSideMid
+      \source template ->
+        source
+            |> BinarySource.consume3
+                ( -- x distance out from cheekbone
+                  BinarySource.consumeFloatRange 2 ( 0, 0.3 )
+                , -- y in terms of (faceSideTop.y -> cheekbone.y), where >1 indicates lower than cheekbone.y
+                  BinarySource.consumeFloatRange 2 ( 0.6, 1.3 )
+                , -- z distance back from cheekbone
+                  BinarySource.consumeFloatRange 2 ( 0.1, 0.3 )
+                )
+            |> tryApplyMaybeValToTemplate
+                (\valResult ->
+                    template
+                 -- { template
+                 --     | faceSideMid =
+                 --         Result.map2
+                 --             (\( xAdd, yVariance, zSub ) eyeQuadTopRight ->
+                 --                 Vector3.plus
+                 --                     eyeQuadTopRight
+                 --                     (Vector3 xAdd yVariance -zSub)
+                 --             )
+                 --             valResult
+                 --             (template.eyeQuadInfo |> Result.map (.eyeQuad >> .topRight))
+                 -- }
+                )
+
+    -- , --faceSideBottom
+    --   \source template ->
+    --     Debug.todo ""
     ]
 
 
@@ -606,6 +660,20 @@ coloringTransforms =
         ( source
         , { template
             | belowEar = Ok Color.yellow
+          }
+        )
+    , --faceSideMid
+      \source template ->
+        ( source
+        , { template
+            | faceSideMid = Ok Color.blue
+          }
+        )
+    , --faceSideBottom
+      \source template ->
+        ( source
+        , { template
+            | faceSideBottom = Ok Color.lightBlue
           }
         )
     ]

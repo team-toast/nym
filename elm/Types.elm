@@ -5,6 +5,7 @@ import Color exposing (Color)
 import Length
 import Point2d exposing (Point2d)
 import Point3d exposing (Point3d)
+import Result.Extra
 import SketchPlane3d exposing (SketchPlane3d)
 import Triangle2d exposing (Triangle2d)
 import Vector2 exposing (Vector2)
@@ -30,17 +31,10 @@ type alias StructureTemplate =
     , noseBottom : Result GenError Vector3
     , cheekbone : Result GenError Vector3
     , crownFront : Result GenError Vector3
+    , backZ : Result GenError Float
+    , faceSideTop : Result GenError Vector3
     , faceSideMid : Result GenError Vector3
-
-    -- , crownBack : Result GenError Vector3
-    -- , crownFront : Result GenError Vector3
-    -- , innerBrow : Result GenError Vector3
-    -- , outerBrow : Result GenError Vector3
-    -- , outerEyeBottom : Result GenError Vector3
-    -- , innerEyeBottom : Result GenError Vector3
-    -- , outerTop : Result GenError Vector3
-    -- , jawBottom : Result GenError Vector3
-    -- , noseYandZ : Result GenError ( Float, Float )
+    , faceSideBottom : Result GenError Vector3
     }
 
 
@@ -77,6 +71,8 @@ type alias ColoringTemplate =
     , aboveEye : Result GenError Color
     , eyeQuad : Result GenError Color
     , belowEar : Result GenError Color
+    , faceSideMid : Result GenError Color
+    , faceSideBottom : Result GenError Color
     }
 
 
@@ -147,3 +143,32 @@ type alias TransformerGenResult templateType =
 
 type alias IndexedTransformGenerator templateType =
     BinarySource -> Int -> ( BinarySource, TransformerGenResult templateType )
+
+
+allSetStructurePoints : StructureTemplate -> Result GenError (List Vector3)
+    -- filters out NotYetSet points, and returns either a full list of points or the first other error it encounters.
+allSetStructurePoints structureTemplate =
+    [ structureTemplate.eyeQuadInfo |> Result.map (.eyeQuad >> .topLeft)
+    , structureTemplate.eyeQuadInfo |> Result.map (.eyeQuad >> .topRight)
+    , structureTemplate.eyeQuadInfo |> Result.map (.eyeQuad >> .bottomLeft)
+    , structureTemplate.eyeQuadInfo |> Result.map (.eyeQuad >> .bottomRight)
+    , structureTemplate.noseTop
+    , structureTemplate.noseBridge
+    , structureTemplate.noseBottom
+    , structureTemplate.cheekbone
+    , structureTemplate.crownFront
+    , structureTemplate.faceSideTop
+    , structureTemplate.faceSideMid
+    , structureTemplate.faceSideBottom
+    ]
+        |> List.filter
+            -- filter out all Err NotYetSet
+            (\res ->
+                case res of
+                    Err NotYetSet ->
+                        False
+
+                    _ ->
+                        True
+            )
+        |> Result.Extra.combine
