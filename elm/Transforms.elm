@@ -551,8 +551,8 @@ coreStructureTransforms =
       \source template ->
         source
             |> BinarySource.consume2
-                ( -- x distance out from eyeQuad.topRight
-                  BinarySource.consumeFloatRange 2 ( 0, 0.3 )
+                ( -- x 
+                  BinarySource.consumeFloatRange 2 ( 0.3, 0.8 )
                 , -- y variance from eyeQuad.topRight
                   BinarySource.consumeFloatRange 2 ( -0.15, 0.15 )
                 )
@@ -563,7 +563,7 @@ coreStructureTransforms =
                             Result.map3
                                 (\( xAdd, yVariance ) eyeQuadTopRight backZ ->
                                     Vector3
-                                        (eyeQuadTopRight.x + xAdd)
+                                        ( xAdd)
                                         (eyeQuadTopRight.y + yVariance)
                                         backZ
                                 )
@@ -634,9 +634,36 @@ coreStructureTransforms =
                     }
                 )
 
-    -- , --faceSideBottom
-    --   \source template ->
-    --     Debug.todo ""
+    , --faceSideBottom
+      \source template ->
+        source
+            |> BinarySource.consume2
+                (-- x as a ratio of faceSideMid
+                BinarySource.consumeFloatRange 2 (0.3, 0.9)
+                , -- y down from lowest of (faceSideMid, jawPoint)
+                BinarySource.consumeFloatRange 2 (0.1, 0.4)
+                )
+            |> tryApplyMaybeValToTemplate
+                (\valResult ->
+                    { template
+                        | faceSideBottom =
+                            Result.map4
+                                (\( xRatio, ySub ) faceSideMid jawPoint backZ ->
+                                    let
+                                        jawOrFaceSidePointY =
+                                            min faceSideMid.y jawPoint.y
+                                    in
+                                    Vector3
+                                        (faceSideMid.x * xRatio)
+                                        (jawOrFaceSidePointY - ySub)
+                                        backZ
+                                )
+                                valResult
+                                template.faceSideMid
+                                template.jawPoint
+                                template.backZ
+                    }
+                )
     ]
 
 
@@ -730,7 +757,7 @@ coloringTransforms =
       \source template ->
         ( source
         , { template
-            | faceSideBottom = Ok Color.lightBlue
+            | faceSideBottom = Ok Color.darkBlue
           }
         )
     , --snoutSideBottom

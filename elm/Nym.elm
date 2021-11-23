@@ -79,6 +79,7 @@ makeNymEntity showDebugLines nymTemplate =
                 , belowEar
                 , faceSideTop
                 , jawSide
+                , faceSideBottom
                 , testEntity
                 ]
 
@@ -199,7 +200,7 @@ makeNymEntity showDebugLines nymTemplate =
                 nymTemplate.structure.noseBottom
                 (nymTemplate.structure.noseBottom |> Result.map mirrorPoint)
                 (nymTemplate.structure.chin |> Result.map mirrorPoint)
-        
+
         chinBottom : Scene3d.Entity ()
         chinBottom =
             meterQuadWithDefaults
@@ -267,10 +268,20 @@ makeNymEntity showDebugLines nymTemplate =
                 nymTemplate.structure.faceSideMid
                 nymTemplate.structure.cheekbone
 
+        faceSideBottom : Scene3d.Entity ()
+        faceSideBottom =
+            meterQuadWithDefaults
+                "faceSideBottom"
+                nymTemplate.coloring.faceSideBottom
+                nymTemplate.structure.faceSideBottom
+                nymTemplate.structure.faceSideMid
+                nymTemplate.structure.cheekbone
+                nymTemplate.structure.jawPoint
+
         testEntity =
             Scene3d.nothing
-            -- testPoint nymTemplate.structure.jawPoint
 
+        -- testPoint nymTemplate.structure.jawPoint
     in
     allFeatures
 
