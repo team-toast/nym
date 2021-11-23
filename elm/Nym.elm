@@ -63,11 +63,6 @@ makeNymEntity showDebugLines nymTemplate =
                 , noseTip
                 , bridge
                 , forehead
-
-                -- , crownFace
-                -- , foreheadFace
-                -- , noseBridgeFace
-                -- , chinBottomFace
                 ]
 
         symmetryGroup =
@@ -79,12 +74,6 @@ makeNymEntity showDebugLines nymTemplate =
                 , aboveCheekbone
                 , aboveEye
                 , belowEar
-
-                -- , upperTempleFace
-                -- , lowerTempleFace
-                -- , cheekFace
-                -- , jawSideFace
-                -- , testEye
                 , testEntity
                 ]
 
@@ -221,108 +210,12 @@ makeNymEntity showDebugLines nymTemplate =
                 nymTemplate.structure.crownFront
                 nymTemplate.structure.faceSideMid
 
-        -- foreheadFace : Scene3d.Entity ()
-        -- foreheadFace =
-        --     meterQuadWithDefaults
-        --         "forehead"
-        --         nymTemplate.coloring.forehead
-        --         nymTemplate.baseStructure.innerBrow
-        --         nymTemplate.baseStructure.crownFront
-        --         (nymTemplate.baseStructure.crownFront |> Result.map mirrorPoint)
-        --         (nymTemplate.baseStructure.innerBrow |> Result.map mirrorPoint)
-        -- noseBridgeFace : Scene3d.Entity ()
-        -- noseBridgeFace =
-        --     meterQuadWithDefaults
-        --         "noseBridge"
-        --         nymTemplate.coloring.bridge
-        --         noseTip
-        --         nymTemplate.baseStructure.innerBrow
-        --         (nymTemplate.baseStructure.innerBrow |> Result.map mirrorPoint)
-        --         (noseTip |> Result.map mirrorPoint)
-        -- chinBottomFace : Scene3d.Entity ()
-        -- chinBottomFace =
-        --     meterQuadWithDefaults
-        --         "chinFront"
-        --         nymTemplate.coloring.chinBottom
-        --         noseTip
-        --         nymTemplate.structure.jawBottom
-        --         (nymTemplate.structure.jawBottom |> Result.map mirrorPoint)
-        --         (noseTip |> Result.map mirrorPoint)
-        -- upperTempleFace : Scene3d.Entity ()
-        -- upperTempleFace =
-        --     meterTriangleWithDefaults
-        --         "upperTempleFace"
-        --         nymTemplate.coloring.upperTemple
-        --         nymTemplate.structure.crownFront
-        --         nymTemplate.structure.outerTop
-        --         nymTemplate.structure.crownBack
-        -- lowerTempleFace : Scene3d.Entity ()
-        -- lowerTempleFace =
-        --     meterTriangleWithDefaults
-        --         "lowerTempleFace"
-        --         nymTemplate.coloring.upperTemple
-        --         nymTemplate.baseStructure.crownFront
-        --         nymTemplate.baseStructure.outerTop
-        --         nymTemplate.baseStructure.innerBrow
-        -- cheekFace : Scene3d.Entity ()
-        -- cheekFace =
-        --     meterTriangleWithDefaults
-        --         "cheekFace"
-        --         nymTemplate.coloring.lowerTemple
-        --         nymTemplate.baseStructure.jawBottom
-        --         nymTemplate.baseStructure.outerTop
-        --         nymTemplate.baseStructure.innerBrow
-        -- jawSideFace : Scene3d.Entity ()
-        -- jawSideFace =
-        --     meterTriangleWithDefaults
-        --         "jawSideFace"
-        --         nymTemplate.coloring.cheek
-        --         nymTemplate.baseStructure.jawBottom
-        --         nymTemplate.baseStructure.innerBrow
-        --         noseTip
         copiedSymmetryGroup =
             symmetryGroup
                 |> mirrorGroup
 
-        testEye =
-            Scene3d.nothing
-
-        -- nymTemplate.baseStructure.innerBrow
-        --     |> Result.map
-        --         (\brow ->
-        --             meterTriangle (Material.color Color.black)
-        --                 brow
-        --                 (Vector3.plus brow (Vector3 0.2 -0.1 -0.05))
-        --                 (Vector3.plus brow (Vector3 0.2 0.1 -0.05))
-        --         )
-        --     |> Result.withDefault Scene3d.nothing
         testEntity =
             Scene3d.nothing
-
-        -- Scene3d.group
-        --     (List.map
-        --         (Scene3d.lineSegment (Material.color Color.blue) << LineSegment3d.fromEndpoints)
-        --         [ ( nymTemplate.baseStructure.innerBrow |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
-        --           , nymTemplate.baseStructure.outerBrow |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
-        --           )
-        --         , ( nymTemplate.baseStructure.outerBrow |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
-        --           , nymTemplate.baseStructure.outerEyeBottom |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
-        --           )
-        --         , ( nymTemplate.baseStructure.outerEyeBottom |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
-        --           , nymTemplate.baseStructure.innerEyeBottom |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
-        --           )
-        --         , ( nymTemplate.baseStructure.innerEyeBottom |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
-        --           , nymTemplate.baseStructure.innerBrow |> Result.withDefault Vector3.zero |> Vector3.toMetersPoint
-        --           )
-        --         ]
-        --     )
-        -- Scene3d.point
-        --     { radius = Pixels.pixels 10 }
-        --     (Material.color Color.black)
-        --     (nymTemplate.coreStructure.point
-        --         |> Result.withDefault Vector3.zero
-        --         |> Vector3.toMetersPoint
-        --     )
     in
     allFeatures
 
@@ -460,17 +353,18 @@ fillTemplateWithDefaults template =
                 coloring =
                     template.coloring
             in
-            { snoutTop = coloring.snoutTop |> Result.withDefault Color.lightRed |> Ok
-            , snoutSideTopMajor = coloring.snoutSideTopMajor |> Result.withDefault Color.red |> Ok
-            , snoutSideTopMinor = coloring.snoutSideTopMinor |> Result.withDefault Color.darkRed |> Ok
-            , snoutSideMiddle = coloring.snoutSideMiddle |> Result.withDefault Color.lightOrange |> Ok
-            , noseTip = coloring.noseTip |> Result.withDefault Color.orange |> Ok
-            , aboveCheekbone = coloring.aboveCheekbone |> Result.withDefault Color.darkOrange |> Ok
-            , bridge = coloring.bridge |> Result.withDefault Color.lightYellow |> Ok
-            , forehead = coloring.forehead |> Result.withDefault Color.yellow |> Ok
-            , aboveEye = coloring.aboveEye |> Result.withDefault Color.darkYellow |> Ok
-            , eyeQuad = coloring.eyeQuad |> Result.withDefault Color.lightGreen |> Ok
-            , belowEar = coloring.eyeQuad |> Result.withDefault Color.darkGreen |> Ok
+            { coloring
+                | snoutTop = coloring.snoutTop |> Result.withDefault Color.lightRed |> Ok
+                , snoutSideTopMajor = coloring.snoutSideTopMajor |> Result.withDefault Color.red |> Ok
+                , snoutSideTopMinor = coloring.snoutSideTopMinor |> Result.withDefault Color.darkRed |> Ok
+                , snoutSideMiddle = coloring.snoutSideMiddle |> Result.withDefault Color.lightOrange |> Ok
+                , noseTip = coloring.noseTip |> Result.withDefault Color.orange |> Ok
+                , aboveCheekbone = coloring.aboveCheekbone |> Result.withDefault Color.darkOrange |> Ok
+                , bridge = coloring.bridge |> Result.withDefault Color.lightYellow |> Ok
+                , forehead = coloring.forehead |> Result.withDefault Color.yellow |> Ok
+                , aboveEye = coloring.aboveEye |> Result.withDefault Color.darkYellow |> Ok
+                , eyeQuad = coloring.eyeQuad |> Result.withDefault Color.lightGreen |> Ok
+                , belowEar = coloring.eyeQuad |> Result.withDefault Color.darkGreen |> Ok
             }
         , structure =
             let
