@@ -152,13 +152,14 @@ coreStructureTransforms =
                                                 eyeQuadPointZY
                                                 intermediatPointZY
                                                 |> (\v ->
-                                                    -- in some cases this results in a vector opposite of what we expect.
-                                                    -- Here we detect and correct that.
-                                                    if v.y + v.x < 0 then
-                                                        v |> Vector2.scaleBy -1
-                                                    else
-                                                        v
-                                                )
+                                                        -- in some cases this results in a vector opposite of what we expect.
+                                                        -- Here we detect and correct that.
+                                                        if v.y + v.x < 0 then
+                                                            v |> Vector2.scaleBy -1
+
+                                                        else
+                                                            v
+                                                   )
                                                 |> Vector2.scaleBy archValue
                                     in
                                     Vector3
@@ -197,33 +198,39 @@ coreStructureTransforms =
                                 template.noseTop
                     }
                 )
-
-    -- -- cheekbone
-    -- , \source template ->
-    --     source
-    --         -- choose a point interpolated between eyeQuad.bottomRight and noseTop
-    --         |> BinarySource.fakeConsume ()
-    --         |> tryApplyMaybeValToTemplate
-    --             (\_ ->
-    --                 { template
-    --                     | cheekbone =
-    --                         Result.map2
-    --                             (\eyeQuadBottomRight noseTop ->
-    --                                 let
-    --                                     interpLine =
-    --                                         ( eyeQuadBottomRight, noseTop )
-    --                                             |> TupleHelpers.mapTuple2 Vector3.toMetersPoint
-    --                                             |> LineSegment3d.fromEndpoints
-    --                                 in
-    --                                 LineSegment3d.interpolate interpLine 0
-    --                                     |> Vector3.fromMetersPoint
-    --                                     |> Vector3.plus
-    --                                         (Vector3 0.05 -0.1 0)
-    --                             )
-    --                             (template.eyeQuadAndPupil |> Result.map (Tuple.first >> .bottomRight))
-    --                             template.noseTop
-    --                 }
-    --             )
+    , \source template ->
+        source
+            |> BinarySource.consume3
+                ( -- x from midline
+                BinarySource.consumeFloatRange 2 (0.03, 0.2)
+                , -- y from highest eyeQuad point
+                BinarySource.consumeFloatRange 2 (0.05, 0.4)
+                , -- z units back from eyeQuad.topLeft
+                BinarySource.consumeFloatRange 2 (0.1, 0.4)
+                )
+            |> tryApplyMaybeValToTemplate
+                (\valResult ->
+                    { template
+                        | crownFront =
+                            Result.map2
+                                (\(x, yAdd, zSub) eyeQuad ->
+                                    let
+                                        y =
+                                            let
+                                                highestY =
+                                                    max eyeQuad.topRight.y eyeQuad.topLeft.y
+                                            in
+                                            highestY + yAdd
+                                        z = 
+                                            eyeQuad.topLeft.z - zSub
+                                        
+                                    in
+                                    Vector3 x y z
+                                )
+                                valResult
+                                (template.eyeQuadInfo |> Result.map .eyeQuad)
+                    }
+                )
     ]
 
 

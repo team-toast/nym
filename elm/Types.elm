@@ -29,6 +29,7 @@ type alias StructureTemplate =
     , noseBridge : Result GenError Vector3
     , noseBottom : Result GenError Vector3
     , cheekbone : Result GenError Vector3
+    , crownFront : Result GenError Vector3
 
     -- , crownBack : Result GenError Vector3
     -- , crownFront : Result GenError Vector3
