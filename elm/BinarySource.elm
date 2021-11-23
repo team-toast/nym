@@ -10,7 +10,7 @@ module BinarySource exposing
     , consumeDouble
     , consumeFloat0to1
     , consumeFloatRange
-    , consumeIntWithBits
+    , consumeInt
     , consumeSeveralValues
     , consumeTriple
     , consumeUnsignedFloat
@@ -95,8 +95,8 @@ consumeChunk numBits (BinarySource source) =
         Nothing
 
 
-consumeIntWithBits : Int -> BinarySource -> Maybe ( BinarySource, Int )
-consumeIntWithBits bits source =
+consumeInt : Int -> BinarySource -> Maybe ( BinarySource, Int )
+consumeInt bits source =
     source
         |> consumeChunk bits
         |> Maybe.map (Tuple.mapSecond chunkToInt32)
@@ -105,7 +105,7 @@ consumeIntWithBits bits source =
 consumeFloat0to1 : Int -> BinarySource -> Maybe ( BinarySource, Float )
 consumeFloat0to1 bits source =
     source
-        |> consumeIntWithBits bits
+        |> consumeInt bits
         |> Maybe.map
             (Tuple.mapSecond
                 (\divisorInt ->
@@ -204,7 +204,7 @@ encodeBinaryString (BinaryChunk chunk) =
 
 consumeColorFromPallette : BinarySource -> Maybe ( BinarySource, Color )
 consumeColorFromPallette source =
-    consumeIntWithBits 5 source
+    consumeInt 5 source
         -- happily the list contains exactly 32 items, so 5 bits is perfect
         |> Maybe.map
             (Tuple.mapSecond

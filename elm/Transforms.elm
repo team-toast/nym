@@ -442,23 +442,19 @@ coreStructureTransforms =
                     }
                 )
 
-    -- nose bottom
+    -- noseBottom
     , \source template ->
         source
-            |> BinarySource.consume2
-                ( -- x offset
-                  BinarySource.consumeFloatRange 2 ( 0.03, 0.2 )
-                , -- y distance from noseTop
-                  BinarySource.consumeFloatRange 2 ( 0.08, 0.2 )
-                )
+            |> -- y distance from noseTop
+               BinarySource.consumeFloatRange 2 ( 0.08, 0.2 )
             |> tryApplyMaybeValToTemplate
                 (\valResult ->
                     { template
                         | noseBottom =
                             Result.map2
-                                (\( x, yDistance ) noseTop ->
+                                (\yDistance noseTop ->
                                     Vector3
-                                        x
+                                        noseTop.x
                                         (noseTop.y - yDistance)
                                         noseTop.z
                                 )
@@ -575,6 +571,41 @@ coreStructureTransforms =
                                 template.cheekbone
                                 template.faceSideTop
                                 template.backZ
+                    }
+                )
+    , -- jawPoint
+      \source template ->
+        source
+            |> BinarySource.consume3
+                ( -- length along (cheekbone -> noseBottom) jawPoint sits under
+                  BinarySource.consumeFloatRange 2 ( 0, 0.4 )
+                , -- x as a ratio of cheekbone.x
+                  BinarySource.consumeFloatRange 2 ( 0.5, 1 )
+                , -- y distance from cheekbone
+                  BinarySource.consumeFloatRange 2 ( 0.15, 0.2 )
+                )
+            |> tryApplyMaybeValToTemplate
+                (\valResult ->
+                    { template
+                        | jawPoint =
+                            Result.map3
+                                (\( interp, xRatio, ySub ) cheekbone noseBottom ->
+                                    let
+                                        interpolatedPoint =
+                                            Point3d.interpolateFrom
+                                                (cheekbone |> Vector3.toMetersPoint)
+                                                (noseBottom |> Vector3.toMetersPoint)
+                                                interp
+                                                |> Vector3.fromMetersPoint
+                                    in
+                                    { interpolatedPoint
+                                        | x = cheekbone.x * xRatio
+                                        , y = interpolatedPoint.y - ySub
+                                    }
+                                )
+                                valResult
+                                template.cheekbone
+                                template.noseBottom
                     }
                 )
 
