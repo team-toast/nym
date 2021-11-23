@@ -63,6 +63,8 @@ makeNymEntity showDebugLines nymTemplate =
                 , noseTip
                 , bridge
                 , forehead
+                , mouth
+                , chinBottom
                 ]
 
         symmetryGroup =
@@ -71,10 +73,12 @@ makeNymEntity showDebugLines nymTemplate =
                 , snoutSideTopMajor
                 , snoutSideTopMinor
                 , snoutSideMiddle
+                , snoutSideBottom
                 , aboveCheekbone
                 , aboveEye
                 , belowEar
                 , faceSideTop
+                , jawSide
                 , testEntity
                 ]
 
@@ -158,6 +162,24 @@ makeNymEntity showDebugLines nymTemplate =
                 nymTemplate.structure.cheekbone
                 nymTemplate.structure.noseBottom
 
+        snoutSideBottom : Scene3d.Entity ()
+        snoutSideBottom =
+            meterTriangleWithDefaults
+                "snoutSideBottom"
+                nymTemplate.coloring.snoutSideBottom
+                nymTemplate.structure.cheekbone
+                nymTemplate.structure.noseBottom
+                nymTemplate.structure.jawPoint
+
+        jawSide : Scene3d.Entity ()
+        jawSide =
+            meterTriangleWithDefaults
+                "jawSide"
+                nymTemplate.coloring.jawSide
+                nymTemplate.structure.noseBottom
+                nymTemplate.structure.chin
+                nymTemplate.structure.jawPoint
+
         noseTip : Scene3d.Entity ()
         noseTip =
             meterQuadWithDefaults
@@ -167,6 +189,26 @@ makeNymEntity showDebugLines nymTemplate =
                 nymTemplate.structure.noseTop
                 (nymTemplate.structure.noseTop |> Result.map mirrorPoint)
                 (nymTemplate.structure.noseBottom |> Result.map mirrorPoint)
+
+        mouth : Scene3d.Entity ()
+        mouth =
+            meterQuadWithDefaults
+                "mouth"
+                nymTemplate.coloring.mouth
+                nymTemplate.structure.chin
+                nymTemplate.structure.noseBottom
+                (nymTemplate.structure.noseBottom |> Result.map mirrorPoint)
+                (nymTemplate.structure.chin |> Result.map mirrorPoint)
+        
+        chinBottom : Scene3d.Entity ()
+        chinBottom =
+            meterQuadWithDefaults
+                "chinBottom"
+                nymTemplate.coloring.chinBottom
+                nymTemplate.structure.jawPoint
+                nymTemplate.structure.chin
+                (nymTemplate.structure.chin |> Result.map mirrorPoint)
+                (nymTemplate.structure.jawPoint |> Result.map mirrorPoint)
 
         aboveCheekbone : Scene3d.Entity ()
         aboveCheekbone =
@@ -226,18 +268,19 @@ makeNymEntity showDebugLines nymTemplate =
                 nymTemplate.structure.cheekbone
 
         testEntity =
-            testPoint nymTemplate.structure.jawPoint
-            -- Scene3d.nothing
+            Scene3d.nothing
+            -- testPoint nymTemplate.structure.jawPoint
 
-            
     in
     allFeatures
+
 
 testPoint vectorResult =
     Scene3d.point
         { radius = Pixels.pixels 5 }
         (Material.color Color.black)
         (vectorResult |> Result.withDefault (Vector3 0 0 0) |> Vector3.toMetersPoint)
+
 
 meterQuad : Color -> Vector3 -> Vector3 -> Vector3 -> Vector3 -> Scene3d.Entity ()
 meterQuad color v1 v2 v3 v4 =

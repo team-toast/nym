@@ -463,6 +463,31 @@ coreStructureTransforms =
                     }
                 )
 
+    -- chin
+    , \source template ->
+        source
+            |> BinarySource.consume2
+                ( -- x as ratio of noseBottom
+                  BinarySource.consumeFloatRange 2 ( 0.5, 1 )
+                  -- y distance from nosebottom
+                , BinarySource.consumeFloatRange 2 ( 0.05, 0.2 )
+                )
+            |> tryApplyMaybeValToTemplate
+                (\valResult ->
+                    { template
+                        | chin =
+                            Result.map2
+                                (\( xRatio, ySub ) noseBottom ->
+                                    Vector3
+                                        (noseBottom.x * xRatio)
+                                        (noseBottom.y - ySub)
+                                        noseBottom.z
+                                )
+                                valResult
+                                template.noseBottom
+                    }
+                )
+
     -- crownFront
     , \source template ->
         source
@@ -677,7 +702,7 @@ coloringTransforms =
       \source template ->
         ( source
         , { template
-            | aboveEye = Ok Color.darkBrown
+            | aboveEye = Ok Color.lightYellow
           }
         )
     , --eyeQuad
@@ -706,6 +731,34 @@ coloringTransforms =
         ( source
         , { template
             | faceSideBottom = Ok Color.lightBlue
+          }
+        )
+    , --snoutSideBottom
+      \source template ->
+        ( source
+        , { template
+            | snoutSideBottom = Ok Color.lightBlue
+          }
+        )
+    , --jawSide
+      \source template ->
+        ( source
+        , { template
+            | jawSide = Ok Color.blue
+          }
+        )
+    , --mouth
+      \source template ->
+        ( source
+        , { template
+            | mouth = Ok Color.darkBlue
+          }
+        )
+    , --chinBottom
+      \source template ->
+        ( source
+        , { template
+            | chinBottom = Ok Color.darkBrown
           }
         )
     ]

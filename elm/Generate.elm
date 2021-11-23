@@ -15,12 +15,41 @@ import Vector3d
 
 blankColoringTemplate : ColoringTemplate
 blankColoringTemplate =
-    ColoringTemplate (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet)
+    ColoringTemplate
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
 
 
 blankStructureTemplate : StructureTemplate
 blankStructureTemplate =
-    StructureTemplate (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet)
+    StructureTemplate
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
 
 
 blankEyeTemplate : EyeTemplate

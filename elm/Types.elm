@@ -36,6 +36,7 @@ type alias StructureTemplate =
     , faceSideMid : Result GenError Vector3
     , faceSideBottom : Result GenError Vector3
     , jawPoint : Result GenError Vector3
+    , chin : Result GenError Vector3
     }
 
 
@@ -74,9 +75,11 @@ type alias ColoringTemplate =
     , belowEar : Result GenError Color
     , faceSideTop : Result GenError Color
     , faceSideBottom : Result GenError Color
+    , snoutSideBottom : Result GenError Color
+    , jawSide : Result GenError Color
+    , mouth : Result GenError Color
+    , chinBottom : Result GenError Color
     }
-
-
 
 
 type alias EyeTemplate =
@@ -134,7 +137,12 @@ type alias IndexedTransformGenerator templateType =
 
 
 allSetStructurePoints : StructureTemplate -> Result GenError (List Vector3)
-    -- filters out NotYetSet points, and returns either a full list of points or the first other error it encounters.
+
+
+
+-- filters out NotYetSet points, and returns either a full list of points or the first other error it encounters.
+
+
 allSetStructurePoints structureTemplate =
     [ structureTemplate.eyeQuadInfo |> Result.map (.eyeQuad >> .topLeft)
     , structureTemplate.eyeQuadInfo |> Result.map (.eyeQuad >> .topRight)
@@ -149,6 +157,7 @@ allSetStructurePoints structureTemplate =
     , structureTemplate.faceSideMid
     , structureTemplate.faceSideBottom
     , structureTemplate.jawPoint
+    , structureTemplate.chin
     ]
         |> List.filter
             -- filter out all Err NotYetSet
