@@ -15,7 +15,7 @@ import Vector3d
 
 blankColoringTemplate : ColoringTemplate
 blankColoringTemplate =
-    ColoringTemplate 
+    ColoringTemplate (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) (Err NotYetSet) 
 
 
 blankStructureTemplate : StructureTemplate

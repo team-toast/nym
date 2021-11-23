@@ -65,7 +65,17 @@ type alias Pupil2d =
 
 
 type alias ColoringTemplate =
-    {}
+    { snoutTop : Result GenError Color
+    , snoutSideTopMajor : Result GenError Color
+    , snoutSideTopMinor : Result GenError Color
+    , snoutSideMiddle : Result GenError Color
+    , noseTip : Result GenError Color
+    , aboveCheekbone : Result GenError Color
+    , bridge : Result GenError Color
+    , forehead : Result GenError Color
+    , aboveEye : Result GenError Color
+    , eyeQuad : Result GenError Color
+    }
 
 
 

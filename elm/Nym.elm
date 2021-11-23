@@ -89,28 +89,29 @@ makeNymEntity showDebugLines nymTemplate =
 
         eyeQuadAndPupil : Scene3d.Entity ()
         eyeQuadAndPupil =
-            nymTemplate.structure.eyeQuadInfo
-                |> Result.map
-                    (\eyeQuadInfo ->
-                        Scene3d.group
-                            [ meterQuad
-                                Color.green
-                                eyeQuadInfo.eyeQuad.bottomRight
-                                eyeQuadInfo.eyeQuad.bottomLeft
-                                eyeQuadInfo.eyeQuad.topLeft
-                                eyeQuadInfo.eyeQuad.topRight
-                            , eyeQuadInfo.pupil
-                                |> List.map
-                                    (\triangle ->
-                                        meterTriangle
-                                            Color.black
-                                            (triangle |> TupleHelpers.tuple3First)
-                                            (triangle |> TupleHelpers.tuple3Middle)
-                                            (triangle |> TupleHelpers.tuple3Last)
-                                    )
-                                |> Scene3d.group
-                            ]
-                    )
+            Result.map2
+                (\eyeQuadInfo eyeQuadColor ->
+                    Scene3d.group
+                        [ meterQuad
+                            eyeQuadColor
+                            eyeQuadInfo.eyeQuad.bottomRight
+                            eyeQuadInfo.eyeQuad.bottomLeft
+                            eyeQuadInfo.eyeQuad.topLeft
+                            eyeQuadInfo.eyeQuad.topRight
+                        , eyeQuadInfo.pupil
+                            |> List.map
+                                (\triangle ->
+                                    meterTriangle
+                                        Color.black
+                                        (triangle |> TupleHelpers.tuple3First)
+                                        (triangle |> TupleHelpers.tuple3Middle)
+                                        (triangle |> TupleHelpers.tuple3Last)
+                                )
+                            |> Scene3d.group
+                        ]
+                )
+                nymTemplate.structure.eyeQuadInfo
+                nymTemplate.coloring.eyeQuad
                 |> defaultAndLogEntityError "eyeQuadAndPupil"
 
         eyeQuadResult =
@@ -120,7 +121,7 @@ makeNymEntity showDebugLines nymTemplate =
         snoutTop =
             meterQuadWithDefaults
                 "snoutTop"
-                (Ok Color.blue)
+                nymTemplate.coloring.snoutTop
                 nymTemplate.structure.noseTop
                 nymTemplate.structure.noseBridge
                 (nymTemplate.structure.noseBridge |> Result.map mirrorPoint)
@@ -130,7 +131,7 @@ makeNymEntity showDebugLines nymTemplate =
         snoutSideTopMajor =
             meterQuadWithDefaults
                 "snoutSideTopMajor"
-                (Ok Color.lightBlue)
+                nymTemplate.coloring.snoutSideTopMajor
                 (eyeQuadResult |> Result.map .bottomLeft)
                 nymTemplate.structure.noseTop
                 nymTemplate.structure.cheekbone
@@ -141,13 +142,13 @@ makeNymEntity showDebugLines nymTemplate =
             Scene3d.group
                 [ meterTriangleWithDefaults
                     "snoutSideTopMinor"
-                    (Ok Color.darkBlue)
+                    nymTemplate.coloring.snoutSideTopMinor
                     nymTemplate.structure.noseTop
                     nymTemplate.structure.noseBridge
                     (eyeQuadResult |> Result.map .bottomLeft)
                 , meterTriangleWithDefaults
                     "snoutSideTopMinor"
-                    (Ok Color.purple)
+                    nymTemplate.coloring.snoutSideTopMinor
                     nymTemplate.structure.noseBridge
                     (eyeQuadResult |> Result.map .topLeft)
                     (eyeQuadResult |> Result.map .bottomLeft)
@@ -157,7 +158,7 @@ makeNymEntity showDebugLines nymTemplate =
         snoutSideMiddle =
             meterTriangleWithDefaults
                 "snoutSideMiddle"
-                (Ok Color.darkPurple)
+                nymTemplate.coloring.snoutSideMiddle
                 nymTemplate.structure.noseTop
                 nymTemplate.structure.cheekbone
                 nymTemplate.structure.noseBottom
@@ -166,7 +167,7 @@ makeNymEntity showDebugLines nymTemplate =
         noseTip =
             meterQuadWithDefaults
                 "noseTip"
-                (Ok Color.black)
+                nymTemplate.coloring.noseTip
                 nymTemplate.structure.noseBottom
                 nymTemplate.structure.noseTop
                 (nymTemplate.structure.noseTop |> Result.map mirrorPoint)
@@ -176,7 +177,7 @@ makeNymEntity showDebugLines nymTemplate =
         aboveCheekbone =
             meterTriangleWithDefaults
                 "aboveCheekbone"
-                (Ok Color.lightPurple)
+                nymTemplate.coloring.aboveCheekbone
                 (eyeQuadResult |> Result.map .bottomRight)
                 (eyeQuadResult |> Result.map .topRight)
                 nymTemplate.structure.cheekbone
@@ -185,7 +186,7 @@ makeNymEntity showDebugLines nymTemplate =
         bridge =
             meterQuadWithDefaults
                 "bridge"
-                (Ok Color.lightBrown)
+                nymTemplate.coloring.bridge
                 nymTemplate.structure.noseBridge
                 (eyeQuadResult |> Result.map .topLeft)
                 (eyeQuadResult |> Result.map .topLeft |> Result.map mirrorPoint)
@@ -195,7 +196,7 @@ makeNymEntity showDebugLines nymTemplate =
         forehead =
             meterQuadWithDefaults
                 "forehead"
-                (Ok Color.gray)
+                nymTemplate.coloring.forehead
                 (eyeQuadResult |> Result.map .topLeft)
                 nymTemplate.structure.crownFront
                 (nymTemplate.structure.crownFront |> Result.map mirrorPoint)
@@ -205,7 +206,7 @@ makeNymEntity showDebugLines nymTemplate =
         aboveEye =
             meterTriangleWithDefaults
                 "aboveEye"
-                (Ok Color.blue)
+                nymTemplate.coloring.aboveEye
                 (eyeQuadResult |> Result.map .topLeft)
                 nymTemplate.structure.crownFront
                 (eyeQuadResult |> Result.map .topRight)
@@ -449,21 +450,17 @@ fillTemplateWithDefaults template =
                 coloring =
                     template.coloring
             in
-            {}
-
-        -- { coloring
-        --     | crown = coloring.crown |> Result.withDefault Color.lightRed |> Ok
-        --     , forehead = coloring.forehead |> Result.withDefault Color.red |> Ok
-        --     , bridge = coloring.bridge |> Result.withDefault Color.darkRed |> Ok
-        --     , noseTip = coloring.noseTip |> Result.withDefault Color.lightOrange |> Ok
-        --     , chinFront = coloring.chinFront |> Result.withDefault Color.orange |> Ok
-        --     , chinBottom = coloring.chinBottom |> Result.withDefault Color.darkOrange |> Ok
-        --     , upperTemple = coloring.upperTemple |> Result.withDefault Color.lightYellow |> Ok
-        --     , lowerTemple = coloring.lowerTemple |> Result.withDefault Color.yellow |> Ok
-        --     , cheek = coloring.cheek |> Result.withDefault Color.darkYellow |> Ok
-        --     , upperJawSide = coloring.upperJawSide |> Result.withDefault Color.lightGreen |> Ok
-        --     , lowerJawSide = coloring.lowerJawSide |> Result.withDefault Color.green |> Ok
-        -- }
+            { snoutTop = coloring.snoutTop |> Result.withDefault Color.lightRed |> Ok
+            , snoutSideTopMajor = coloring.snoutSideTopMajor |> Result.withDefault Color.red |> Ok
+            , snoutSideTopMinor = coloring.snoutSideTopMinor |> Result.withDefault Color.darkRed |> Ok
+            , snoutSideMiddle = coloring.snoutSideMiddle |> Result.withDefault Color.lightOrange |> Ok
+            , noseTip = coloring.noseTip |> Result.withDefault Color.orange |> Ok
+            , aboveCheekbone = coloring.aboveCheekbone |> Result.withDefault Color.darkOrange |> Ok
+            , bridge = coloring.bridge |> Result.withDefault Color.lightYellow |> Ok
+            , forehead = coloring.forehead |> Result.withDefault Color.yellow |> Ok
+            , aboveEye = coloring.aboveEye |> Result.withDefault Color.darkYellow |> Ok
+            , eyeQuad = coloring.eyeQuad |> Result.withDefault Color.lightGreen |> Ok
+            }
         , structure =
             let
                 coreStructure =

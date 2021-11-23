@@ -202,18 +202,18 @@ coreStructureTransforms =
         source
             |> BinarySource.consume3
                 ( -- x from midline
-                BinarySource.consumeFloatRange 2 (0.03, 0.2)
+                  BinarySource.consumeFloatRange 2 ( 0.03, 0.2 )
                 , -- y from highest eyeQuad point
-                BinarySource.consumeFloatRange 2 (0.05, 0.4)
+                  BinarySource.consumeFloatRange 2 ( 0.05, 0.4 )
                 , -- z units back from eyeQuad.topLeft
-                BinarySource.consumeFloatRange 2 (0.1, 0.4)
+                  BinarySource.consumeFloatRange 2 ( 0.1, 0.4 )
                 )
             |> tryApplyMaybeValToTemplate
                 (\valResult ->
                     { template
                         | crownFront =
                             Result.map2
-                                (\(x, yAdd, zSub) eyeQuad ->
+                                (\( x, yAdd, zSub ) eyeQuad ->
                                     let
                                         y =
                                             let
@@ -221,9 +221,9 @@ coreStructureTransforms =
                                                     max eyeQuad.topRight.y eyeQuad.topLeft.y
                                             in
                                             highestY + yAdd
-                                        z = 
+
+                                        z =
                                             eyeQuad.topLeft.z - zSub
-                                        
                                     in
                                     Vector3 x y z
                                 )
@@ -503,7 +503,77 @@ consumeFullEyeQuadAndPupil source =
 
 coloringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
 coloringTransforms =
-    []
+    [ --snoutTop
+      \source template ->
+        ( source
+        , { template
+            | snoutTop = Ok Color.red
+          }
+        )
+    , --snoutSideTopMajor
+      \source template ->
+        ( source
+        , { template
+            | snoutSideTopMajor = Ok Color.darkRed
+          }
+        )
+    , --snoutSideTopMinor
+      \source template ->
+        ( source
+        , { template
+            | snoutSideTopMinor = Ok Color.lightRed
+          }
+        )
+    , --snoutSideMiddle
+      \source template ->
+        ( source
+        , { template
+            | snoutSideMiddle = Ok Color.orange
+          }
+        )
+    , --noseTip
+      \source template ->
+        ( source
+        , { template
+            | noseTip = Ok Color.lightOrange
+          }
+        )
+    , --aboveCheekbone
+      \source template ->
+        ( source
+        , { template
+            | aboveCheekbone = Ok Color.darkOrange
+          }
+        )
+    , --bridge
+      \source template ->
+        ( source
+        , { template
+            | bridge = Ok Color.brown
+          }
+        )
+    , --forehead
+      \source template ->
+        ( source
+        , { template
+            | forehead = Ok Color.lightBrown
+          }
+        )
+    , --aboveEye
+      \source template ->
+        ( source
+        , { template
+            | aboveEye = Ok Color.darkBrown
+          }
+        )
+    , --eyeQuad
+      \source template ->
+        ( source
+        , { template
+            | eyeQuad = Ok Color.darkYellow
+          }
+        )
+    ]
 
 
 tryApplyMaybeValToTemplate :
