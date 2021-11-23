@@ -74,6 +74,7 @@ makeNymEntity showDebugLines nymTemplate =
                 [ eyeQuadAndPupil
                 , snoutSideTopMajor
                 , snoutSideTopMinor
+                , snoutSideMiddle
                 , aboveCheekbone
 
                 -- , upperTempleFace
@@ -149,6 +150,16 @@ makeNymEntity showDebugLines nymTemplate =
                     (eyeQuadResult |> Result.map .topLeft)
                     (eyeQuadResult |> Result.map .bottomLeft)
                 ]
+        
+        snoutSideMiddle : Scene3d.Entity ()
+        snoutSideMiddle =
+            meterTriangleWithDefaults
+                "snoutSideMiddle"
+                (Ok Color.lightOrange)
+                nymTemplate.structure.noseTop
+                nymTemplate.structure.cheekbone
+                nymTemplate.structure.noseBottom
+
 
         noseTip : Scene3d.Entity ()
         noseTip =
