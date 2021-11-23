@@ -74,9 +74,10 @@ makeNymEntity showDebugLines nymTemplate =
                 , aboveCheekbone
                 , aboveEye
                 , belowEar
+                , faceSideTop
                 , testEntity
                 ]
-        
+
         copiedSymmetryGroup =
             symmetryGroup
                 |> mirrorGroup
@@ -212,12 +213,25 @@ makeNymEntity showDebugLines nymTemplate =
                 nymTemplate.coloring.belowEar
                 (eyeQuadResult |> Result.map .topRight)
                 nymTemplate.structure.crownFront
-                nymTemplate.structure.faceSideMid
+                nymTemplate.structure.faceSideTop
 
-        
+        faceSideTop : Scene3d.Entity ()
+        faceSideTop =
+            meterQuadWithDefaults
+                "faceSideTop"
+                nymTemplate.coloring.faceSideTop
+                (eyeQuadResult |> Result.map .topRight)
+                nymTemplate.structure.faceSideTop
+                nymTemplate.structure.faceSideMid
+                nymTemplate.structure.cheekbone
 
         testEntity =
             Scene3d.nothing
+
+        -- Scene3d.point
+        --     { radius = Pixels.pixels 5 }
+        --     (Material.color Color.black)
+        --     (nymTemplate.structure.faceSideMid |> Result.withDefault (Vector3 0 0 0) |> Vector3.toMetersPoint)
     in
     allFeatures
 

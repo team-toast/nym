@@ -344,6 +344,7 @@ coreStructureTransforms =
                                     vectorOffsetAlongSketchplaneNormal
                                     |> Vector3.fromMetersVector
                                 )
+                                |> Vector3.plus (Vector3 0 -0.3 0)
                         )
           }
         )
@@ -504,7 +505,7 @@ coreStructureTransforms =
       \source template ->
         source
             -- how far back is the 'back' of the face from the furthest back currently set point?
-            |> BinarySource.consumeFloatRange 2 ( 0.1, 0.4 )
+            |> BinarySource.consumeFloatRange 2 ( 0.1, 0.3 )
             |> tryApplyMaybeValToTemplate
                 (\zSubResult ->
                     let
@@ -537,7 +538,7 @@ coreStructureTransforms =
             |> tryApplyMaybeValToTemplate
                 (\valResult ->
                     { template
-                        | faceSideMid =
+                        | faceSideTop =
                             Result.map3
                                 (\( xAdd, yVariance ) eyeQuadTopRight backZ ->
                                     Vector3
@@ -553,28 +554,28 @@ coreStructureTransforms =
     , --faceSideMid
       \source template ->
         source
-            |> BinarySource.consume3
+            |> BinarySource.consume2
                 ( -- x distance out from cheekbone
                   BinarySource.consumeFloatRange 2 ( 0, 0.3 )
                 , -- y in terms of (faceSideTop.y -> cheekbone.y), where >1 indicates lower than cheekbone.y
                   BinarySource.consumeFloatRange 2 ( 0.6, 1.3 )
-                , -- z distance back from cheekbone
-                  BinarySource.consumeFloatRange 2 ( 0.1, 0.3 )
                 )
             |> tryApplyMaybeValToTemplate
                 (\valResult ->
-                    template
-                 -- { template
-                 --     | faceSideMid =
-                 --         Result.map2
-                 --             (\( xAdd, yVariance, zSub ) eyeQuadTopRight ->
-                 --                 Vector3.plus
-                 --                     eyeQuadTopRight
-                 --                     (Vector3 xAdd yVariance -zSub)
-                 --             )
-                 --             valResult
-                 --             (template.eyeQuadInfo |> Result.map (.eyeQuad >> .topRight))
-                 -- }
+                    { template
+                        | faceSideMid =
+                            Result.map4
+                                (\( xAdd, yRatio ) cheekbone faceSideTop backZ ->
+                                    Vector3
+                                        (cheekbone.x + xAdd)
+                                        (faceSideTop.y + (cheekbone.y - faceSideTop.y) * yRatio)
+                                        backZ
+                                )
+                                valResult
+                                template.cheekbone
+                                template.faceSideTop
+                                template.backZ
+                    }
                 )
 
     -- , --faceSideBottom
@@ -617,7 +618,7 @@ coloringTransforms =
       \source template ->
         ( source
         , { template
-            | noseTip = Ok Color.lightOrange
+            | noseTip = Ok Color.black
           }
         )
     , --aboveCheekbone
@@ -662,11 +663,11 @@ coloringTransforms =
             | belowEar = Ok Color.yellow
           }
         )
-    , --faceSideMid
+    , --faceSideTop
       \source template ->
         ( source
         , { template
-            | faceSideMid = Ok Color.blue
+            | faceSideTop = Ok Color.blue
           }
         )
     , --faceSideBottom
