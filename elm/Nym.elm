@@ -226,15 +226,18 @@ makeNymEntity showDebugLines nymTemplate =
                 nymTemplate.structure.cheekbone
 
         testEntity =
-            Scene3d.nothing
+            testPoint nymTemplate.structure.jawPoint
+            -- Scene3d.nothing
 
-        -- Scene3d.point
-        --     { radius = Pixels.pixels 5 }
-        --     (Material.color Color.black)
-        --     (nymTemplate.structure.faceSideMid |> Result.withDefault (Vector3 0 0 0) |> Vector3.toMetersPoint)
+            
     in
     allFeatures
 
+testPoint vectorResult =
+    Scene3d.point
+        { radius = Pixels.pixels 5 }
+        (Material.color Color.black)
+        (vectorResult |> Result.withDefault (Vector3 0 0 0) |> Vector3.toMetersPoint)
 
 meterQuad : Color -> Vector3 -> Vector3 -> Vector3 -> Vector3 -> Scene3d.Entity ()
 meterQuad color v1 v2 v3 v4 =
