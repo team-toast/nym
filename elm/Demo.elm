@@ -131,8 +131,6 @@ demoNymSources : Int -> List BinarySource
 demoNymSources seed =
     ([ "111111111111111111111111"
      , "000000000000000000000000"
-     , "101010101010101010101010"
-     , "010101010101010101010101"
      ]
         |> List.map
             (String.toList
@@ -181,7 +179,7 @@ randomBinarySources masterSeed =
                 |> String.fromList
                 |> BinarySource.unsafeFromBitsString
     in
-    List.Extra.initialize 12 initFunc
+    List.Extra.initialize 14 initFunc
 
 
 remainingBitsAndDemoNymTemplates : Int -> Bool -> List ( String, Int, NymTemplate )
