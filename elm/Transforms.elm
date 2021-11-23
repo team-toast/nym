@@ -68,6 +68,194 @@ consumeEyeQuadSketchPlane eyeQuadAndPupil2d source =
             )
 
 
+consumeEyeQuadAndPupil2d : BinarySource -> Result GenError ( BinarySource, EyeQuadAndPupil2d )
+consumeEyeQuadAndPupil2d source =
+    let
+        consumeData :
+            BinarySource
+            ->
+                Maybe
+                    ( BinarySource
+                    , ( ( Vector2, Float, Float )
+                      , ( Float, ( ( Float, Float ), ( Float, Float ) ) )
+                      )
+                    )
+        consumeData =
+            BinarySource.consume2
+                -- pupil
+                ( BinarySource.consume3
+                    -- 1 point from somewhere in the eyeQuad to draw from
+                    ( BinarySource.consumeDouble
+                        (BinarySource.consumeFloatRange 2 ( 0.2, 0.8 ))
+                        >> BinarySource.map (\( x, y ) -> Vector2 x y)
+                      -- from 0 to 3.99, position along the quad's perimeter to put the next point
+                    , BinarySource.consumeFloatRange 3 ( 0, 3.999 )
+                      -- same units as above and relative to it, how much further along the perimeter to draw the final point
+                    , BinarySource.consumeFloatRange 2 ( 0.3, 0.99 )
+                      -- note that if the max value is > 1, the code later to construct the pupil will break
+                    )
+                  -- eyeQuad
+                , BinarySource.consume2
+                    -- length of bottom line, assumed flat
+                    ( BinarySource.consumeFloatRange 2 ( 0.1, 0.4 )
+                      -- two top points, relative to the respective point below it
+                    , BinarySource.consume2
+                        -- top left
+                        ( BinarySource.consume2
+                            -- x in terms of length of bottom line
+                            ( BinarySource.consumeFloatRange 2 ( -0.5, 0.3 )
+                              -- y in real world units
+                            , BinarySource.consumeFloatRange 2 ( 0.1, 0.25 )
+                            )
+                          -- top right
+                        , BinarySource.consume2
+                            -- x in terms of length of bottom line
+                            ( BinarySource.consumeFloatRange 2 ( -0.3, 0.5 )
+                              -- y in real world units
+                            , BinarySource.consumeFloatRange 2 ( 0.1, 0.25 )
+                            )
+                        )
+                    )
+                )
+
+        finalConstruct :
+            ( ( Vector2, Float, Float )
+            , ( Float, ( ( Float, Float ), ( Float, Float ) ) )
+            )
+            -> Result GenError EyeQuadAndPupil2d
+        finalConstruct ( pupilData, quadData ) =
+            let
+                eyeQuad : Vector2.Quad
+                eyeQuad =
+                    let
+                        ( bottomLength, topPointsData ) =
+                            quadData
+
+                        ( bottomLeft, bottomRight ) =
+                            ( Vector2 0 0
+                            , Vector2 bottomLength 0
+                            )
+
+                        ( topLeft, topRight ) =
+                            topPointsData
+                                |> TupleHelpers.mapTuple2 (Tuple.mapFirst (\xFraction -> xFraction * bottomLength))
+                                |> TupleHelpers.mapTuple2 (\( x, y ) -> Vector2 x y)
+                                |> Tuple.mapBoth
+                                    (Vector2.plus bottomLeft)
+                                    (Vector2.plus bottomRight)
+                    in
+                    Vector2.Quad
+                        bottomRight
+                        bottomLeft
+                        topLeft
+                        topRight
+
+                pupilResult : Result GenError Pupil2d
+                pupilResult =
+                    let
+                        ( startPointData, point2PerimeterPos, point3PerimeterRelPos ) =
+                            pupilData
+
+                        point1 =
+                            startPointData
+                                |> interpolateVector2InQuad eyeQuad
+
+                        point3PerimeterPos =
+                            point2PerimeterPos
+                                + point3PerimeterRelPos
+                                |> (\p ->
+                                        if p >= 4 then
+                                            p - 4
+
+                                        else
+                                            p
+                                   )
+
+                        ( point2EdgeAndRatio, point3EdgeAndRatio ) =
+                            ( point2PerimeterPos, point3PerimeterPos )
+                                |> TupleHelpers.mapTuple2
+                                    (\perimeterPos ->
+                                        let
+                                            edgeNum =
+                                                floor perimeterPos
+
+                                            edgePosRatio =
+                                                perimeterPos - toFloat edgeNum
+                                        in
+                                        ( edgeNum, edgePosRatio )
+                                    )
+
+                        ( maybeEdge1, maybeEdge2 ) =
+                            ( point2EdgeAndRatio, point3EdgeAndRatio )
+                                |> TupleHelpers.mapTuple2
+                                    (\( edgeNum, _ ) ->
+                                        Vector2.quadToMetersPolygon eyeQuad
+                                            |> Polygon2d.edges
+                                            |> List.Extra.getAt edgeNum
+                                    )
+                    in
+                    case ( maybeEdge1, maybeEdge2 ) of
+                        ( Just edge1, Just edge2 ) ->
+                            let
+                                ( point2, lastPoint ) =
+                                    ( ( edge1, Tuple.second point2EdgeAndRatio )
+                                    , ( edge2, Tuple.second point3EdgeAndRatio )
+                                    )
+                                        |> TupleHelpers.mapTuple2
+                                            (\( edge, edgeRatio ) ->
+                                                LineSegment2d.interpolate
+                                                    edge
+                                                    edgeRatio
+                                                    |> Vector2.fromMetersPoint
+                                            )
+                            in
+                            if Tuple.first point2EdgeAndRatio == Tuple.first point3EdgeAndRatio then
+                                Ok [ ( point1, point2, lastPoint ) ]
+
+                            else
+                                let
+                                    -- note that this assumes there is only 1 additional point needed.
+                                    -- There maybe more if some of the consume code above is tweaked.
+                                    additionalPoint =
+                                        LineSegment2d.endPoint edge1 |> Vector2.fromMetersPoint
+                                in
+                                Ok
+                                    [ ( point1
+                                      , point2
+                                      , additionalPoint
+                                      )
+                                    , ( point1
+                                      , additionalPoint
+                                      , lastPoint
+                                      )
+                                    ]
+
+                        _ ->
+                            Err <| UnexpectedNothing "index error when trying to index edges of eyeQuad when constructing pupil"
+            in
+            Result.map
+                (\pupil ->
+                    EyeQuadAndPupil2d
+                        pupil
+                        eyeQuad
+                )
+                pupilResult
+    in
+    -- get all of our data first in unit-like values, interpolate/extrapolate in finalConstruct above
+    source
+        |> consumeData
+        |> Result.fromMaybe NotEnoughSource
+        |> Result.andThen
+            (\( s, d ) ->
+                case finalConstruct d of
+                    Ok f ->
+                        Ok ( s, f )
+
+                    Err e ->
+                        Err e
+            )
+
+
 consumeFullEyeQuadAndPupil : BinarySource -> Result GenError ( BinarySource, EyeQuadInfo )
 consumeFullEyeQuadAndPupil source =
     source
@@ -311,194 +499,6 @@ coreStructureTransforms =
                     }
                 )
     ]
-
-
-consumeEyeQuadAndPupil2d : BinarySource -> Result GenError ( BinarySource, EyeQuadAndPupil2d )
-consumeEyeQuadAndPupil2d source =
-    let
-        consumeData :
-            BinarySource
-            ->
-                Maybe
-                    ( BinarySource
-                    , ( ( Vector2, Float, Float )
-                      , ( Float, ( ( Float, Float ), ( Float, Float ) ) )
-                      )
-                    )
-        consumeData =
-            BinarySource.consume2
-                -- pupil
-                ( BinarySource.consume3
-                    -- 1 point from somewhere in the eyeQuad to draw from
-                    ( BinarySource.consumeDouble
-                        (BinarySource.consumeFloatRange 2 ( 0.2, 0.8 ))
-                        >> BinarySource.map (\( x, y ) -> Vector2 x y)
-                      -- from 0 to 3.99, position along the quad's perimeter to put the next point
-                    , BinarySource.consumeFloatRange 3 ( 0, 3.999 )
-                      -- same units as above and relative to it, how much further along the perimeter to draw the final point
-                    , BinarySource.consumeFloatRange 2 ( 0.3, 0.99 )
-                      -- note that if the max value is > 1, the code later to construct the pupil will break
-                    )
-                  -- eyeQuad
-                , BinarySource.consume2
-                    -- length of bottom line, assumed flat
-                    ( BinarySource.consumeFloatRange 2 ( 0.1, 0.4 )
-                      -- two top points, relative to the respective point below it
-                    , BinarySource.consume2
-                        -- top left
-                        ( BinarySource.consume2
-                            -- x in terms of length of bottom line
-                            ( BinarySource.consumeFloatRange 2 ( -0.5, 0.3 )
-                              -- y in real world units
-                            , BinarySource.consumeFloatRange 2 ( 0.1, 0.25 )
-                            )
-                          -- top right
-                        , BinarySource.consume2
-                            -- x in terms of length of bottom line
-                            ( BinarySource.consumeFloatRange 2 ( -0.3, 0.5 )
-                              -- y in real world units
-                            , BinarySource.consumeFloatRange 2 ( 0.1, 0.25 )
-                            )
-                        )
-                    )
-                )
-
-        finalConstruct :
-            ( ( Vector2, Float, Float )
-            , ( Float, ( ( Float, Float ), ( Float, Float ) ) )
-            )
-            -> Result GenError EyeQuadAndPupil2d
-        finalConstruct ( pupilData, quadData ) =
-            let
-                eyeQuad : Vector2.Quad
-                eyeQuad =
-                    let
-                        ( bottomLength, topPointsData ) =
-                            quadData
-
-                        ( bottomLeft, bottomRight ) =
-                            ( Vector2 0 0
-                            , Vector2 bottomLength 0
-                            )
-
-                        ( topLeft, topRight ) =
-                            topPointsData
-                                |> TupleHelpers.mapTuple2 (Tuple.mapFirst (\xFraction -> xFraction * bottomLength))
-                                |> TupleHelpers.mapTuple2 (\( x, y ) -> Vector2 x y)
-                                |> Tuple.mapBoth
-                                    (Vector2.plus bottomLeft)
-                                    (Vector2.plus bottomRight)
-                    in
-                    Vector2.Quad
-                        bottomRight
-                        bottomLeft
-                        topLeft
-                        topRight
-
-                pupilResult : Result GenError Pupil2d
-                pupilResult =
-                    let
-                        ( startPointData, point2PerimeterPos, point3PerimeterRelPos ) =
-                            pupilData
-
-                        point1 =
-                            startPointData
-                                |> interpolateVector2InQuad eyeQuad
-
-                        point3PerimeterPos =
-                            point2PerimeterPos
-                                + point3PerimeterRelPos
-                                |> (\p ->
-                                        if p >= 4 then
-                                            p - 4
-
-                                        else
-                                            p
-                                   )
-
-                        ( point2EdgeAndRatio, point3EdgeAndRatio ) =
-                            ( point2PerimeterPos, point3PerimeterPos )
-                                |> TupleHelpers.mapTuple2
-                                    (\perimeterPos ->
-                                        let
-                                            edgeNum =
-                                                floor perimeterPos
-
-                                            edgePosRatio =
-                                                perimeterPos - toFloat edgeNum
-                                        in
-                                        ( edgeNum, edgePosRatio )
-                                    )
-
-                        ( maybeEdge1, maybeEdge2 ) =
-                            ( point2EdgeAndRatio, point3EdgeAndRatio )
-                                |> TupleHelpers.mapTuple2
-                                    (\( edgeNum, _ ) ->
-                                        Vector2.quadToMetersPolygon eyeQuad
-                                            |> Polygon2d.edges
-                                            |> List.Extra.getAt edgeNum
-                                    )
-                    in
-                    case ( maybeEdge1, maybeEdge2 ) of
-                        ( Just edge1, Just edge2 ) ->
-                            let
-                                ( point2, lastPoint ) =
-                                    ( ( edge1, Tuple.second point2EdgeAndRatio )
-                                    , ( edge2, Tuple.second point3EdgeAndRatio )
-                                    )
-                                        |> TupleHelpers.mapTuple2
-                                            (\( edge, edgeRatio ) ->
-                                                LineSegment2d.interpolate
-                                                    edge
-                                                    edgeRatio
-                                                    |> Vector2.fromMetersPoint
-                                            )
-                            in
-                            if Tuple.first point2EdgeAndRatio == Tuple.first point3EdgeAndRatio then
-                                Ok [ ( point1, point2, lastPoint ) ]
-
-                            else
-                                let
-                                    -- note that this assumes there is only 1 additional point needed.
-                                    -- There maybe more if some of the consume code above is tweaked.
-                                    additionalPoint =
-                                        LineSegment2d.endPoint edge1 |> Vector2.fromMetersPoint
-                                in
-                                Ok
-                                    [ ( point1
-                                      , point2
-                                      , additionalPoint
-                                      )
-                                    , ( point1
-                                      , additionalPoint
-                                      , lastPoint
-                                      )
-                                    ]
-
-                        _ ->
-                            Err <| UnexpectedNothing "index error when trying to index edges of eyeQuad when constructing pupil"
-            in
-            Result.map
-                (\pupil ->
-                    EyeQuadAndPupil2d
-                        pupil
-                        eyeQuad
-                )
-                pupilResult
-    in
-    -- get all of our data first in unit-like values, interpolate/extrapolate in finalConstruct above
-    source
-        |> consumeData
-        |> Result.fromMaybe NotEnoughSource
-        |> Result.andThen
-            (\( s, d ) ->
-                case finalConstruct d of
-                    Ok f ->
-                        Ok ( s, f )
-
-                    Err e ->
-                        Err e
-            )
 
 
 coloringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
