@@ -289,20 +289,17 @@ meterTriangleWithDefaults name colorResult v1Result v2Result v3Result =
         |> defaultAndLogEntityError name
 
 
-binarySourceToNym : Bool -> BinarySource -> ( String, Int, NymTemplate )
-binarySourceToNym defaultErrors source =
+binarySourceToNym : BinarySource -> ( String, Int, NymTemplate )
+binarySourceToNym source =
     let
         ( rSource1, coreStructureTemplate ) =
             Generate.consumeCoreStructureToTemplate source
 
-        ( rSource2, eyeTemplate ) =
-            Generate.consumeEyeToTemplate rSource1
-
-        ( rSource3, coloringTemplate ) =
-            Generate.consumeColoringToTemplate rSource2
+        ( rSource2, coloringTemplate ) =
+            Generate.consumeColoringToTemplate rSource1
 
         bitsLeft =
-            BinarySource.remainingBits rSource3
+            BinarySource.remainingBits rSource2
     in
     ( source
         |> BinarySource.getBitsString
@@ -311,12 +308,6 @@ binarySourceToNym defaultErrors source =
     , NymTemplate
         coreStructureTemplate
         coloringTemplate
-        |> (if defaultErrors then
-                fillTemplateWithDefaults
-
-            else
-                identity
-           )
     )
 
 
@@ -345,45 +336,45 @@ defaultAndLogColorError name =
         identity
 
 
-fillTemplateWithDefaults : NymTemplate -> NymTemplate
-fillTemplateWithDefaults template =
-    { template
-        | coloring =
-            let
-                coloring =
-                    template.coloring
-            in
-            { coloring
-                | snoutTop = coloring.snoutTop |> Result.withDefault Color.lightRed |> Ok
-                , snoutSideTopMajor = coloring.snoutSideTopMajor |> Result.withDefault Color.red |> Ok
-                , snoutSideTopMinor = coloring.snoutSideTopMinor |> Result.withDefault Color.darkRed |> Ok
-                , snoutSideMiddle = coloring.snoutSideMiddle |> Result.withDefault Color.lightOrange |> Ok
-                , noseTip = coloring.noseTip |> Result.withDefault Color.orange |> Ok
-                , aboveCheekbone = coloring.aboveCheekbone |> Result.withDefault Color.darkOrange |> Ok
-                , bridge = coloring.bridge |> Result.withDefault Color.lightYellow |> Ok
-                , forehead = coloring.forehead |> Result.withDefault Color.yellow |> Ok
-                , aboveEye = coloring.aboveEye |> Result.withDefault Color.darkYellow |> Ok
-                , eyeQuad = coloring.eyeQuad |> Result.withDefault Color.lightGreen |> Ok
-                , belowEar = coloring.eyeQuad |> Result.withDefault Color.darkGreen |> Ok
-            }
-        , structure =
-            let
-                coreStructure =
-                    template.structure
-            in
-            { coreStructure
-                | eyeQuadInfo = coreStructure.eyeQuadInfo |> Result.withDefault defaultEyeQuadAndPupil |> Ok
-                , noseTop = coreStructure.noseTop |> Result.withDefault (Vector3 0.1 0 1) |> Ok
 
-                -- , crownBack = coreStructure.crownBack |> Result.withDefault (Vector3 0.5 1 0) |> Ok
-                -- , crownFront = coreStructure.crownFront |> Result.withDefault (Vector3 0.5 1 0.25) |> Ok
-                -- , innerBrow = coreStructure.innerBrow |> Result.withDefault (Vector3 0.3 0.4 0.3) |> Ok
-                -- , outerBrow = coreStructure.outerBrow |> Result.withDefault (Vector3 0.7 0.45 0.2) |> Ok
-                -- , outerTop = coreStructure.outerTop |> Result.withDefault (Vector3 1 0.5 0) |> Ok
-                -- , jawBottom = coreStructure.jawBottom |> Result.withDefault (Vector3 1 -1 0) |> Ok
-                -- , noseYandZ = coreStructure.noseYandZ |> Result.withDefault ( -0.8, 1 ) |> Ok
-            }
-    }
+-- fillTemplateWithDefaults : NymTemplate -> NymTemplate
+-- fillTemplateWithDefaults template =
+--     { template
+--         | coloring =
+--             let
+--                 coloring =
+--                     template.coloring
+--             in
+--             { coloring
+--                 | snoutTop = coloring.snoutTop |> Result.withDefault Color.lightRed |> Ok
+--                 , snoutSideTopMajor = coloring.snoutSideTopMajor |> Result.withDefault Color.red |> Ok
+--                 , snoutSideTopMinor = coloring.snoutSideTopMinor |> Result.withDefault Color.darkRed |> Ok
+--                 , snoutSideMiddle = coloring.snoutSideMiddle |> Result.withDefault Color.lightOrange |> Ok
+--                 , noseTip = coloring.noseTip |> Result.withDefault Color.orange |> Ok
+--                 , aboveCheekbone = coloring.aboveCheekbone |> Result.withDefault Color.darkOrange |> Ok
+--                 , bridge = coloring.bridge |> Result.withDefault Color.lightYellow |> Ok
+--                 , forehead = coloring.forehead |> Result.withDefault Color.yellow |> Ok
+--                 , aboveEye = coloring.aboveEye |> Result.withDefault Color.darkYellow |> Ok
+--                 , eyeQuad = coloring.eyeQuad |> Result.withDefault Color.lightGreen |> Ok
+--                 , belowEar = coloring.eyeQuad |> Result.withDefault Color.darkGreen |> Ok
+--             }
+--         , structure =
+--             let
+--                 coreStructure =
+--                     template.structure
+--             in
+--             { coreStructure
+--                 | eyeQuadInfo = coreStructure.eyeQuadInfo |> Result.withDefault defaultEyeQuadAndPupil |> Ok
+--                 , noseTop = coreStructure.noseTop |> Result.withDefault (Vector3 0.1 0 1) |> Ok
+--                 -- , crownBack = coreStructure.crownBack |> Result.withDefault (Vector3 0.5 1 0) |> Ok
+--                 -- , crownFront = coreStructure.crownFront |> Result.withDefault (Vector3 0.5 1 0.25) |> Ok
+--                 -- , innerBrow = coreStructure.innerBrow |> Result.withDefault (Vector3 0.3 0.4 0.3) |> Ok
+--                 -- , outerBrow = coreStructure.outerBrow |> Result.withDefault (Vector3 0.7 0.45 0.2) |> Ok
+--                 -- , outerTop = coreStructure.outerTop |> Result.withDefault (Vector3 1 0.5 0) |> Ok
+--                 -- , jawBottom = coreStructure.jawBottom |> Result.withDefault (Vector3 1 -1 0) |> Ok
+--                 -- , noseYandZ = coreStructure.noseYandZ |> Result.withDefault ( -0.8, 1 ) |> Ok
+--             }
+--     }
 
 
 defaultEyeQuadAndPupil : EyeQuadInfo

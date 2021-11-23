@@ -42,7 +42,6 @@ showDebugLines =
 type Msg
     = MouseMove Mouse.MoveData
     | NewSeed Int
-    | ToggleDefaultErrors
 
 
 type alias MouseInput =
@@ -55,7 +54,6 @@ type alias Model =
     { mouseInput : MouseInput
     , nymEntitiesAndPositions : List ( Scene3d.Entity (), Point3dM )
     , seed : Int
-    , defaultErrors : Bool
     }
 
 
@@ -66,9 +64,8 @@ initModel =
             badHashFunction "1"
     in
     { mouseInput = MouseInput 0 0
-    , nymEntitiesAndPositions = genNymEntitiesAndPositions firstSeed False
+    , nymEntitiesAndPositions = genNymEntitiesAndPositions firstSeed
     , seed = firstSeed
-    , defaultErrors = False
     }
 
 
@@ -107,16 +104,7 @@ update msg model =
             ( { model
                 | seed = newSeed
                 , nymEntitiesAndPositions =
-                    genNymEntitiesAndPositions newSeed model.defaultErrors
-              }
-            , Cmd.none
-            )
-
-        ToggleDefaultErrors ->
-            ( { model
-                | defaultErrors = not model.defaultErrors
-                , nymEntitiesAndPositions =
-                    genNymEntitiesAndPositions model.seed (not model.defaultErrors)
+                    genNymEntitiesAndPositions newSeed
               }
             , Cmd.none
             )
@@ -182,24 +170,24 @@ randomBinarySources masterSeed =
     List.Extra.initialize 14 initFunc
 
 
-remainingBitsAndDemoNymTemplates : Int -> Bool -> List ( String, Int, NymTemplate )
-remainingBitsAndDemoNymTemplates seed defaultErrors =
+remainingBitsAndDemoNymTemplates : Int -> List ( String, Int, NymTemplate )
+remainingBitsAndDemoNymTemplates seed =
     demoNymSources seed
-        |> List.map (binarySourceToNym defaultErrors)
+        |> List.map binarySourceToNym
 
 
-genNymEntitiesAndPositions : Int -> Bool -> List ( Scene3d.Entity (), Point3dM )
-genNymEntitiesAndPositions seed defaultErrors =
-    genNymEntitiesBitsUsedAndPositions seed defaultErrors
+genNymEntitiesAndPositions : Int -> List ( Scene3d.Entity (), Point3dM )
+genNymEntitiesAndPositions seed =
+    genNymEntitiesBitsUsedAndPositions seed
         |> List.indexedMap
             (\i ( _, entity, point ) ->
                 ( entity, point )
             )
 
 
-genNymEntitiesAndPositionsAndLogBitsUsed : Int -> Bool -> List ( Scene3d.Entity (), Point3dM )
-genNymEntitiesAndPositionsAndLogBitsUsed seed defaultErrors =
-    genNymEntitiesBitsUsedAndPositions seed defaultErrors
+genNymEntitiesAndPositionsAndLogBitsUsed : Int -> List ( Scene3d.Entity (), Point3dM )
+genNymEntitiesAndPositionsAndLogBitsUsed seed =
+    genNymEntitiesBitsUsedAndPositions seed
         |> List.indexedMap
             (\i ( bitsUsed, entity, point ) ->
                 let
@@ -210,11 +198,11 @@ genNymEntitiesAndPositionsAndLogBitsUsed seed defaultErrors =
             )
 
 
-genNymEntitiesBitsUsedAndPositions : Int -> Bool -> List ( String, Scene3d.Entity (), Point3dM )
-genNymEntitiesBitsUsedAndPositions seed defaultErrors =
+genNymEntitiesBitsUsedAndPositions : Int -> List ( String, Scene3d.Entity (), Point3dM )
+genNymEntitiesBitsUsedAndPositions seed =
     let
         bitsLeftAndTemplates =
-            remainingBitsAndDemoNymTemplates seed defaultErrors
+            remainingBitsAndDemoNymTemplates seed
 
         _ =
             Debug.log "bits used"
@@ -348,11 +336,7 @@ subscriptions _ =
     Browser.Events.onKeyDown keyDecoder
         |> Sub.map
             (\keyString ->
-                if keyString == " " then
-                    ToggleDefaultErrors
-
-                else
-                    NewSeed <| badHashFunction <| keyString
+                NewSeed <| badHashFunction <| keyString
             )
 
 
