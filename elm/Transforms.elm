@@ -574,9 +574,9 @@ coreStructureTransforms =
                     { template
                         | faceSideTop =
                             Result.map3
-                                (\( xAdd, yVariance ) eyeQuadTopRight backZ ->
+                                (\( x, yVariance ) eyeQuadTopRight backZ ->
                                     Vector3
-                                        xAdd
+                                        x
                                         (eyeQuadTopRight.y + yVariance)
                                         backZ
                                 )
