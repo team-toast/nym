@@ -83,6 +83,7 @@ makeNymEntity showDebugLines nymTemplate =
                 , jawSide
                 , faceSideBottom
                 , testEntity
+                , crownSide
                 ]
 
         copiedSymmetryGroup =
@@ -229,9 +230,18 @@ makeNymEntity showDebugLines nymTemplate =
                 "crown"
                 nymTemplate.coloring.crown
                 nymTemplate.structure.crownFront
-                nymTemplate.structure.faceSideTop
-                (nymTemplate.structure.faceSideTop |> Result.map mirrorPoint)
+                nymTemplate.structure.crownBack
+                (nymTemplate.structure.crownBack |> Result.map mirrorPoint)
                 (nymTemplate.structure.crownFront |> Result.map mirrorPoint)
+        
+        crownSide : Scene3d.Entity ()
+        crownSide =
+            meterTriangleWithDefaults
+                "crownSide"
+                nymTemplate.coloring.crownSide
+                nymTemplate.structure.crownBack
+                nymTemplate.structure.crownFront
+                nymTemplate.structure.faceSideTop
 
 
         aboveCheekbone : Scene3d.Entity ()

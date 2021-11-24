@@ -31,6 +31,7 @@ type alias StructureTemplate =
     , noseBottom : Result GenError Vector3
     , cheekbone : Result GenError Vector3
     , crownFront : Result GenError Vector3
+    , crownBack : Result GenError Vector3
     , backZ : Result GenError Float
     , faceSideTop : Result GenError Vector3
     , faceSideMid : Result GenError Vector3
@@ -81,6 +82,7 @@ type alias ColoringTemplate =
     , chinBottom : Result GenError Color
     , neck : Result GenError Color
     , crown : Result GenError Color
+    , crownSide : Result GenError Color
     }
 
 
@@ -160,6 +162,7 @@ allSetStructurePoints structureTemplate =
     , structureTemplate.faceSideBottom
     , structureTemplate.jawPoint
     , structureTemplate.chin
+    , structureTemplate.crownBack
     ]
         |> List.filter
             -- filter out all Err NotYetSet

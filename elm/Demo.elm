@@ -326,6 +326,7 @@ rotateNyms mouseInput entitiesAndPositions =
                     |> Scene3d.rotateAround
                         (Axis3d.x |> Axis3d.rotateAround Axis3d.y xAngle)
                         yAngle
+                    -- |> Scene3d.rotateAround Axis3d.y (Angle.degrees 90)
                     |> Scene3d.translateBy
                         (Vector3d.from Point3d.origin position)
             )

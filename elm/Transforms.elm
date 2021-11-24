@@ -547,11 +547,24 @@ coreStructureTransforms =
                                 zSubResult
                     }
                 )
+    , -- crownBack
+      \source template ->
+        ( source
+        , { template
+            | crownBack =
+                Result.map2
+                    (\crownFront backZ ->
+                        { crownFront | z = backZ }
+                    )
+                    template.crownFront
+                    template.backZ
+          }
+        )
     , --faceSideTop
       \source template ->
         source
             |> BinarySource.consume2
-                ( -- x 
+                ( -- x
                   BinarySource.consumeFloatRange 2 ( 0.3, 0.8 )
                 , -- y variance from eyeQuad.topRight
                   BinarySource.consumeFloatRange 2 ( -0.15, 0.15 )
@@ -563,7 +576,7 @@ coreStructureTransforms =
                             Result.map3
                                 (\( xAdd, yVariance ) eyeQuadTopRight backZ ->
                                     Vector3
-                                        ( xAdd)
+                                        xAdd
                                         (eyeQuadTopRight.y + yVariance)
                                         backZ
                                 )
@@ -633,15 +646,14 @@ coreStructureTransforms =
                                 template.noseBottom
                     }
                 )
-
     , --faceSideBottom
       \source template ->
         source
             |> BinarySource.consume2
-                (-- x as a ratio of faceSideMid
-                BinarySource.consumeFloatRange 2 (0.3, 0.9)
+                ( -- x as a ratio of faceSideMid
+                  BinarySource.consumeFloatRange 2 ( 0.3, 0.9 )
                 , -- y down from lowest of (faceSideMid, jawPoint)
-                BinarySource.consumeFloatRange 2 (0.1, 0.4)
+                  BinarySource.consumeFloatRange 2 ( 0.1, 0.4 )
                 )
             |> tryApplyMaybeValToTemplate
                 (\valResult ->
@@ -788,7 +800,6 @@ coloringTransforms =
             | chinBottom = Ok Color.darkBrown
           }
         )
-    
     , --neck
       \source template ->
         ( source
@@ -796,12 +807,18 @@ coloringTransforms =
             | neck = Ok Color.brown
           }
         )
-    
     , --crown
       \source template ->
         ( source
         , { template
             | crown = Ok Color.orange
+          }
+        )
+    , --crownSide
+      \source template ->
+        ( source
+        , { template
+            | crownSide = Ok Color.darkOrange
           }
         )
     ]
