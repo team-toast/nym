@@ -65,6 +65,8 @@ makeNymEntity showDebugLines nymTemplate =
                 , forehead
                 , mouth
                 , chinBottom
+                , neck
+                , crown
                 ]
 
         symmetryGroup =
@@ -210,6 +212,27 @@ makeNymEntity showDebugLines nymTemplate =
                 nymTemplate.structure.chin
                 (nymTemplate.structure.chin |> Result.map mirrorPoint)
                 (nymTemplate.structure.jawPoint |> Result.map mirrorPoint)
+        
+        neck : Scene3d.Entity ()
+        neck =
+            meterQuadWithDefaults
+                "neck"
+                nymTemplate.coloring.neck
+                nymTemplate.structure.faceSideBottom
+                nymTemplate.structure.jawPoint
+                (nymTemplate.structure.jawPoint |> Result.map mirrorPoint)
+                (nymTemplate.structure.faceSideBottom |> Result.map mirrorPoint)
+        
+        crown : Scene3d.Entity ()
+        crown =
+            meterQuadWithDefaults
+                "crown"
+                nymTemplate.coloring.crown
+                nymTemplate.structure.crownFront
+                nymTemplate.structure.faceSideTop
+                (nymTemplate.structure.faceSideTop |> Result.map mirrorPoint)
+                (nymTemplate.structure.crownFront |> Result.map mirrorPoint)
+
 
         aboveCheekbone : Scene3d.Entity ()
         aboveCheekbone =

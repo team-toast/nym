@@ -79,6 +79,8 @@ type alias ColoringTemplate =
     , jawSide : Result GenError Color
     , mouth : Result GenError Color
     , chinBottom : Result GenError Color
+    , neck : Result GenError Color
+    , crown : Result GenError Color
     }
 
 

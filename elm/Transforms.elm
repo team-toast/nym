@@ -788,6 +788,22 @@ coloringTransforms =
             | chinBottom = Ok Color.darkBrown
           }
         )
+    
+    , --neck
+      \source template ->
+        ( source
+        , { template
+            | neck = Ok Color.brown
+          }
+        )
+    
+    , --crown
+      \source template ->
+        ( source
+        , { template
+            | crown = Ok Color.orange
+          }
+        )
     ]
 
 

@@ -33,6 +33,8 @@ blankColoringTemplate =
         (Err NotYetSet)
         (Err NotYetSet)
         (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
 
 
 blankStructureTemplate : StructureTemplate
