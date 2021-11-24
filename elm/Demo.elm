@@ -12,6 +12,8 @@ import Direction3d
 import Element exposing (Element)
 import Element.Background as Background
 import Element.Border as Border
+import Element.Events as Events
+import Element.Font as Font
 import Generate
 import Html exposing (Html)
 import Html.Events
@@ -36,12 +38,14 @@ import Viewpoint3d
 
 
 showDebugLines =
-    True
+    False
 
 
 type Msg
     = MouseMove Mouse.MoveData
     | NewSeed Int
+    | TweakSource TweakSourceCmd
+    | TweakCopy Int
 
 
 type alias MouseInput =
@@ -54,6 +58,8 @@ type alias Model =
     { mouseInput : MouseInput
     , nymEntitiesAndPositions : List ( Scene3d.Entity (), Point3dM )
     , seed : Int
+    , tweakPos : Int
+    , tweakSource : String
     }
 
 
@@ -62,10 +68,15 @@ initModel =
     let
         firstSeed =
             badHashFunction "1"
+
+        firstTweakSource =
+            String.repeat 256 "0"
     in
     { mouseInput = MouseInput 0 0
-    , nymEntitiesAndPositions = genNymEntitiesAndPositions firstSeed
+    , nymEntitiesAndPositions = genNymEntitiesAndPositions firstTweakSource firstSeed
     , seed = firstSeed
+    , tweakPos = 0
+    , tweakSource = firstTweakSource
     }
 
 
@@ -103,11 +114,101 @@ update msg model =
             in
             ( { model
                 | seed = newSeed
-                , nymEntitiesAndPositions =
-                    genNymEntitiesAndPositions newSeed
               }
+                |> regenerateNymEntitiesAndPositions
             , Cmd.none
             )
+
+        TweakSource sourceTweakCmd ->
+            case sourceTweakCmd of
+                CursorBack ->
+                    ( { model
+                        | tweakPos = model.tweakPos - 1 |> wrapTo255
+                      }
+                    , Cmd.none
+                    )
+
+                CursorForward ->
+                    ( { model
+                        | tweakPos = model.tweakPos + 1 |> wrapTo255
+                      }
+                    , Cmd.none
+                    )
+
+                SetBitTrue ->
+                    ( { model
+                        | tweakSource =
+                            model.tweakSource
+                                |> String.toList
+                                |> List.Extra.setAt model.tweakPos '1'
+                                |> String.fromList
+                      }
+                        |> regenerateNymEntitiesAndPositions
+                    , Cmd.none
+                    )
+
+                SetBitFalse ->
+                    ( { model
+                        | tweakSource =
+                            model.tweakSource
+                                |> String.toList
+                                |> List.Extra.setAt model.tweakPos '0'
+                                |> String.fromList
+                      }
+                        |> regenerateNymEntitiesAndPositions
+                    , Cmd.none
+                    )
+
+                FlipBit ->
+                    ( { model
+                        | tweakSource =
+                            model.tweakSource
+                                |> String.toList
+                                |> List.Extra.updateAt model.tweakPos
+                                    (\bitChar ->
+                                        if bitChar == '0' then
+                                            '1'
+
+                                        else
+                                            '0'
+                                    )
+                                |> String.fromList
+                      }
+                        |> regenerateNymEntitiesAndPositions
+                    , Cmd.none
+                    )
+
+        TweakCopy i ->
+            ( { model
+                | tweakSource =
+                    demoNymSources model.tweakSource model.seed
+                        |> List.Extra.getAt i
+                        |> Maybe.map BinarySource.getBitsString
+                        |> Maybe.withDefault model.tweakSource
+              }
+                |> regenerateNymEntitiesAndPositions
+            , Cmd.none
+            )
+
+
+regenerateNymEntitiesAndPositions : Model -> Model
+regenerateNymEntitiesAndPositions model =
+    { model
+        | nymEntitiesAndPositions =
+            genNymEntitiesAndPositions model.tweakSource model.seed
+    }
+
+
+wrapTo255 : Int -> Int
+wrapTo255 i =
+    if i > 255 then
+        i - 256
+
+    else if i < 0 then
+        i + 256
+
+    else
+        i
 
 
 demoBinarySourceLength : Int
@@ -115,10 +216,10 @@ demoBinarySourceLength =
     256
 
 
-demoNymSources : Int -> List BinarySource
-demoNymSources seed =
-    ([ "111111111111111111111111"
-     , "000000000000000000000000"
+demoNymSources : String -> Int -> List BinarySource
+demoNymSources tweakSourceStr seed =
+    ([ tweakSourceStr
+     , "111111111111111111111111"
      ]
         |> List.map
             (String.toList
@@ -170,24 +271,24 @@ randomBinarySources masterSeed =
     List.Extra.initialize 14 initFunc
 
 
-remainingBitsAndDemoNymTemplates : Int -> List ( String, Int, NymTemplate )
-remainingBitsAndDemoNymTemplates seed =
-    demoNymSources seed
+remainingBitsAndDemoNymTemplates : String -> Int -> List ( String, Int, NymTemplate )
+remainingBitsAndDemoNymTemplates tweakSourceStr seed =
+    demoNymSources tweakSourceStr seed
         |> List.map binarySourceToNym
 
 
-genNymEntitiesAndPositions : Int -> List ( Scene3d.Entity (), Point3dM )
-genNymEntitiesAndPositions seed =
-    genNymEntitiesBitsUsedAndPositions seed
+genNymEntitiesAndPositions : String -> Int -> List ( Scene3d.Entity (), Point3dM )
+genNymEntitiesAndPositions tweakSourceStr seed =
+    genNymEntitiesBitsUsedAndPositions tweakSourceStr seed
         |> List.indexedMap
             (\i ( _, entity, point ) ->
                 ( entity, point )
             )
 
 
-genNymEntitiesAndPositionsAndLogBitsUsed : Int -> List ( Scene3d.Entity (), Point3dM )
-genNymEntitiesAndPositionsAndLogBitsUsed seed =
-    genNymEntitiesBitsUsedAndPositions seed
+genNymEntitiesAndPositionsAndLogBitsUsed : String -> Int -> List ( Scene3d.Entity (), Point3dM )
+genNymEntitiesAndPositionsAndLogBitsUsed tweakSourceStr seed =
+    genNymEntitiesBitsUsedAndPositions tweakSourceStr seed
         |> List.indexedMap
             (\i ( bitsUsed, entity, point ) ->
                 let
@@ -198,11 +299,11 @@ genNymEntitiesAndPositionsAndLogBitsUsed seed =
             )
 
 
-genNymEntitiesBitsUsedAndPositions : Int -> List ( String, Scene3d.Entity (), Point3dM )
-genNymEntitiesBitsUsedAndPositions seed =
+genNymEntitiesBitsUsedAndPositions : String -> Int -> List ( String, Scene3d.Entity (), Point3dM )
+genNymEntitiesBitsUsedAndPositions tweakSourceStr seed =
     let
         bitsLeftAndTemplates =
-            remainingBitsAndDemoNymTemplates seed
+            remainingBitsAndDemoNymTemplates tweakSourceStr seed
 
         _ =
             Debug.log "bits used"
@@ -261,41 +362,146 @@ view model =
         , Element.height Element.fill
         ]
     <|
-        Element.el
-            [ Element.centerX
-            , Element.centerY
-            , Background.color <| Element.rgb 0.9 0.9 1
-            , Border.width 1
-            , Border.color <| Element.rgb 0.7 0.7 1
+        Element.column
+            [ Element.width Element.fill
+            , Element.height Element.fill
+            , Element.spacing 10
             ]
-        <|
-            Element.html <|
-                Html.div
-                    [ Html.Events.on
-                        "mousemove"
-                        (Decode.map MouseMove Mouse.moveDecoder)
-                    ]
-                <|
-                    List.singleton <|
-                        Scene3d.unlit
-                            { entities =
-                                model.nymEntitiesAndPositions
-                                    |> rotateNyms model.mouseInput
-                            , camera =
-                                Camera3d.perspective
-                                    { viewpoint =
-                                        Viewpoint3d.lookAt
-                                            { focalPoint = Point3d.origin
-                                            , eyePoint =
-                                                Point3d.meters 0 0 20
-                                            , upDirection = Direction3d.positiveY
-                                            }
-                                    , verticalFieldOfView = Angle.degrees 30
-                                    }
-                            , clipDepth = Length.meters 1
-                            , background = Scene3d.transparentBackground
-                            , dimensions = ( Pixels.int 1200, Pixels.int 800 )
-                            }
+            [ viewTweakUX model.tweakSource model.tweakPos
+            , viewNyms model.mouseInput model.nymEntitiesAndPositions
+            ]
+
+
+viewTweakUX : String -> Int -> Element Msg
+viewTweakUX tweakSource tweakPos =
+    Element.row
+        [ Element.centerX
+        , Element.padding 10
+        , Element.spacing 10
+        ]
+        [ viewTweakPos tweakPos
+        , viewTweakSource tweakSource tweakPos
+        , viewTweakCopyUX
+        ]
+
+
+viewTweakPos : Int -> Element Msg
+viewTweakPos tweakPos =
+    Element.el
+        [ Element.centerY
+        , Font.size 20
+        , Element.width <| Element.px 40
+        ]
+    <|
+        Element.el
+            [ Element.alignRight
+            ]
+            (Element.text <| String.fromInt tweakPos)
+
+
+viewTweakSource : String -> Int -> Element Msg
+viewTweakSource tweakSource tweakPos =
+    Element.column
+        [ Font.size 10
+        ]
+        (tweakSource
+            |> String.toList
+            |> List.indexedMap
+                (\i bitChar ->
+                    let
+                        attributes =
+                            if i == tweakPos then
+                                [ Border.width 1
+                                , Border.color (Element.rgb 1 0 0)
+                                ]
+
+                            else
+                                [ Border.width 1
+                                , Border.color (Element.rgb 1 1 1)
+                                ]
+                    in
+                    Element.el attributes
+                        (Element.text (String.fromChar bitChar))
+                )
+            |> List.Extra.greedyGroupsOf 64
+            |> List.map
+                (Element.row
+                    []
+                )
+        )
+
+
+viewTweakCopyUX : Element Msg
+viewTweakCopyUX =
+    let
+        buttonElements =
+            List.range 0 15
+                |> List.map
+                    (\i ->
+                        Element.el
+                            [ Element.height <| Element.px 10
+                            , Element.width <| Element.px 10
+                            ]
+                            (if i == 0 then
+                                Element.none
+
+                             else
+                                Element.el
+                                    [ Element.width Element.fill
+                                    , Element.height Element.fill
+                                    , Element.padding 2
+                                    , Element.pointer
+                                    , Events.onClick <| TweakCopy i
+                                    , Border.width 1
+                                    , Border.color <| Element.rgb 0 0 1
+                                    ]
+                                    Element.none
+                            )
+                    )
+    in
+    buttonElements
+        |> List.Extra.greedyGroupsOf 4
+        |> List.map (Element.row [ Element.spacing 2 ])
+        |> Element.column [ Element.spacing 2 ]
+
+
+viewNyms : MouseInput -> List ( Scene3d.Entity (), Point3dM ) -> Element Msg
+viewNyms mouseInput nymEntitiesAndPositions =
+    Element.el
+        [ Element.centerX
+        , Element.centerY
+        , Background.color <| Element.rgb 0.9 0.9 1
+        , Border.width 1
+        , Border.color <| Element.rgb 0.7 0.7 1
+        ]
+    <|
+        Element.html <|
+            Html.div
+                [ Html.Events.on
+                    "mousemove"
+                    (Decode.map MouseMove Mouse.moveDecoder)
+                ]
+            <|
+                List.singleton <|
+                    Scene3d.unlit
+                        { entities =
+                            nymEntitiesAndPositions
+                                |> rotateNyms mouseInput
+                        , camera =
+                            Camera3d.perspective
+                                { viewpoint =
+                                    Viewpoint3d.lookAt
+                                        { focalPoint = Point3d.origin
+                                        , eyePoint =
+                                            Point3d.meters 0 0 20
+                                        , upDirection = Direction3d.positiveY
+                                        }
+                                , verticalFieldOfView = Angle.degrees 30
+                                }
+                        , clipDepth = Length.meters 1
+                        , background = Scene3d.transparentBackground
+                        , dimensions = ( Pixels.int 1200, Pixels.int 800 )
+                        }
 
 
 rotateNyms : MouseInput -> List ( Scene3d.Entity (), Point3dM ) -> List (Scene3d.Entity ())
@@ -337,8 +543,42 @@ subscriptions _ =
     Browser.Events.onKeyDown keyDecoder
         |> Sub.map
             (\keyString ->
-                NewSeed <| badHashFunction <| keyString
+                case interpretTweakSourceCmd keyString of
+                    Just cmd ->
+                        TweakSource cmd
+
+                    Nothing ->
+                        NewSeed <| badHashFunction <| keyString
             )
+
+
+type TweakSourceCmd
+    = CursorForward
+    | CursorBack
+    | SetBitTrue
+    | SetBitFalse
+    | FlipBit
+
+
+interpretTweakSourceCmd : String -> Maybe TweakSourceCmd
+interpretTweakSourceCmd s =
+    if s == "ArrowRight" then
+        Just CursorForward
+
+    else if s == "ArrowLeft" then
+        Just CursorBack
+
+    else if s == "ArrowUp" then
+        Just SetBitTrue
+
+    else if s == "ArrowDown" then
+        Just SetBitFalse
+
+    else if s == " " then
+        Just FlipBit
+
+    else
+        Nothing
 
 
 keyDecoder : Decode.Decoder String
