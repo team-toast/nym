@@ -681,6 +681,17 @@ coreStructureTransforms =
 
 coloringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
 coloringTransforms =
+    let
+        consumeMinorVariance =
+            BinarySource.consumeVector3ByComponent
+                minorVariance
+
+        minorVariance =
+            ( ( 1, -0.1, 0.1 )
+            , ( 1, -0.1, 0.1 )
+            , ( 1, -0.1, 0.1 )
+            )
+    in
     [ -- eyeQuad (nonrandom for now)
       \source template ->
         ( source
@@ -701,12 +712,7 @@ coloringTransforms =
     , --bridge
       \source template ->
         source
-            -- variance from forehead
-            |> BinarySource.consumeVector3ByComponent
-                ( ( 2, -0.2, 0.2 )
-                , ( 2, -0.2, 0.2 )
-                , ( 2, -0.2, 0.2 )
-                )
+            |> consumeMinorVariance
             |> tryApplyMaybeValToTemplate
                 (\varianceResult ->
                     { template
@@ -716,23 +722,65 @@ coloringTransforms =
                                 varianceResult
                     }
                 )
+    , --snoutTop
+      \source template ->
+        source
+            |> consumeMinorVariance
+            |> tryApplyMaybeValToTemplate
+                (\varianceResult ->
+                    { template
+                        | snoutTop =
+                            varyColorResult
+                                template.bridge
+                                varianceResult
+                    }
+                )
+    , --crown
+      \source template ->
+        source
+            |> consumeMinorVariance
+            |> tryApplyMaybeValToTemplate
+                (\varianceResult ->
+                    { template
+                        | crown =
+                            varyColorResult
+                                template.forehead
+                                varianceResult
+                    }
+                )
+    , --noseTip (nonrandom)
+      \source template ->
+        ( source
+        , { template
+            | noseTip = Ok Color.black
+          }
+        )
+    , -- mouth, chinBottom and neck
+      \source template ->
+        source
+            |> BinarySource.consumeColorFromPallette
+            |> tryApplyMaybeValToTemplate
+                (\colorResult ->
+                    { template
+                        | mouth = colorResult
+                        , chinBottom =
+                            colorResult
+                                |> Result.map (Utils.scaleColorAndCap 0.9)
+                        , neck =
+                            colorResult
+                                |> Result.map (Utils.scaleColorAndCap 0.8)
+                    }
+                )
     ]
 
 
-varyColorResult : Result a Color -> Result a Vector3 -> Result a Color
-varyColorResult cr vr =
-    Result.map2
-        Utils.addVectorToColorAndWrap
-        vr
-        cr
 
-
-
---snoutTop
+--chinBottom
+--mouth
+--neck
 --snoutSideTopMajor
 --snoutSideTopMinor
 --snoutSideMiddle
---noseTip
 --aboveCheekbone
 --aboveEye
 --eyeQuad
@@ -741,11 +789,15 @@ varyColorResult cr vr =
 --faceSideBottom
 --snoutSideBottom
 --jawSide
---mouth
---chinBottom
---neck
---crown
 --crownSide
+
+
+varyColorResult : Result a Color -> Result a Vector3 -> Result a Color
+varyColorResult cr vr =
+    Result.map2
+        Utils.addVectorToColorAndWrap
+        vr
+        cr
 
 
 staticColoringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))

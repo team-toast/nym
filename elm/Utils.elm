@@ -2,6 +2,7 @@ module Utils exposing (..)
 
 import Color exposing (Color)
 import Direction3d
+import Html.Attributes exposing (wrap)
 import Length
 import List.Extra
 import Point3d exposing (Point3d)
@@ -36,14 +37,29 @@ unsafeRgbVector3ToColor v =
         }
 
 
-rgbVector3ToColorAndWrap : Vector3 -> Color
-rgbVector3ToColorAndWrap v =
+rgbVector3ToColorAndCorrectComponents : (Float -> Float) -> Vector3 -> Color
+rgbVector3ToColorAndCorrectComponents correctFunc v =
     { v
-        | x = v.x |> wrapColorComponent
-        , y = v.y |> wrapColorComponent
-        , z = v.z |> wrapColorComponent
+        | x = v.x |> correctFunc
+        , y = v.y |> correctFunc
+        , z = v.z |> correctFunc
     }
         |> unsafeRgbVector3ToColor
+
+
+rgbVector3ToColorAndWrap : Vector3 -> Color
+rgbVector3ToColorAndWrap =
+    rgbVector3ToColorAndCorrectComponents wrapColorComponent
+
+
+rgbVector3ToColorAndCap : Vector3 -> Color
+rgbVector3ToColorAndCap =
+    rgbVector3ToColorAndCorrectComponents capColorComponent
+
+
+capColorComponent : Float -> Float
+capColorComponent =
+    max 0 >> min 1
 
 
 wrapColorComponent : Float -> Float
@@ -68,6 +84,14 @@ addVectorToColorAndWrap vector color =
         (colorToRgbVector3 color)
         vector
         |> rgbVector3ToColorAndWrap
+
+
+scaleColorAndCap : Float -> Color -> Color
+scaleColorAndCap scale color =
+    color
+        |> colorToRgbVector3
+        |> Vector3.scaleBy scale
+        |> rgbVector3ToColorAndCap
 
 
 point3dMToVector3dM : Point3d units coordinates -> Vector3d units coordinates
