@@ -165,7 +165,7 @@ consumeVector3ByComponent componentConsumeInfos source =
                     )
     in
     consume3 consumeFuncs source
-        |> map (\( x, y, z ) -> Debug.log "v" <| Vector3 x y z)
+        |> map (\( x, y, z ) -> Vector3 x y z)
 
 
 consumeVector3FromBounds : Int -> Vector3.RectBounds -> BinarySource -> Maybe ( BinarySource, Vector3 )
