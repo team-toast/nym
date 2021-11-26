@@ -851,7 +851,7 @@ coloringTransforms =
                     }
                 )
     , --aboveCheekbone
-    \source template ->
+      \source template ->
         source
             -- inherit from aboveEye or faceSideTop?
             |> BinarySource.consumeBool
@@ -870,15 +870,90 @@ coloringTransforms =
                                     )
                     }
                 )
+    , --snoutSideTopMinor
+      \source template ->
+        source
+            |> consumeMinorVariance
+            |> tryApplyMaybeValToTemplate
+                (\varianceResult ->
+                    { template
+                        | snoutSideTopMinor =
+                            varyColorResult
+                                template.snoutTop
+                                varianceResult
+                    }
+                )
+    , --snoutSideTopMajor
+      \source template ->
+        source
+            |> BinarySource.consume2
+                ( --take from snoutSideTopMinor or faceSideTop?
+                  BinarySource.consumeBool
+                , consumeMinorVariance
+                )
+            |> tryApplyMaybeValToTemplate
+                (\valResult ->
+                    { template
+                        | snoutSideTopMajor =
+                            Result.map3
+                                (\( takeFromSnoutSideTopMinor, variance ) snoutSideTopMinor faceSideTop ->
+                                    let
+                                        base =
+                                            if takeFromSnoutSideTopMinor then
+                                                snoutSideTopMinor
+
+                                            else
+                                                faceSideTop
+                                    in
+                                    Utils.addVectorToColorAndWrap variance base
+                                )
+                                valResult
+                                template.snoutSideTopMinor
+                                template.faceSideTop
+                    }
+                )
+    , --snoutSideMiddle (nonrandom)
+      \source template ->
+        ( source
+        , { template
+            | snoutSideMiddle =
+                template.snoutSideTopMajor
+                    |> Result.map (Utils.scaleColorAndCap 0.8)
+            
+          }
+        )
+    , --snoutSideBottom
+    \source template ->
+        source
+            |> BinarySource.consumeBool
+            |> tryApplyMaybeValToTemplate
+                (\boolResult ->
+                    { template
+                        | snoutSideBottom =
+                            boolResult
+                                |> Result.andThen
+                                    (\bool ->
+                                        if bool then
+                                            template.snoutSideMiddle
+                                                |> Result.map (Utils.scaleColorAndCap 0.9)
+                                        else
+                                            template.faceSideBottom
+                                    )
+                            
+                    }
+
+                )
+    , --jawSide (nonrandom)
+    \source template ->
+        (source
+        , { template
+            | jawSide =
+                template.mouth
+        })
     ]
 
 
 
---snoutSideTopMajor
---snoutSideTopMinor
---snoutSideMiddle
---snoutSideBottom
---jawSide
 --eyeQuad
 
 
