@@ -45,6 +45,7 @@ type Msg
     = MouseMove Mouse.MoveData
     | NewSeed Int
     | TweakSource TweakSourceCmd
+    | ChangeTweakPos Int
     | TweakCopy Int
 
 
@@ -187,6 +188,13 @@ update msg model =
                         |> Maybe.withDefault model.tweakSource
               }
                 |> regenerateNymEntitiesAndPositions
+            , Cmd.none
+            )
+
+        ChangeTweakPos i ->
+            ( { model
+                | tweakPos = i
+              }
             , Cmd.none
             )
 
@@ -410,15 +418,17 @@ viewTweakSource tweakSource tweakPos =
                 (\i bitChar ->
                     let
                         attributes =
-                            if i == tweakPos then
-                                [ Border.width 1
-                                , Border.color (Element.rgb 1 0 0)
-                                ]
+                            [ Border.width 1 ]
+                                ++ (if i == tweakPos then
+                                        [ Border.color (Element.rgb 1 0 0)
+                                        ]
 
-                            else
-                                [ Border.width 1
-                                , Border.color (Element.rgb 1 1 1)
-                                ]
+                                    else
+                                        [ Border.color (Element.rgb 1 1 1)
+                                        , Element.pointer
+                                        , Events.onClick (ChangeTweakPos i)
+                                        ]
+                                   )
                     in
                     Element.el attributes
                         (Element.text (String.fromChar bitChar))
