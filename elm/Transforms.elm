@@ -681,6 +681,71 @@ coreStructureTransforms =
 
 coloringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
 coloringTransforms =
+    [-- eyeQuad (nonrandom for now)
+    \source template ->
+        ( source
+        , { template
+            | eyeQuad = Ok Color.white
+          }
+        )
+    , --forehead
+      \source template ->
+        source
+            |> BinarySource.consumeColorFromPallette
+            |> tryApplyMaybeValToTemplate
+                (\colorResult ->
+                    { template
+                        | forehead = colorResult
+                    }
+                )
+    ,--bridge
+    \source template ->
+        source
+            -- variance from forehead
+            |> BinarySource.consumeVector3ByComponent
+                ((2,-0.2,0.2)
+                ,(2,-0.2,0.2)
+                ,(2,-0.2,0.2)
+                )
+            |> tryApplyMaybeValToTemplate
+                (\colorVarianceResult ->
+                    { template
+                        | bridge =
+                            Result.map2
+                                (\forehead variance ->
+                                    forehead
+                                        |> Utils.addVectorToColorAndWrap variance
+                                )
+                                template.forehead
+                                colorVarianceResult
+                    }
+                )
+    ]
+
+
+
+--snoutTop
+--snoutSideTopMajor
+--snoutSideTopMinor
+--snoutSideMiddle
+--noseTip
+--aboveCheekbone
+--aboveEye
+--eyeQuad
+--belowEar
+--faceSideTop
+--faceSideBottom
+--snoutSideBottom
+--jawSide
+--mouth
+--chinBottom
+--neck
+--crown
+--crownSide
+
+
+staticColoringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
+staticColoringTransforms =
     [ --snoutTop
       \source template ->
         ( source

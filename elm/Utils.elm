@@ -1,12 +1,12 @@
 module Utils exposing (..)
 
-import TupleHelpers
 import Color exposing (Color)
 import Direction3d
 import Length
 import List.Extra
 import Point3d exposing (Point3d)
 import Quantity
+import TupleHelpers
 import Types exposing (..)
 import Vector2 exposing (Vector2)
 import Vector3 exposing (Vector3)
@@ -26,8 +26,8 @@ colorToRgbVector3 color =
         rgba.blue
 
 
-rgbVector3ToColor : Vector3 -> Color
-rgbVector3ToColor v =
+unsafeRgbVector3ToColor : Vector3 -> Color
+unsafeRgbVector3ToColor v =
     Color.fromRgba
         { red = v.x
         , green = v.y
@@ -36,12 +36,38 @@ rgbVector3ToColor v =
         }
 
 
-addVectorToColor : Vector3 -> Color -> Color
-addVectorToColor vector color =
+rgbVector3ToColorAndWrap : Vector3 -> Color
+rgbVector3ToColorAndWrap v =
+    { v
+        | x = v.x |> wrapColorComponent
+        , y = v.y |> wrapColorComponent
+        , z = v.z |> wrapColorComponent
+    }
+        |> unsafeRgbVector3ToColor
+
+
+wrapColorComponent : Float -> Float
+wrapColorComponent f =
+    if f < 0 then
+        f
+            + 1
+            |> wrapColorComponent
+
+    else if f > 1 then
+        f
+            - 1
+            |> wrapColorComponent
+
+    else
+        f
+
+
+addVectorToColorAndWrap : Vector3 -> Color -> Color
+addVectorToColorAndWrap vector color =
     Vector3.plus
         (colorToRgbVector3 color)
         vector
-        |> rgbVector3ToColor
+        |> rgbVector3ToColorAndWrap
 
 
 point3dMToVector3dM : Point3d units coordinates -> Vector3d units coordinates

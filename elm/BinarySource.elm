@@ -15,6 +15,7 @@ module BinarySource exposing
     , consumeTriple
     , consumeUnsignedFloat
     , consumeVector3
+    , consumeVector3ByComponent
     , consumeVector3DimNeg1to1
     , consumeVector3FromBounds
     , debugLogAboutToConsume
@@ -31,6 +32,7 @@ import Color exposing (Color)
 import List.Extra
 import Maybe.Extra
 import String
+import TupleHelpers
 import UInt64
 import UInt64.Digits as UInt64
 import Vector3 exposing (Vector3)
@@ -150,6 +152,20 @@ consumeVector3DimNeg1to1 bitsPerComponent source =
                                     )
                         )
             )
+
+
+consumeVector3ByComponent : ( ( Int, Float, Float ), ( Int, Float, Float ), ( Int, Float, Float ) ) -> BinarySource -> Maybe ( BinarySource, Vector3 )
+consumeVector3ByComponent componentConsumeInfos source =
+    let
+        consumeFuncs =
+            componentConsumeInfos
+                |> TupleHelpers.mapTuple3
+                    (\( bits, min, max ) ->
+                        consumeFloatRange bits ( min, max )
+                    )
+    in
+    consume3 consumeFuncs source
+        |> map (\( x, y, z ) -> Debug.log "v" <| Vector3 x y z)
 
 
 consumeVector3FromBounds : Int -> Vector3.RectBounds -> BinarySource -> Maybe ( BinarySource, Vector3 )
