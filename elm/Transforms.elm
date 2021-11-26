@@ -797,7 +797,6 @@ coloringTransforms =
                                 template.chinBottom
                     }
                 )
-    
     , --crownSide
       \source template ->
         source
@@ -815,7 +814,7 @@ coloringTransforms =
                     }
                 )
     , --belowEar
-    \source template ->
+      \source template ->
         source
             -- interpolate value from (faceSideTop -> crown)
             |> BinarySource.consumeFloatRange 2 ( 0.1, 0.9 )
@@ -830,6 +829,47 @@ coloringTransforms =
                                 template.crown
                     }
                 )
+
+    --aboveEye
+    , \source template ->
+        source
+            -- inherit from forehead or belowEar?
+            |> BinarySource.consumeBool
+            |> tryApplyMaybeValToTemplate
+                (\takeFromForeheadResult ->
+                    { template
+                        | aboveEye =
+                            takeFromForeheadResult
+                                |> Result.andThen
+                                    (\takeFromForehead ->
+                                        if takeFromForehead then
+                                            template.forehead
+
+                                        else
+                                            template.belowEar
+                                    )
+                    }
+                )
+    , --aboveCheekbone
+    \source template ->
+        source
+            -- inherit from aboveEye or faceSideTop?
+            |> BinarySource.consumeBool
+            |> tryApplyMaybeValToTemplate
+                (\takeFromAboveEyeResult ->
+                    { template
+                        | aboveCheekbone =
+                            takeFromAboveEyeResult
+                                |> Result.andThen
+                                    (\takeFromAboveEye ->
+                                        if takeFromAboveEye then
+                                            template.aboveEye
+
+                                        else
+                                            template.faceSideTop
+                                    )
+                    }
+                )
     ]
 
 
@@ -837,11 +877,9 @@ coloringTransforms =
 --snoutSideTopMajor
 --snoutSideTopMinor
 --snoutSideMiddle
---aboveCheekbone
---aboveEye
---eyeQuad
 --snoutSideBottom
 --jawSide
+--eyeQuad
 
 
 varyColorResult : Result a Color -> Result a Vector3 -> Result a Color

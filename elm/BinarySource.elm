@@ -5,6 +5,7 @@ module BinarySource exposing
     , andThenConsume
     , consume2
     , consume3
+    , consumeBool
     , consumeChunk
     , consumeColorFromPallette
     , consumeDouble
@@ -95,6 +96,12 @@ consumeChunk numBits (BinarySource source) =
 
     else
         Nothing
+
+
+consumeBool : BinarySource -> Maybe ( BinarySource, Bool )
+consumeBool source =
+    consumeInt 1 source
+        |> map (\i -> i == 1)
 
 
 consumeInt : Int -> BinarySource -> Maybe ( BinarySource, Int )
