@@ -94,6 +94,26 @@ scaleColorAndCap scale color =
         |> rgbVector3ToColorAndCap
 
 
+interpolateColors : Float -> Color -> Color -> Color
+interpolateColors interp c1 c2 =
+    let
+        (c1Rgba, c2Rgba) =
+            (c1, c2)
+                |> TupleHelpers.mapTuple2 Color.toRgba
+    in
+    Color.fromRgba
+        { red = interpolate interp c1Rgba.red c2Rgba.red
+        , green = interpolate interp c1Rgba.green c2Rgba.green
+        , blue = interpolate interp c1Rgba.blue c2Rgba.blue
+        , alpha = 1
+        }
+
+
+interpolate : Float -> Float -> Float -> Float
+interpolate ratio a b =
+    a + (ratio * (b - a))
+
+
 point3dMToVector3dM : Point3d units coordinates -> Vector3d units coordinates
 point3dMToVector3dM point =
     Vector3d.from Point3d.origin point

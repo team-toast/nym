@@ -771,25 +771,77 @@ coloringTransforms =
                                 |> Result.map (Utils.scaleColorAndCap 0.8)
                     }
                 )
+    , --faceSideTop
+      \source template ->
+        source
+            |> BinarySource.consumeColorFromPallette
+            |> tryApplyMaybeValToTemplate
+                (\colorResult ->
+                    { template
+                        | faceSideTop = colorResult
+                    }
+                )
+    , --faceSideBottom
+      \source template ->
+        source
+            -- interpolate value from (faceSideTop -> chinBottom)
+            |> BinarySource.consumeFloatRange 2 ( 0.1, 0.9 )
+            |> tryApplyMaybeValToTemplate
+                (\interp ->
+                    { template
+                        | faceSideBottom =
+                            Result.map3
+                                Utils.interpolateColors
+                                interp
+                                template.faceSideTop
+                                template.chinBottom
+                    }
+                )
+    
+    , --crownSide
+      \source template ->
+        source
+            -- interpolate value from (faceSideTop -> crown)
+            |> BinarySource.consumeFloatRange 2 ( 0.1, 0.9 )
+            |> tryApplyMaybeValToTemplate
+                (\interp ->
+                    { template
+                        | crownSide =
+                            Result.map3
+                                Utils.interpolateColors
+                                interp
+                                template.faceSideTop
+                                template.crown
+                    }
+                )
+    , --belowEar
+    \source template ->
+        source
+            -- interpolate value from (faceSideTop -> crown)
+            |> BinarySource.consumeFloatRange 2 ( 0.1, 0.9 )
+            |> tryApplyMaybeValToTemplate
+                (\interp ->
+                    { template
+                        | belowEar =
+                            Result.map3
+                                Utils.interpolateColors
+                                interp
+                                template.faceSideTop
+                                template.crown
+                    }
+                )
     ]
 
 
 
---chinBottom
---mouth
---neck
 --snoutSideTopMajor
 --snoutSideTopMinor
 --snoutSideMiddle
 --aboveCheekbone
 --aboveEye
 --eyeQuad
---belowEar
---faceSideTop
---faceSideBottom
 --snoutSideBottom
 --jawSide
---crownSide
 
 
 varyColorResult : Result a Color -> Result a Vector3 -> Result a Color
