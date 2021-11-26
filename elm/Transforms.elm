@@ -681,8 +681,8 @@ coreStructureTransforms =
 
 coloringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
 coloringTransforms =
-    [-- eyeQuad (nonrandom for now)
-    \source template ->
+    [ -- eyeQuad (nonrandom for now)
+      \source template ->
         ( source
         , { template
             | eyeQuad = Ok Color.white
@@ -698,29 +698,33 @@ coloringTransforms =
                         | forehead = colorResult
                     }
                 )
-    ,--bridge
-    \source template ->
+    , --bridge
+      \source template ->
         source
             -- variance from forehead
             |> BinarySource.consumeVector3ByComponent
-                ((2,-0.2,0.2)
-                ,(2,-0.2,0.2)
-                ,(2,-0.2,0.2)
+                ( ( 2, -0.2, 0.2 )
+                , ( 2, -0.2, 0.2 )
+                , ( 2, -0.2, 0.2 )
                 )
             |> tryApplyMaybeValToTemplate
-                (\colorVarianceResult ->
+                (\varianceResult ->
                     { template
                         | bridge =
-                            Result.map2
-                                (\forehead variance ->
-                                    forehead
-                                        |> Utils.addVectorToColorAndWrap variance
-                                )
+                            varyColorResult
                                 template.forehead
-                                colorVarianceResult
+                                varianceResult
                     }
                 )
     ]
+
+
+varyColorResult : Result a Color -> Result a Vector3 -> Result a Color
+varyColorResult cr vr =
+    Result.map2
+        Utils.addVectorToColorAndWrap
+        vr
+        cr
 
 
 
