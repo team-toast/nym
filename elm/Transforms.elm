@@ -495,7 +495,7 @@ coreStructureTransforms =
                 ( -- x from midline
                   BinarySource.consumeFloatRange 2 ( 0.03, 0.2 )
                 , -- y from highest eyeQuad point
-                  BinarySource.consumeFloatRange 2 ( 0.05, 0.4 )
+                  BinarySource.consumeFloatRange 2 ( 0.05, 0.2 )
                 , -- z units back from eyeQuad.topLeft
                   BinarySource.consumeFloatRange 2 ( 0.1, 0.4 )
                 )
@@ -564,8 +564,8 @@ coreStructureTransforms =
       \source template ->
         source
             |> BinarySource.consume2
-                ( -- x
-                  BinarySource.consumeFloatRange 2 ( 0.3, 0.8 )
+                ( -- x as a ratio of eyeQuad.topRight.x
+                  BinarySource.consumeFloatRange 2 ( 0.8, 1.4 )
                 , -- y variance from eyeQuad.topRight
                   BinarySource.consumeFloatRange 2 ( -0.15, 0.15 )
                 )
@@ -574,9 +574,9 @@ coreStructureTransforms =
                     { template
                         | faceSideTop =
                             Result.map3
-                                (\( x, yVariance ) eyeQuadTopRight backZ ->
+                                (\( xRatio, yVariance ) eyeQuadTopRight backZ ->
                                     Vector3
-                                        x
+                                        (eyeQuadTopRight.x * xRatio)
                                         (eyeQuadTopRight.y + yVariance)
                                         backZ
                                 )
