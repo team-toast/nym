@@ -21,7 +21,7 @@ module BinarySource exposing
     , consumeVector3FromBounds
     , debugLogAboutToConsume
     , empty
-    , fakeConsume
+    , emptyConsume
     , fromBitsString
     , getBitsString
     , map
@@ -344,8 +344,8 @@ andThenConsume consumeFunc mapFunc maybeSourceAndVal =
             )
 
 
-fakeConsume : a -> BinarySource -> Maybe ( BinarySource, a )
-fakeConsume val source =
+emptyConsume : a -> BinarySource -> Maybe ( BinarySource, a )
+emptyConsume val source =
     Just ( source, val )
 
 

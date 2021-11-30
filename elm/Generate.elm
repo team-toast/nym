@@ -54,6 +54,10 @@ blankStructureTemplate =
         (Err NotYetSet)
         (Err NotYetSet)
         (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
+        (Err NotYetSet)
 
 
 blankEyeTemplate : EyeTemplate

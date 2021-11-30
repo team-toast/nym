@@ -95,6 +95,15 @@ magnitude v =
         |> Quantity.unwrap
 
 
+absDimensions : Vector3 -> Vector3
+absDimensions v =
+    { v
+        | x = abs v.x
+        , y = abs v.y
+        , z = abs v.z
+    }
+
+
 type alias Quad =
     { bottomRight : Vector3
     , bottomLeft : Vector3

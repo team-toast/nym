@@ -38,6 +38,10 @@ type alias StructureTemplate =
     , faceSideBottom : Result GenError Vector3
     , jawPoint : Result GenError Vector3
     , chin : Result GenError Vector3
+    , earAttachFrontTop : Result GenError Vector3
+    , earAttachFrontBottom : Result GenError Vector3
+    , earAttachBack : Result GenError Vector3
+    , earTip : Result GenError Vector3
     }
 
 
@@ -163,6 +167,10 @@ allSetStructurePoints structureTemplate =
     , structureTemplate.jawPoint
     , structureTemplate.chin
     , structureTemplate.crownBack
+    , structureTemplate.earAttachFrontTop
+    , structureTemplate.earAttachFrontBottom
+    , structureTemplate.earAttachBack
+    , structureTemplate.earTip
     ]
         |> List.filter
             -- filter out all Err NotYetSet

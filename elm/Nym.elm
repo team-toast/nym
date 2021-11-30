@@ -84,6 +84,7 @@ makeNymEntity showDebugLines nymTemplate =
                 , faceSideBottom
                 , testEntity
                 , crownSide
+                , ear
                 ]
 
         copiedSymmetryGroup =
@@ -310,6 +311,29 @@ makeNymEntity showDebugLines nymTemplate =
                 nymTemplate.structure.faceSideMid
                 nymTemplate.structure.cheekbone
                 nymTemplate.structure.jawPoint
+        
+        ear : Scene3d.Entity ()
+        ear =
+            Scene3d.group
+                [meterTriangleWithDefaults
+                    "earFront"
+                    (Ok Color.black)
+                    nymTemplate.structure.earAttachFrontTop
+                    nymTemplate.structure.earAttachFrontBottom
+                    nymTemplate.structure.earTip
+                , meterTriangleWithDefaults
+                    "earBackOuter"
+                    (Ok Color.red)
+                    nymTemplate.structure.earAttachFrontBottom
+                    nymTemplate.structure.earAttachBack
+                    nymTemplate.structure.earTip
+                , meterTriangleWithDefaults
+                    "earBackInner"
+                    (Ok Color.darkRed)
+                    nymTemplate.structure.earAttachBack
+                    nymTemplate.structure.earAttachFrontTop
+                    nymTemplate.structure.earTip
+                ]
 
         testEntity =
             Scene3d.nothing

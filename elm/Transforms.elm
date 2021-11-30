@@ -676,6 +676,33 @@ coreStructureTransforms =
                                 template.backZ
                     }
                 )
+
+    -- ears
+    , \source template ->
+        source
+            |> BinarySource.emptyConsume ()
+            |> tryApplyMaybeValToTemplate
+                (\_ ->
+                    let
+                        roughTemplateSizeResult =
+                            template
+                                |> getDimensionSizes
+                                |> Result.map Vector3.magnitude
+                    in
+                    { template
+                        | earAttachFrontTop = template.crownFront
+                        , earAttachFrontBottom = template.faceSideTop
+                        , earAttachBack = template.crownBack
+                        , earTip =
+                            Result.map2
+                                (\backZ roughTemplateSize ->
+                                    Vector3 1 1 backZ
+                                        |> Vector3.scaleBy (roughTemplateSize * 0.5)
+                                )
+                                template.backZ
+                                roughTemplateSizeResult
+                    }
+                )
     ]
 
 
@@ -919,11 +946,10 @@ coloringTransforms =
             | snoutSideMiddle =
                 template.snoutSideTopMajor
                     |> Result.map (Utils.scaleColorAndCap 0.8)
-            
           }
         )
     , --snoutSideBottom
-    \source template ->
+      \source template ->
         source
             |> BinarySource.consumeBool
             |> tryApplyMaybeValToTemplate
@@ -936,25 +962,21 @@ coloringTransforms =
                                         if bool then
                                             template.snoutSideMiddle
                                                 |> Result.map (Utils.scaleColorAndCap 0.9)
+
                                         else
                                             template.faceSideBottom
                                     )
-                            
                     }
-
                 )
     , --jawSide (nonrandom)
-    \source template ->
-        (source
+      \source template ->
+        ( source
         , { template
             | jawSide =
                 template.mouth
-        })
+          }
+        )
     ]
-
-
-
---eyeQuad
 
 
 varyColorResult : Result a Color -> Result a Vector3 -> Result a Color
@@ -984,3 +1006,42 @@ tryApplyMaybeValToTemplate func maybeSourceAndVal =
     ( remainingSource
     , func result
     )
+
+
+getDimensionSizes : StructureTemplate -> Result GenError Vector3
+getDimensionSizes template =
+    getBoundingBox template
+        |> Result.map
+            (\( start, end ) ->
+                end
+                    |> Vector3.minus start
+                    |> Vector3.absDimensions
+            )
+
+
+getBoundingBox : StructureTemplate -> Result GenError Vector3.RectBounds
+getBoundingBox template =
+    let
+        folder : Vector3 -> Maybe Vector3.RectBounds -> Maybe Vector3.RectBounds
+        folder point maybeBounds =
+            case maybeBounds of
+                Nothing ->
+                    Just ( point, point )
+
+                Just ( boundStart, boundEnd ) ->
+                    Just
+                        ( Vector3
+                            (min point.x boundStart.x)
+                            (min point.y boundStart.y)
+                            (min point.z boundStart.z)
+                        , Vector3
+                            (max point.x boundEnd.x)
+                            (max point.y boundEnd.y)
+                            (max point.z boundEnd.z)
+                        )
+    in
+    allSetStructurePoints template
+        |> Result.map
+            (List.foldl folder Nothing)
+        |> Result.map (Result.fromMaybe (UnexpectedNothing "getBoundingBox had no points to iterate over"))
+        |> Result.Extra.join
