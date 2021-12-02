@@ -680,7 +680,7 @@ coreStructureTransforms =
     -- earAttachFrontTop and earAttachFrontBottom
     , \source template ->
         source
-            |> BinarySource.consumeInt 2
+            |> BinarySource.consumeInt 1
             |> tryApplyMaybeValToTemplate
                 (\coiceResult ->
                     let
@@ -711,30 +711,49 @@ coreStructureTransforms =
                                     ( Err e, Err e, Err e )
 
                                 Ok choice ->
-                                    case choice of
-                                        _ ->
-                                            ( averagePointResults
+                                    let
+                                        eyeQuadPoint =
+                                            template.eyeQuadInfo |> Result.map (.eyeQuad >> .topRight)
+
+                                        baseOption1 =
+                                            averagePointResults
                                                 template.crownBack
                                                 template.crownFront
                                                 template.faceSideTop
-                                            , averagePointResults
-                                                (template.eyeQuadInfo |> Result.map (.eyeQuad >> .topRight))
+
+                                        baseOption2 =
+                                            averagePointResults
+                                                eyeQuadPoint
                                                 template.crownFront
                                                 template.faceSideTop
+
+                                        baseOption3 =
+                                            averagePointResults
+                                                eyeQuadPoint
+                                                template.faceSideTop
+                                                template.faceSideMid
+                                    in
+                                    case choice of
+                                        0 ->
+                                            ( baseOption1
+                                            , baseOption2
                                             , getTriangleNormalResult
                                                 template.crownFront
                                                 template.faceSideTop
                                                 template.crownBack
                                             )
 
-                                        -- 1 ->
-                                        --     Debug.todo ""
-
-                                        -- 2 ->
-                                        --     Debug.todo ""
-
-                                        -- _ ->
-                                        --     Debug.todo ""
+                                        _ ->
+                                            ( baseOption2
+                                            , baseOption3
+                                            , Result.map2
+                                                Direction3d.from
+                                                (baseOption2 |> Result.map Vector3.toMetersPoint)
+                                                (baseOption3 |> Result.map Vector3.toMetersPoint)
+                                                |> Result.map (Result.fromMaybe (UnexpectedNothing "baseOption 2 and 3 coincide"))
+                                                |> Result.Extra.join
+                                                |> Result.map (Direction3d.rotateAround Axis3d.z (Angle.degrees 90))
+                                            )
                     in
                     { template
                         | earAttachFrontTop = earAttachFrontTop
