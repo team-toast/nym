@@ -315,27 +315,33 @@ makeNymEntity showDebugLines nymTemplate =
 
         ear : Scene3d.Entity ()
         ear =
-
             Scene3d.group
-                [meterTriangleWithDefaults
-                    "earFront"
-                    (Ok Color.black)
-                    nymTemplate.structure.earAttachFrontTop
-                    nymTemplate.structure.earAttachFrontBottom
-                    nymTemplate.structure.earTip
-                , meterTriangleWithDefaults
+                [ meterTriangleWithDefaults
                     "earBackOuter"
-                    (Ok Color.red)
+                    nymTemplate.coloring.earBackOuter
                     nymTemplate.structure.earAttachFrontBottom
                     nymTemplate.structure.earAttachBack
                     nymTemplate.structure.earTip
                 , meterTriangleWithDefaults
                     "earBackInner"
-                    (Ok Color.darkRed)
+                    nymTemplate.coloring.earBackInner
                     nymTemplate.structure.earAttachBack
                     nymTemplate.structure.earAttachFrontTop
                     nymTemplate.structure.earTip
+                , meterTriangleWithDefaults
+                    "earFrontOuter"
+                    nymTemplate.coloring.earFrontOuter
+                    nymTemplate.structure.earAttachFrontBottom
+                    nymTemplate.structure.earAttachInside
+                    nymTemplate.structure.earTip
+                , meterTriangleWithDefaults
+                    "earFrontInner"
+                    nymTemplate.coloring.earFrontInner
+                    nymTemplate.structure.earAttachInside
+                    nymTemplate.structure.earAttachFrontTop
+                    nymTemplate.structure.earTip
                 ]
+
         testEntity =
             Scene3d.nothing
 

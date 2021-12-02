@@ -43,6 +43,7 @@ type alias StructureTemplate =
     , earAttachFrontBottom : Result GenError Vector3
     , earBaseNormal : Result GenError (Direction3d ())
     , earAttachBack : Result GenError Vector3
+    , earAttachInside : Result GenError Vector3
     , earTip : Result GenError Vector3
     }
 
@@ -89,6 +90,10 @@ type alias ColoringTemplate =
     , neck : Result GenError Color
     , crown : Result GenError Color
     , crownSide : Result GenError Color
+    , earBackOuter : Result GenError Color
+    , earBackInner : Result GenError Color
+    , earFrontOuter : Result GenError Color
+    , earFrontInner : Result GenError Color
     }
 
 
@@ -173,6 +178,7 @@ allSetStructurePoints structureTemplate =
     , structureTemplate.earAttachFrontBottom
     , structureTemplate.earAttachBack
     , structureTemplate.earTip
+    , structureTemplate.earAttachInside
     ]
         |> List.filter
             -- filter out all Err NotYetSet

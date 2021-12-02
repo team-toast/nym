@@ -705,7 +705,7 @@ coreStructureTransforms =
                                 |> Result.map (Vector3d.direction >> Result.fromMaybe (UnexpectedNothing "Triangle cross product was a zero vector"))
                                 |> Result.Extra.join
 
-                        ( ( earAttachFrontTop, earAttachFrontBottom, earAttachBack ), earBaseNormal ) =
+                        ( ( earAttachFrontTopResult, earAttachFrontBottomResult, earAttachBackResult ), earBaseNormalResult ) =
                             case coiceResult of
                                 Err e ->
                                     ( ( Err e, Err e, Err e ), Err e )
@@ -755,12 +755,26 @@ coreStructureTransforms =
                                                 |> Result.Extra.join
                                                 |> Result.map (Direction3d.rotateAround Axis3d.z (Angle.degrees 90))
                                             )
+
+                        earAttachInsideResult =
+                            Result.map3
+                                (\earAttachFrontTop earAttachFrontBottom earAttachBack ->
+                                    Point3d.interpolateFrom
+                                        (earAttachBack |> Vector3.toMetersPoint)
+                                        (Vector3.midpoint earAttachFrontTop earAttachFrontBottom |> Vector3.toMetersPoint)
+                                        0.5
+                                        |> Vector3.fromMetersPoint
+                                )
+                                earAttachFrontTopResult
+                                earAttachFrontBottomResult
+                                earAttachBackResult
                     in
                     { template
-                        | earAttachFrontTop = earAttachFrontTop
-                        , earAttachFrontBottom = earAttachFrontBottom
-                        , earBaseNormal = earBaseNormal
-                        , earAttachBack = earAttachBack
+                        | earAttachFrontTop = earAttachFrontTopResult
+                        , earAttachFrontBottom = earAttachFrontBottomResult
+                        , earBaseNormal = earBaseNormalResult
+                        , earAttachBack = earAttachBackResult
+                        , earAttachInside = earAttachInsideResult
                     }
                 )
 
@@ -1200,6 +1214,24 @@ coloringTransforms =
         , { template
             | jawSide =
                 template.mouth
+          }
+        )
+    , -- ear colors (nonrandom)
+      \source template ->
+        ( source
+        , let
+            primary =
+                template.faceSideTop
+
+            darkened =
+                primary
+                    |> Result.map (Utils.scaleColorAndCap 0.8)
+          in
+          { template
+            | earBackOuter = primary
+            , earBackInner = primary
+            , earFrontOuter = darkened
+            , earFrontInner = darkened
           }
         )
     ]
