@@ -315,33 +315,27 @@ makeNymEntity showDebugLines nymTemplate =
 
         ear : Scene3d.Entity ()
         ear =
-            [ nymTemplate.structure.earAttachFrontTop
-            , nymTemplate.structure.earAttachFrontBottom
-            , nymTemplate.structure.earTip
-            ]
-                |> List.map testPoint
-                |> Scene3d.group
 
-        -- Scene3d.group
-        --     [meterTriangleWithDefaults
-        --         "earFront"
-        --         (Ok Color.black)
-        --         nymTemplate.structure.earAttachFrontTop
-        --         nymTemplate.structure.earAttachFrontBottom
-        --         nymTemplate.structure.earTip
-        --     , meterTriangleWithDefaults
-        --         "earBackOuter"
-        --         (Ok Color.red)
-        --         nymTemplate.structure.earAttachFrontBottom
-        --         nymTemplate.structure.earAttachBack
-        --         nymTemplate.structure.earTip
-        --     , meterTriangleWithDefaults
-        --         "earBackInner"
-        --         (Ok Color.darkRed)
-        --         nymTemplate.structure.earAttachBack
-        --         nymTemplate.structure.earAttachFrontTop
-        --         nymTemplate.structure.earTip
-        --     ]
+            Scene3d.group
+                [meterTriangleWithDefaults
+                    "earFront"
+                    (Ok Color.black)
+                    nymTemplate.structure.earAttachFrontTop
+                    nymTemplate.structure.earAttachFrontBottom
+                    nymTemplate.structure.earTip
+                , meterTriangleWithDefaults
+                    "earBackOuter"
+                    (Ok Color.red)
+                    nymTemplate.structure.earAttachFrontBottom
+                    nymTemplate.structure.earAttachBack
+                    nymTemplate.structure.earTip
+                , meterTriangleWithDefaults
+                    "earBackInner"
+                    (Ok Color.darkRed)
+                    nymTemplate.structure.earAttachBack
+                    nymTemplate.structure.earAttachFrontTop
+                    nymTemplate.structure.earTip
+                ]
         testEntity =
             Scene3d.nothing
 

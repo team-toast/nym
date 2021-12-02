@@ -705,7 +705,7 @@ coreStructureTransforms =
                                 |> Result.map (Vector3d.direction >> Result.fromMaybe (UnexpectedNothing "Triangle cross product was a zero vector"))
                                 |> Result.Extra.join
 
-                        ( earAttachFrontTop, earAttachFrontBottom, earNormal ) =
+                        ( earAttachFrontTop, earAttachFrontBottom, earBaseNormal ) =
                             case coiceResult of
                                 Err e ->
                                     ( Err e, Err e, Err e )
@@ -716,10 +716,7 @@ coreStructureTransforms =
                                             template.eyeQuadInfo |> Result.map (.eyeQuad >> .topRight)
 
                                         baseOption1 =
-                                            averagePointResults
-                                                template.crownBack
-                                                template.crownFront
-                                                template.faceSideTop
+                                            template.crownFront
 
                                         baseOption2 =
                                             averagePointResults
@@ -758,16 +755,78 @@ coreStructureTransforms =
                     { template
                         | earAttachFrontTop = earAttachFrontTop
                         , earAttachFrontBottom = earAttachFrontBottom
-                        , earBaseNormal = earNormal
-                        , earTip =
-                            earAttachFrontTop
-                                |> Result.map Vector3.toMetersPoint
-                                |> Result.map2
-                                    (\dir point ->
-                                        point |> Point3d.translateIn dir (Length.meters 1)
-                                    )
-                                    earNormal
-                                |> Result.map Vector3.fromMetersPoint
+                        , earBaseNormal = earBaseNormal
+                    }
+                )
+
+    -- earTip
+    , \source template ->
+        source
+            |> BinarySource.consume3
+                ( -- length as ratio of distance between base points
+                  BinarySource.consumeFloatRange 2 ( 1, 3 )
+                  -- xy angle change
+                , BinarySource.emptyConsume 0
+                  -- forward angle change
+                , BinarySource.emptyConsume 0
+                )
+            |> tryApplyMaybeValToTemplate
+                (\valsResult ->
+                    { template
+                        | earTip =
+                            Result.map4
+                                (\( lengthRatio, xyAngleChange, forwardAngleChange ) earBaseNormal earAttachFrontTop earAttachFrontBottom ->
+                                    let
+                                        length =
+                                            Vector3.magnitude
+                                                (Vector3.minus
+                                                    earAttachFrontBottom
+                                                    earAttachFrontTop
+                                                )
+                                                * lengthRatio
+
+                                        maybeForwardRotateAxis =
+                                            Axis3d.throughPoints
+                                                (earAttachFrontTop |> Vector3.toMetersPoint)
+                                                (earAttachFrontBottom |> Vector3.toMetersPoint)
+
+                                        finalDirectionResult =
+                                            Maybe.map
+                                                (\forwardRotateAxis ->
+                                                    earBaseNormal
+                                                        |> Direction3d.rotateAround forwardRotateAxis (Angle.radians forwardAngleChange)
+                                                        |> Direction3d.rotateAround Axis3d.z (Angle.radians xyAngleChange)
+                                                )
+                                                maybeForwardRotateAxis
+                                                |> Result.fromMaybe (UnexpectedNothing "earAttach points coincide")
+
+                                        fromPoint =
+                                            Vector3.plus earAttachFrontTop earAttachFrontBottom
+                                                |> Vector3.scaleBy 0.5
+                                    in
+                                    Result.map
+                                        (\finalDirection ->
+                                            fromPoint
+                                                |> Vector3.toMetersPoint
+                                                |> Point3d.translateIn finalDirection (Length.meters length)
+                                                |> Vector3.fromMetersPoint
+                                        )
+                                        finalDirectionResult
+                                )
+                                valsResult
+                                template.earBaseNormal
+                                template.earAttachFrontTop
+                                template.earAttachFrontBottom
+                                |> Result.Extra.join
+
+                        -- template.earAttachFrontTop
+                        --     |> Result.map Vector3.toMetersPoint
+                        --     |> Result.map2
+                        --         (\dir point ->
+                        --             point |> Point3d.translateIn dir (Length.meters 1)
+                        --         )
+                        --         template.earBaseNormal
+                        --     |> Result.map Vector3.fromMetersPoint
                     }
                 )
     ]
