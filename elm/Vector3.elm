@@ -95,6 +95,11 @@ magnitude v =
         |> Quantity.unwrap
 
 
+midpoint : Vector3 -> Vector3 -> Vector3
+midpoint v1 v2 =
+    plus v1 v2 |> scaleBy 0.5
+
+
 absDimensions : Vector3 -> Vector3
 absDimensions v =
     { v

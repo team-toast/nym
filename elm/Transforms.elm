@@ -759,6 +759,30 @@ coreStructureTransforms =
                     }
                 )
 
+    -- earAttachBack (nonrandom)
+    , \source template ->
+        ( source
+        , { template
+            | earAttachBack =
+                Result.map3
+                    (\earAttachTop earAttachBottom backZ ->
+                        let
+                            midpoint =
+                                Vector3.midpoint earAttachBottom earAttachTop
+
+                            distanceToBack =
+                                midpoint.z - backZ
+                        in
+                        midpoint
+                            |> Vector3.plus
+                                (Vector3 0 0 -(distanceToBack))
+                    )
+                    template.earAttachFrontTop
+                    template.earAttachFrontBottom
+                    template.backZ
+          }
+        )
+
     -- earTip
     , \source template ->
         source
