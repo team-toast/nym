@@ -10,6 +10,7 @@ import SketchPlane3d exposing (SketchPlane3d)
 import Triangle2d exposing (Triangle2d)
 import Vector2 exposing (Vector2)
 import Vector3 exposing (Vector3)
+import Direction3d exposing (Direction3d)
 
 
 type GenError
@@ -40,6 +41,7 @@ type alias StructureTemplate =
     , chin : Result GenError Vector3
     , earAttachFrontTop : Result GenError Vector3
     , earAttachFrontBottom : Result GenError Vector3
+    , earBaseNormal : Result GenError (Direction3d ())
     , earAttachBack : Result GenError Vector3
     , earTip : Result GenError Vector3
     }

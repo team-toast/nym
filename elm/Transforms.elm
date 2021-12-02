@@ -677,8 +677,149 @@ coreStructureTransforms =
                     }
                 )
 
-    -- ears
+    -- earAttachFrontTop and earAttachFrontBottom
     , \source template ->
+        source
+            |> BinarySource.consumeInt 2
+            |> tryApplyMaybeValToTemplate
+                (\coiceResult ->
+                    let
+                        averagePointResults =
+                            Result.map3
+                                (\p1 p2 p3 ->
+                                    Vector3.plus p1 p2
+                                        |> Vector3.plus p3
+                                        |> Vector3.scaleBy (1.0 / 3.0)
+                                )
+
+                        getTriangleNormalResult p1r p2r p3r =
+                            Result.map3
+                                (\p1 p2 p3 ->
+                                    Vector3d.cross
+                                        (Vector3d.from (p2 |> Vector3.toMetersPoint) (p1 |> Vector3.toMetersPoint))
+                                        (Vector3d.from (p2 |> Vector3.toMetersPoint) (p3 |> Vector3.toMetersPoint))
+                                )
+                                p1r
+                                p2r
+                                p3r
+                                |> Result.map (Vector3d.direction >> Result.fromMaybe (UnexpectedNothing "Triangle cross product was a zero vector"))
+                                |> Result.Extra.join
+
+                        ( earAttachFrontTop, earAttachFrontBottom, earNormal ) =
+                            case coiceResult of
+                                Err e ->
+                                    ( Err e, Err e, Err e )
+
+                                Ok choice ->
+                                    case choice of
+                                        _ ->
+                                            ( averagePointResults
+                                                template.crownBack
+                                                template.crownFront
+                                                template.faceSideTop
+                                            , averagePointResults
+                                                (template.eyeQuadInfo |> Result.map (.eyeQuad >> .topRight))
+                                                template.crownFront
+                                                template.faceSideTop
+                                            , getTriangleNormalResult
+                                                template.crownFront
+                                                template.faceSideTop
+                                                template.crownBack
+                                            )
+
+                                        -- 1 ->
+                                        --     Debug.todo ""
+
+                                        -- 2 ->
+                                        --     Debug.todo ""
+
+                                        -- _ ->
+                                        --     Debug.todo ""
+                    in
+                    { template
+                        | earAttachFrontTop = earAttachFrontTop
+                        , earAttachFrontBottom = earAttachFrontBottom
+                        , earBaseNormal = earNormal
+                        , earTip =
+                            earAttachFrontTop
+                                |> Result.map Vector3.toMetersPoint
+                                |> Result.map2
+                                    (\dir point ->
+                                        point |> Point3d.translateIn dir (Length.meters 1)
+                                    )
+                                    earNormal
+                                |> Result.map Vector3.fromMetersPoint
+                    }
+                )
+    ]
+
+
+otherTry =
+    \source template ->
+        source
+            |> BinarySource.consume2
+                ( -- which of two possibilities to use as the base quad to build the ear from
+                  BinarySource.consumeBool
+                , -- remaining ear construction info in terms of sketchplane based on quad
+                  BinarySource.consume2
+                    ( -- base points
+                      BinarySource.consume2
+                        ( -- lower point
+                          BinarySource.consume2
+                            ( BinarySource.consumeFloatRange 2 ( 0, 1 )
+                            , BinarySource.consumeFloatRange 2 ( 0, 0.4 )
+                            )
+                          -- upper point
+                        , BinarySource.consume2
+                            ( BinarySource.consumeFloatRange 2 ( 0, 1 )
+                            , BinarySource.consumeFloatRange 2 ( 0.6, 1 )
+                            )
+                        )
+                    , -- tip point
+                      BinarySource.consume3
+                        ( BinarySource.consumeFloatRange 2 ( -1, 2 )
+                        , BinarySource.consumeFloatRange 2 ( -1, 2 )
+                        , BinarySource.consumeFloatRange 2 ( 0, 1 )
+                        )
+                    )
+                )
+            |> tryApplyMaybeValToTemplate
+                (\valResult ->
+                    let
+                        ( ( earAttachFrontTop, earAttachFrontBottom ), ( earAttachBack, earTip ) ) =
+                            case valResult of
+                                Err e ->
+                                    ( ( Err e, Err e ), ( Err e, Err e ) )
+
+                                Ok ( whichBase, ( ( lowerPointRel, upperPointRel ), tipPointRel ) ) ->
+                                    let
+                                        sketchPlane =
+                                            let
+                                                ( ( p1, p2 ), ( p3, p4 ) ) =
+                                                    if whichBase then
+                                                        Debug.todo ""
+
+                                                    else
+                                                        Debug.todo ""
+                                            in
+                                            SketchPlane3d.throughPoints
+                                                (p1 |> Vector3.toMetersPoint)
+                                                (p2 |> Vector3.toMetersPoint)
+                                                (p3 |> Vector3.toMetersPoint)
+                                    in
+                                    Debug.todo ""
+                    in
+                    { template
+                        | earAttachFrontTop = earAttachFrontTop
+                        , earAttachFrontBottom = earAttachFrontBottom
+                        , earAttachBack = earAttachBack
+                        , earTip = earTip
+                    }
+                )
+
+
+oldEarsTransform =
+    \source template ->
         source
             |> BinarySource.emptyConsume ()
             |> tryApplyMaybeValToTemplate
@@ -691,7 +832,9 @@ coreStructureTransforms =
                     in
                     { template
                         | earAttachFrontTop = template.crownFront
-                        , earAttachFrontBottom = template.faceSideTop
+                        , earAttachFrontBottom =
+                            template.faceSideTop
+                                |> Result.map (Vector3.plus <| Vector3 -0.3 -0.3 0.4)
                         , earAttachBack = template.crownBack
                         , earTip =
                             Result.map2
@@ -701,9 +844,9 @@ coreStructureTransforms =
                                 )
                                 template.backZ
                                 roughTemplateSizeResult
+                                |> Result.map (Vector3.plus <| Vector3 0.8 0 0)
                     }
                 )
-    ]
 
 
 coloringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))

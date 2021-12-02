@@ -214,7 +214,7 @@ makeNymEntity showDebugLines nymTemplate =
                 nymTemplate.structure.chin
                 (nymTemplate.structure.chin |> Result.map mirrorPoint)
                 (nymTemplate.structure.jawPoint |> Result.map mirrorPoint)
-        
+
         neck : Scene3d.Entity ()
         neck =
             meterQuadWithDefaults
@@ -224,7 +224,7 @@ makeNymEntity showDebugLines nymTemplate =
                 nymTemplate.structure.jawPoint
                 (nymTemplate.structure.jawPoint |> Result.map mirrorPoint)
                 (nymTemplate.structure.faceSideBottom |> Result.map mirrorPoint)
-        
+
         crown : Scene3d.Entity ()
         crown =
             meterQuadWithDefaults
@@ -234,7 +234,7 @@ makeNymEntity showDebugLines nymTemplate =
                 nymTemplate.structure.crownBack
                 (nymTemplate.structure.crownBack |> Result.map mirrorPoint)
                 (nymTemplate.structure.crownFront |> Result.map mirrorPoint)
-        
+
         crownSide : Scene3d.Entity ()
         crownSide =
             meterTriangleWithDefaults
@@ -243,7 +243,6 @@ makeNymEntity showDebugLines nymTemplate =
                 nymTemplate.structure.crownBack
                 nymTemplate.structure.crownFront
                 nymTemplate.structure.faceSideTop
-
 
         aboveCheekbone : Scene3d.Entity ()
         aboveCheekbone =
@@ -287,6 +286,7 @@ makeNymEntity showDebugLines nymTemplate =
         belowEar =
             meterTriangleWithDefaults
                 "belowEar"
+                -- (Ok Color.blue)
                 nymTemplate.coloring.belowEar
                 (eyeQuadResult |> Result.map .topRight)
                 nymTemplate.structure.crownFront
@@ -296,6 +296,7 @@ makeNymEntity showDebugLines nymTemplate =
         faceSideTop =
             meterQuadWithDefaults
                 "faceSideTop"
+                -- (Ok Color.red)
                 nymTemplate.coloring.faceSideTop
                 (eyeQuadResult |> Result.map .topRight)
                 nymTemplate.structure.faceSideTop
@@ -311,30 +312,36 @@ makeNymEntity showDebugLines nymTemplate =
                 nymTemplate.structure.faceSideMid
                 nymTemplate.structure.cheekbone
                 nymTemplate.structure.jawPoint
-        
+
         ear : Scene3d.Entity ()
         ear =
-            Scene3d.group
-                [meterTriangleWithDefaults
-                    "earFront"
-                    (Ok Color.black)
-                    nymTemplate.structure.earAttachFrontTop
-                    nymTemplate.structure.earAttachFrontBottom
-                    nymTemplate.structure.earTip
-                , meterTriangleWithDefaults
-                    "earBackOuter"
-                    (Ok Color.red)
-                    nymTemplate.structure.earAttachFrontBottom
-                    nymTemplate.structure.earAttachBack
-                    nymTemplate.structure.earTip
-                , meterTriangleWithDefaults
-                    "earBackInner"
-                    (Ok Color.darkRed)
-                    nymTemplate.structure.earAttachBack
-                    nymTemplate.structure.earAttachFrontTop
-                    nymTemplate.structure.earTip
-                ]
+            [ nymTemplate.structure.earAttachFrontTop
+            , nymTemplate.structure.earAttachFrontBottom
+            , nymTemplate.structure.earTip
+            ]
+                |> List.map testPoint
+                |> Scene3d.group
 
+        -- Scene3d.group
+        --     [meterTriangleWithDefaults
+        --         "earFront"
+        --         (Ok Color.black)
+        --         nymTemplate.structure.earAttachFrontTop
+        --         nymTemplate.structure.earAttachFrontBottom
+        --         nymTemplate.structure.earTip
+        --     , meterTriangleWithDefaults
+        --         "earBackOuter"
+        --         (Ok Color.red)
+        --         nymTemplate.structure.earAttachFrontBottom
+        --         nymTemplate.structure.earAttachBack
+        --         nymTemplate.structure.earTip
+        --     , meterTriangleWithDefaults
+        --         "earBackInner"
+        --         (Ok Color.darkRed)
+        --         nymTemplate.structure.earAttachBack
+        --         nymTemplate.structure.earAttachFrontTop
+        --         nymTemplate.structure.earTip
+        --     ]
         testEntity =
             Scene3d.nothing
 
