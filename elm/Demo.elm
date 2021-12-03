@@ -61,6 +61,7 @@ type alias Model =
     , seed : Int
     , tweakPos : Int
     , tweakSource : String
+    , numBitsUsed : Int
     }
 
 
@@ -72,12 +73,16 @@ initModel =
 
         firstTweakSource =
             String.repeat 256 "0"
+
+        ( nymEntitiesAndPositions, numBitsUsed ) =
+            genNyms firstTweakSource firstSeed
     in
     { mouseInput = MouseInput 0 0
-    , nymEntitiesAndPositions = genNymEntitiesAndPositions firstTweakSource firstSeed
+    , nymEntitiesAndPositions = nymEntitiesAndPositions
     , seed = firstSeed
     , tweakPos = 0
     , tweakSource = firstTweakSource
+    , numBitsUsed = numBitsUsed
     }
 
 
@@ -201,9 +206,13 @@ update msg model =
 
 regenerateNymEntitiesAndPositions : Model -> Model
 regenerateNymEntitiesAndPositions model =
+    let
+        (nymEntitiesAndPositions, bitsUsed) =
+            genNyms model.tweakSource model.seed
+    in
     { model
-        | nymEntitiesAndPositions =
-            genNymEntitiesAndPositions model.tweakSource model.seed
+        | nymEntitiesAndPositions = nymEntitiesAndPositions
+        , numBitsUsed = bitsUsed
     }
 
 
@@ -285,54 +294,43 @@ remainingBitsAndDemoNymTemplates tweakSourceStr seed =
         |> List.map binarySourceToNym
 
 
-genNymEntitiesAndPositions : String -> Int -> List ( Scene3d.Entity (), Point3dM )
-genNymEntitiesAndPositions tweakSourceStr seed =
+genNyms : String -> Int -> ( List ( Scene3d.Entity (), Point3dM ), Int )
+genNyms tweakSourceStr seed =
     genNymEntitiesBitsUsedAndPositions tweakSourceStr seed
-        |> List.indexedMap
-            (\i ( _, entity, point ) ->
-                ( entity, point )
+        |> Tuple.mapFirst
+            (List.indexedMap
+                (\i ( _, entity, point ) ->
+                    ( entity, point )
+                )
             )
 
 
-genNymEntitiesAndPositionsAndLogBitsUsed : String -> Int -> List ( Scene3d.Entity (), Point3dM )
-genNymEntitiesAndPositionsAndLogBitsUsed tweakSourceStr seed =
-    genNymEntitiesBitsUsedAndPositions tweakSourceStr seed
-        |> List.indexedMap
-            (\i ( bitsUsed, entity, point ) ->
-                let
-                    _ =
-                        Debug.log ("bitsUsed for " ++ String.fromInt i) bitsUsed
-                in
-                ( entity, point )
-            )
-
-
-genNymEntitiesBitsUsedAndPositions : String -> Int -> List ( String, Scene3d.Entity (), Point3dM )
+genNymEntitiesBitsUsedAndPositions : String -> Int -> ( List ( String, Scene3d.Entity (), Point3dM ), Int )
 genNymEntitiesBitsUsedAndPositions tweakSourceStr seed =
     let
         bitsLeftAndTemplates =
             remainingBitsAndDemoNymTemplates tweakSourceStr seed
 
+        bitsUsed =
+            bitsLeftAndTemplates
+                |> List.head
+                |> Maybe.map TupleHelpers.tuple3Middle
+                |> Maybe.map
+                    (\bitsLeft ->
+                        256 - bitsLeft
+                    )
+                |> Maybe.withDefault 0
+
         _ =
             Debug.log "bits used"
-                (bitsLeftAndTemplates
-                    |> List.map TupleHelpers.tuple3Middle
-                    |> List.Extra.unique
-                    |> List.map
-                        (\bitsLeft ->
-                            let
-                                bitsUsed =
-                                    256 - bitsLeft
-                            in
-                            (toFloat bitsUsed / 256)
-                                * 100
-                                |> floor
-                                |> String.fromInt
-                                |> (\p -> p ++ "% (" ++ String.fromInt bitsUsed ++ ")")
-                        )
+                ((toFloat bitsUsed / 256)
+                    * 100
+                    |> floor
+                    |> String.fromInt
+                    |> (\p -> p ++ "% (" ++ String.fromInt bitsUsed ++ ")")
                 )
     in
-    bitsLeftAndTemplates
+    ( bitsLeftAndTemplates
         |> List.indexedMap
             (\i ( usedBitsString, _, nymTemplate ) ->
                 let
@@ -353,6 +351,8 @@ genNymEntitiesBitsUsedAndPositions tweakSourceStr seed =
                 in
                 ( usedBitsString, Nym.makeNymEntity showDebugLines nymTemplate, nymPosition )
             )
+    , bitsUsed
+    )
 
 
 mouseInputToNymFocusPoint3d : MouseInput -> Point3dM
@@ -375,20 +375,20 @@ view model =
             , Element.height Element.fill
             , Element.spacing 10
             ]
-            [ viewTweakUX model.tweakSource model.tweakPos
+            [ viewTweakUX model.tweakSource model.tweakPos model.numBitsUsed
             , viewNyms model.mouseInput model.nymEntitiesAndPositions
             ]
 
 
-viewTweakUX : String -> Int -> Element Msg
-viewTweakUX tweakSource tweakPos =
+viewTweakUX : String -> Int -> Int -> Element Msg
+viewTweakUX tweakSource tweakPos lastBitUsed =
     Element.row
         [ Element.centerX
         , Element.padding 10
         , Element.spacing 10
         ]
         [ viewTweakPos tweakPos
-        , viewTweakSource tweakSource tweakPos
+        , viewTweakSource tweakSource tweakPos lastBitUsed
         , viewTweakCopyUX
         ]
 
@@ -407,8 +407,8 @@ viewTweakPos tweakPos =
             (Element.text <| String.fromInt tweakPos)
 
 
-viewTweakSource : String -> Int -> Element Msg
-viewTweakSource tweakSource tweakPos =
+viewTweakSource : String -> Int -> Int -> Element Msg
+viewTweakSource tweakSource tweakPos lastBitUsed =
     Element.column
         [ Font.size 10
         ]
@@ -428,6 +428,12 @@ viewTweakSource tweakSource tweakPos =
                                         , Element.pointer
                                         , Events.onClick (ChangeTweakPos i)
                                         ]
+                                   )
+                                ++ (if i > lastBitUsed then
+                                        [ Font.color <| Element.rgb 0.7 0.7 0.7 ]
+
+                                    else
+                                        []
                                    )
                     in
                     Element.el attributes
