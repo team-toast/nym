@@ -32,7 +32,7 @@ consumeEyeQuadSketchPlane eyeQuadAndPupil2d source =
             ( -- XY angle of axis to rotate the eyeQuad (do eyes pull back toward top of head or toward side?)
               BinarySource.consumeFloatRange 2 ( pi * 0.9, pi / 2 )
               -- rotation amount (how much do eyes pull back?)
-            , BinarySource.consumeFloatRange 2 ( 0, 0.85 * (pi / 2) )
+            , BinarySource.consumeFloatRange 2 ( 0.2, pi / 2 )
               -- x distance from center to furthest left point of eyeQuad
             , BinarySource.consumeFloatRange 2 ( 0.1, 0.3 )
             )
@@ -794,7 +794,7 @@ coreStructureTransforms =
                 ( -- length as ratio of distance between base points
                   BinarySource.consumeFloatRange 2 ( 1, 3 )
                   -- xy angle change
-                , BinarySource.consumeFloatRange 1 ( 0, pi / 4 )
+                , BinarySource.consumeFloatRange 1 ( 0, pi / 6 )
                   -- forward angle change
                 , BinarySource.consumeFloatRange 1 ( 0, pi / 7 )
                 )
