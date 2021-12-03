@@ -81,3 +81,11 @@ mapTuple3Last f ( a, b, c ) =
 combineTuple2 : (a -> b -> c) -> ( a, b ) -> c
 combineTuple2 f ( a, b ) =
     f a b
+
+
+mergeTuple3 : ( a -> d -> g, b -> e -> h, c -> f -> i ) -> ( a, b, c ) -> ( d, e, f ) -> ( g, h, i )
+mergeTuple3 ( aFunc, bFunc, cFunc ) ( a, b, c ) ( d, e, f ) =
+    ( aFunc a d
+    , bFunc b e
+    , cFunc c f
+    )

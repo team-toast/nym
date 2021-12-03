@@ -100,6 +100,13 @@ midpoint v1 v2 =
     plus v1 v2 |> scaleBy 0.5
 
 
+interpolate : Float -> Vector3 -> Vector3 -> Vector3
+interpolate f v1 v2 =
+    minus v1 v2
+        |> scaleBy f
+        |> plus v1
+
+
 absDimensions : Vector3 -> Vector3
 absDimensions v =
     { v
