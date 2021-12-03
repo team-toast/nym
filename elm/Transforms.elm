@@ -25,7 +25,7 @@ import Vector3 exposing (Vector3)
 import Vector3d
 
 
-consumeEyeQuadSketchPlane : EyeQuadAndPupil2d -> BinarySource -> Maybe ( BinarySource, SketchPlane3d Length.Meters () {} )
+consumeEyeQuadSketchPlane : EyeQuadAndPupil2d -> BinarySource -> Maybe ( BinarySource, SketchPlane3d Length.Meters () {}, Int )
 consumeEyeQuadSketchPlane eyeQuadAndPupil2d source =
     source
         |> BinarySource.consume3
@@ -68,7 +68,7 @@ consumeEyeQuadSketchPlane eyeQuadAndPupil2d source =
             )
 
 
-consumeEyeQuadAndPupil2d : BinarySource -> Result GenError ( BinarySource, EyeQuadAndPupil2d )
+consumeEyeQuadAndPupil2d : BinarySource -> Result GenError ( BinarySource, EyeQuadAndPupil2d, Int )
 consumeEyeQuadAndPupil2d source =
     let
         consumeData :
@@ -79,6 +79,7 @@ consumeEyeQuadAndPupil2d source =
                     , ( ( Vector2, Float, Float )
                       , ( Float, ( ( Float, Float ), ( Float, Float ) ) )
                       )
+                    , Int
                     )
         consumeData =
             BinarySource.consume2
@@ -246,63 +247,68 @@ consumeEyeQuadAndPupil2d source =
         |> consumeData
         |> Result.fromMaybe NotEnoughSource
         |> Result.andThen
-            (\( s, d ) ->
+            (\( s, d, b ) ->
                 case finalConstruct d of
                     Ok f ->
-                        Ok ( s, f )
+                        Ok ( s, f, b )
 
                     Err e ->
                         Err e
             )
 
 
-consumeFullEyeQuadAndPupil : BinarySource -> Result GenError ( BinarySource, EyeQuadInfo )
+consumeFullEyeQuadAndPupil : BinarySource -> Result GenError ( BinarySource, EyeQuadInfo, Int )
 consumeFullEyeQuadAndPupil source =
     source
         |> consumeEyeQuadAndPupil2d
         |> Result.andThen
-            (\( source1, eyeQuadAndPupil2d ) ->
+            (\( source1, eyeQuadAndPupil2d, bitsUsed1 ) ->
                 source1
                     |> consumeEyeQuadSketchPlane eyeQuadAndPupil2d
                     |> Result.fromMaybe NotEnoughSource
                     |> Result.map
-                        (Tuple.mapSecond
-                            (\sketchPlane ->
-                                let
-                                    to3d offset v2 =
-                                        Point3d.on
-                                            (sketchPlane
-                                                |> SketchPlane3d.offsetBy (Length.meters offset)
-                                            )
-                                            (Vector2.toMetersPoint v2)
-                                            |> Vector3.fromMetersPoint
-                                in
-                                EyeQuadInfo
-                                    sketchPlane
-                                    { bottomRight = eyeQuadAndPupil2d.eyeQuad.bottomRight |> to3d 0
-                                    , bottomLeft = eyeQuadAndPupil2d.eyeQuad.bottomLeft |> to3d 0
-                                    , topLeft = eyeQuadAndPupil2d.eyeQuad.topLeft |> to3d 0
-                                    , topRight = eyeQuadAndPupil2d.eyeQuad.topRight |> to3d 0
-                                    }
-                                    (eyeQuadAndPupil2d.pupil
-                                        |> List.map (TupleHelpers.mapTuple3 (to3d 0.01))
-                                    )
+                        (\( source2, sketchPlane, bitsUsed2 ) ->
+                            let
+                                to3d offset v2 =
+                                    Point3d.on
+                                        (sketchPlane
+                                            |> SketchPlane3d.offsetBy (Length.meters offset)
+                                        )
+                                        (Vector2.toMetersPoint v2)
+                                        |> Vector3.fromMetersPoint
+
+                                eyeQuadInfo =
+                                    EyeQuadInfo
+                                        sketchPlane
+                                        { bottomRight = eyeQuadAndPupil2d.eyeQuad.bottomRight |> to3d 0
+                                        , bottomLeft = eyeQuadAndPupil2d.eyeQuad.bottomLeft |> to3d 0
+                                        , topLeft = eyeQuadAndPupil2d.eyeQuad.topLeft |> to3d 0
+                                        , topRight = eyeQuadAndPupil2d.eyeQuad.topRight |> to3d 0
+                                        }
+                                        (eyeQuadAndPupil2d.pupil
+                                            |> List.map (TupleHelpers.mapTuple3 (to3d 0.01))
+                                        )
+                            in
+                            ( source2
+                            , eyeQuadInfo
+                            , bitsUsed1 + bitsUsed2
                             )
                         )
             )
 
 
-coreStructureTransforms : List (BinarySource -> StructureTemplate -> ( BinarySource, StructureTemplate ))
+coreStructureTransforms : List (BinarySource -> StructureTemplate -> ( BinarySource, StructureTemplate, Int ))
 coreStructureTransforms =
     [ -- eyeQuad and pupil
       \source template ->
         case consumeFullEyeQuadAndPupil source of
-            Ok ( s, val ) ->
+            Ok ( s, val, bitsUsed ) ->
                 ( s
                 , { template
                     | eyeQuadInfo =
                         Ok val
                   }
+                , bitsUsed
                 )
 
             Err e ->
@@ -310,6 +316,7 @@ coreStructureTransforms =
                 , { template
                     | eyeQuadInfo = Err e
                   }
+                , 0
                 )
 
     -- cheekbone (determined by above, no randomness)
@@ -347,6 +354,7 @@ coreStructureTransforms =
                                 |> Vector3.plus (Vector3 0 -0.3 0)
                         )
           }
+        , 0
         )
 
     -- noseTop
@@ -559,6 +567,7 @@ coreStructureTransforms =
                     template.crownFront
                     template.backZ
           }
+        , 0
         )
     , --faceSideTop
       \source template ->
@@ -946,7 +955,7 @@ oldEarsTransform =
                 )
 
 
-coloringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate ))
+coloringTransforms : List (BinarySource -> ColoringTemplate -> ( BinarySource, ColoringTemplate, Int ))
 coloringTransforms =
     let
         consumeMinorVariance =
@@ -965,6 +974,7 @@ coloringTransforms =
         , { template
             | eyeQuad = Ok Color.white
           }
+        , 0
         )
     , --forehead
       \source template ->
@@ -1021,6 +1031,7 @@ coloringTransforms =
         , { template
             | noseTip = Ok Color.black
           }
+        , 0
         )
     , -- mouth, chinBottom and neck
       \source template ->
@@ -1187,6 +1198,7 @@ coloringTransforms =
                 template.snoutSideTopMajor
                     |> Result.map (Utils.scaleColorAndCap 0.8)
           }
+        , 0
         )
     , --snoutSideBottom
       \source template ->
@@ -1215,6 +1227,7 @@ coloringTransforms =
             | jawSide =
                 template.mouth
           }
+        , 0
         )
     , -- ear colors (nonrandom)
       \source template ->
@@ -1233,6 +1246,7 @@ coloringTransforms =
             , earFrontOuter = darkened
             , earFrontInner = darkened
           }
+        , 0
         )
     ]
 
@@ -1247,22 +1261,28 @@ varyColorResult cr vr =
 
 tryApplyMaybeValToTemplate :
     (Result GenError val -> template)
-    -> Maybe ( BinarySource, val )
-    -> ( BinarySource, template )
-tryApplyMaybeValToTemplate func maybeSourceAndVal =
+    -> Maybe ( BinarySource, val, Int )
+    -> ( BinarySource, template, Int )
+tryApplyMaybeValToTemplate func maybeSourceValAndBitsUsed =
     let
+        remainingSource =
+            maybeSourceValAndBitsUsed
+                |> Maybe.map TupleHelpers.tuple3First
+                |> Maybe.withDefault BinarySource.empty
+
         result =
-            maybeSourceAndVal
-                |> Maybe.map Tuple.second
+            maybeSourceValAndBitsUsed
+                |> Maybe.map TupleHelpers.tuple3Middle
                 |> Result.fromMaybe NotEnoughSource
 
-        remainingSource =
-            maybeSourceAndVal
-                |> Maybe.map Tuple.first
-                |> Maybe.withDefault BinarySource.empty
+        bitsUsed =
+            maybeSourceValAndBitsUsed
+                |> Maybe.map TupleHelpers.tuple3Last
+                |> Maybe.withDefault 0
     in
     ( remainingSource
     , func result
+    , bitsUsed
     )
 
 

@@ -426,22 +426,31 @@ meterTriangleWithDefaults name colorResult v1Result v2Result v3Result =
         |> defaultAndLogEntityError name
 
 
-binarySourceToNym : BinarySource -> ( String, Int, NymTemplate )
+binarySourceToNym : BinarySource -> ( String, ( Int, List Int ), NymTemplate )
 binarySourceToNym source =
     let
-        ( rSource1, coreStructureTemplate ) =
+        ( rSource1, coreStructureTemplate, structureDemarcatePositions ) =
             Generate.consumeCoreStructureToTemplate source
 
-        ( rSource2, coloringTemplate ) =
+        ( rSource2, coloringTemplate, coloringDemarcatePositions ) =
             Generate.consumeColoringToTemplate rSource1
 
         bitsLeft =
             BinarySource.remainingBits rSource2
+
+        demarcatePositions =
+            structureDemarcatePositions
+                ++ (coloringDemarcatePositions
+                        |> List.map
+                            ((+)
+                                (List.Extra.last structureDemarcatePositions |> Maybe.withDefault 0)
+                            )
+                   )
     in
     ( source
         |> BinarySource.getBitsString
         |> String.dropRight bitsLeft
-    , bitsLeft
+    , ( bitsLeft, demarcatePositions )
     , NymTemplate
         coreStructureTemplate
         coloringTemplate

@@ -11,8 +11,9 @@ module BinarySource exposing
     , consumeDouble
     , consumeFloat0to1
     , consumeFloatRange
-    , consumeInt
-    , consumeSeveralValues
+    ,  consumeInt
+       -- , consumeSeveralValues
+
     , consumeTriple
     , consumeUnsignedFloat
     , consumeVector3
@@ -86,37 +87,38 @@ remainingBits (BinarySource source) =
     String.length source
 
 
-consumeChunk : Int -> BinarySource -> Maybe ( BinarySource, BinaryChunk )
+consumeChunk : Int -> BinarySource -> Maybe ( BinarySource, BinaryChunk, Int )
 consumeChunk numBits (BinarySource source) =
     if String.length source >= numBits then
         Just
             ( BinarySource <| String.dropLeft numBits source
             , BinaryChunk <| String.left numBits source
+            , numBits
             )
 
     else
         Nothing
 
 
-consumeBool : BinarySource -> Maybe ( BinarySource, Bool )
+consumeBool : BinarySource -> Maybe ( BinarySource, Bool, Int )
 consumeBool source =
     consumeInt 1 source
         |> map (\i -> i == 1)
 
 
-consumeInt : Int -> BinarySource -> Maybe ( BinarySource, Int )
+consumeInt : Int -> BinarySource -> Maybe ( BinarySource, Int, Int )
 consumeInt bits source =
     source
         |> consumeChunk bits
-        |> Maybe.map (Tuple.mapSecond chunkToInt32)
+        |> Maybe.map (TupleHelpers.mapTuple3Middle chunkToInt32)
 
 
-consumeFloat0to1 : Int -> BinarySource -> Maybe ( BinarySource, Float )
+consumeFloat0to1 : Int -> BinarySource -> Maybe ( BinarySource, Float, Int )
 consumeFloat0to1 bits source =
     source
         |> consumeInt bits
         |> Maybe.map
-            (Tuple.mapSecond
+            (TupleHelpers.mapTuple3Middle
                 (\divisorInt ->
                     toFloat divisorInt
                         / (toFloat <| 2 ^ bits - 1)
@@ -124,13 +126,13 @@ consumeFloat0to1 bits source =
             )
 
 
-consumeUnsignedFloat : Int -> Float -> BinarySource -> Maybe ( BinarySource, Float )
+consumeUnsignedFloat : Int -> Float -> BinarySource -> Maybe ( BinarySource, Float, Int )
 consumeUnsignedFloat bits max =
     consumeFloat0to1 bits
         >> map ((*) max)
 
 
-consumeFloatRange : Int -> ( Float, Float ) -> BinarySource -> Maybe ( BinarySource, Float )
+consumeFloatRange : Int -> ( Float, Float ) -> BinarySource -> Maybe ( BinarySource, Float, Int )
 consumeFloatRange bits ( min, max ) =
     consumeFloat0to1 bits
         >> map
@@ -139,29 +141,30 @@ consumeFloatRange bits ( min, max ) =
             )
 
 
-consumeVector3DimNeg1to1 : Int -> BinarySource -> Maybe ( BinarySource, Vector3 )
+consumeVector3DimNeg1to1 : Int -> BinarySource -> Maybe ( BinarySource, Vector3, Int )
 consumeVector3DimNeg1to1 bitsPerComponent source =
     consumeFloat0to1 bitsPerComponent source
         |> Maybe.andThen
-            (\( source1, x ) ->
+            (\( source1, x, bitsUsed1 ) ->
                 consumeFloat0to1 bitsPerComponent source1
                     |> Maybe.andThen
-                        (\( source2, y ) ->
+                        (\( source2, y, bitsUsed2 ) ->
                             consumeFloat0to1 bitsPerComponent source2
                                 |> Maybe.andThen
-                                    (\( source3, z ) ->
+                                    (\( source3, z, bitsUsed3 ) ->
                                         Just
                                             ( source3
                                             , Vector3 x y z
                                                 |> Vector3.scaleBy 2
                                                 |> Vector3.minus (Vector3 1 1 1)
+                                            , bitsUsed1 + bitsUsed2 + bitsUsed3
                                             )
                                     )
                         )
             )
 
 
-consumeVector3ByComponent : ( ( Int, Float, Float ), ( Int, Float, Float ), ( Int, Float, Float ) ) -> BinarySource -> Maybe ( BinarySource, Vector3 )
+consumeVector3ByComponent : ( ( Int, Float, Float ), ( Int, Float, Float ), ( Int, Float, Float ) ) -> BinarySource -> Maybe ( BinarySource, Vector3, Int )
 consumeVector3ByComponent componentConsumeInfos source =
     let
         consumeFuncs =
@@ -175,17 +178,17 @@ consumeVector3ByComponent componentConsumeInfos source =
         |> map (\( x, y, z ) -> Vector3 x y z)
 
 
-consumeVector3FromBounds : Int -> Vector3.RectBounds -> BinarySource -> Maybe ( BinarySource, Vector3 )
+consumeVector3FromBounds : Int -> Vector3.RectBounds -> BinarySource -> Maybe ( BinarySource, Vector3, Int )
 consumeVector3FromBounds bitsPerComponent ( boundsStart, boundsEnd ) source =
     consumeFloat0to1 bitsPerComponent source
         |> Maybe.andThen
-            (\( source1, x ) ->
+            (\( source1, x, bitsUsed1 ) ->
                 consumeFloat0to1 bitsPerComponent source1
                     |> Maybe.andThen
-                        (\( source2, y ) ->
+                        (\( source2, y, bitsUsed2 ) ->
                             consumeFloat0to1 bitsPerComponent source2
                                 |> Maybe.andThen
-                                    (\( source3, z ) ->
+                                    (\( source3, z, bitsUsed3 ) ->
                                         let
                                             boundsSpace =
                                                 boundsEnd |> Vector3.minus boundsStart
@@ -195,13 +198,14 @@ consumeVector3FromBounds bitsPerComponent ( boundsStart, boundsEnd ) source =
                                             , Vector3 x y z
                                                 |> Vector3.scaleByVector boundsSpace
                                                 |> Vector3.plus boundsStart
+                                            , bitsUsed1 + bitsUsed2 + bitsUsed3
                                             )
                                     )
                         )
             )
 
 
-consumeVector3 : Int -> Vector3 -> BinarySource -> Maybe ( BinarySource, Vector3 )
+consumeVector3 : Int -> Vector3 -> BinarySource -> Maybe ( BinarySource, Vector3, Int )
 consumeVector3 bitsPerComponent maxVector =
     consumeVector3FromBounds bitsPerComponent
         ( Vector3.zero
@@ -225,20 +229,20 @@ encodeBinaryString (BinaryChunk chunk) =
     "0b" ++ chunk
 
 
-consumeColorFromPallette : BinarySource -> Maybe ( BinarySource, Color )
+consumeColorFromPallette : BinarySource -> Maybe ( BinarySource, Color, Int )
 consumeColorFromPallette source =
     consumeInt 5 source
         -- happily the list contains exactly 32 items, so 5 bits is perfect
         |> Maybe.map
-            (Tuple.mapSecond
+            (TupleHelpers.mapTuple3Middle
                 (\colorNum ->
                     List.Extra.getAt colorNum allColors
                 )
             )
         |> (\weirdMaybe ->
                 case weirdMaybe of
-                    Just ( a, Just b ) ->
-                        Just ( a, b )
+                    Just ( a, Just b, c ) ->
+                        Just ( a, b, c )
 
                     _ ->
                         Nothing
@@ -246,107 +250,116 @@ consumeColorFromPallette source =
 
 
 consume3 :
-    ( BinarySource -> Maybe ( BinarySource, a )
-    , BinarySource -> Maybe ( BinarySource, b )
-    , BinarySource -> Maybe ( BinarySource, c )
+    ( BinarySource -> Maybe ( BinarySource, a, Int )
+    , BinarySource -> Maybe ( BinarySource, b, Int )
+    , BinarySource -> Maybe ( BinarySource, c, Int )
     )
     -> BinarySource
-    -> Maybe ( BinarySource, ( a, b, c ) )
+    -> Maybe ( BinarySource, ( a, b, c ), Int )
 consume3 ( f1, f2, f3 ) source =
     source
         |> f1
         |> Maybe.andThen
-            (\( s1, v1 ) ->
+            (\( s1, v1, b1 ) ->
                 s1
                     |> f2
                     |> Maybe.andThen
-                        (\( s2, v2 ) ->
+                        (\( s2, v2, b2 ) ->
                             s2
                                 |> f3
                                 |> Maybe.map
-                                    (\( s3, v3 ) ->
-                                        ( s3, ( v1, v2, v3 ) )
+                                    (\( s3, v3, b3 ) ->
+                                        ( s3
+                                        , ( v1, v2, v3 )
+                                        , b1 + b2 + b3
+                                        )
                                     )
                         )
             )
 
 
-consumeTriple : (BinarySource -> Maybe ( BinarySource, a )) -> BinarySource -> Maybe ( BinarySource, ( a, a, a ) )
+consumeTriple : (BinarySource -> Maybe ( BinarySource, a, Int )) -> BinarySource -> Maybe ( BinarySource, ( a, a, a ), Int )
 consumeTriple f source =
     consume3 ( f, f, f ) source
 
 
 consume2 :
-    ( BinarySource -> Maybe ( BinarySource, a )
-    , BinarySource -> Maybe ( BinarySource, b )
+    ( BinarySource -> Maybe ( BinarySource, a, Int )
+    , BinarySource -> Maybe ( BinarySource, b, Int )
     )
     -> BinarySource
-    -> Maybe ( BinarySource, ( a, b ) )
+    -> Maybe ( BinarySource, ( a, b ), Int )
 consume2 ( f1, f2 ) source =
     source
         |> f1
         |> Maybe.andThen
-            (\( s1, v1 ) ->
+            (\( s1, v1, b1 ) ->
                 s1
                     |> f2
                     |> Maybe.map
-                        (\( s2, v2 ) ->
-                            ( s2, ( v1, v2 ) )
+                        (\( s2, v2, b2 ) ->
+                            ( s2
+                            , ( v1, v2 )
+                            , b1 + b2
+                            )
                         )
             )
 
 
-consumeDouble : (BinarySource -> Maybe ( BinarySource, a )) -> BinarySource -> Maybe ( BinarySource, ( a, a ) )
+consumeDouble : (BinarySource -> Maybe ( BinarySource, a, Int )) -> BinarySource -> Maybe ( BinarySource, ( a, a ), Int )
 consumeDouble f source =
     consume2 ( f, f ) source
 
 
-consumeSeveralValues : Int -> (BinarySource -> Maybe ( BinarySource, valType )) -> BinarySource -> Maybe ( BinarySource, List valType )
-consumeSeveralValues count f source =
-    let
-        func : BinarySource -> () -> ( BinarySource, Maybe valType )
-        func s _ =
-            f s
-                |> Maybe.Extra.unwrap
-                    ( s, Nothing )
-                    (Tuple.mapSecond Just)
 
-        ( remainingSource, maybeListOfVals ) =
-            List.Extra.mapAccuml
-                func
-                source
-                (List.repeat count ())
-                |> Tuple.mapSecond Maybe.Extra.combine
-    in
-    maybeListOfVals
-        |> Maybe.map
-            (\vals ->
-                ( remainingSource, vals )
-            )
+-- consumeSeveralValues : Int -> (BinarySource -> Maybe ( BinarySource, valType, Int )) -> BinarySource -> Maybe ( BinarySource, List valType, Int )
+-- consumeSeveralValues count f source =
+--     let
+--         func : BinarySource -> () -> ( BinarySource, Maybe valType, Int )
+--         func s _ =
+--             f s
+--                 |> Maybe.Extra.unwrap
+--                     ( s, Nothing, 0 )
+--                     (TupleHelpers.mapTuple3Middle Just)
+--         ( remainingSource, maybeListOfVals, bitsUsed ) =
+--             List.Extra.mapAccuml
+--                 func
+--                 source
+--                 (List.repeat count ())
+--                 |> TupleHelpers.mapTuple3Middle Maybe.Extra.combine
+--     in
+--     maybeListOfVals
+--         |> Maybe.map
+--             (\vals ->
+--                 ( remainingSource, vals )
+--             )
 
 
-map : (a -> b) -> Maybe ( BinarySource, a ) -> Maybe ( BinarySource, b )
+map : (a -> b) -> Maybe ( BinarySource, a, Int ) -> Maybe ( BinarySource, b, Int )
 map f maybeSourceAndVal =
     maybeSourceAndVal
-        |> Maybe.map (Tuple.mapSecond f)
+        |> Maybe.map (TupleHelpers.mapTuple3Middle f)
 
 
-andThenConsume : (BinarySource -> Maybe ( BinarySource, b )) -> (a -> b -> c) -> Maybe ( BinarySource, a ) -> Maybe ( BinarySource, c )
+andThenConsume : (BinarySource -> Maybe ( BinarySource, b, Int )) -> (a -> b -> c) -> Maybe ( BinarySource, a, Int ) -> Maybe ( BinarySource, c, Int )
 andThenConsume consumeFunc mapFunc maybeSourceAndVal =
     maybeSourceAndVal
         |> Maybe.andThen
-            (\( source1, aVal ) ->
+            (\( source1, aVal, bitsUsed1 ) ->
                 consumeFunc source1
                     |> Maybe.map
-                        (\( source2, bVal ) ->
-                            ( source2, mapFunc aVal bVal )
+                        (\( source2, bVal, bitsUsed2 ) ->
+                            ( source2
+                            , mapFunc aVal bVal
+                            , bitsUsed1 + bitsUsed2
+                            )
                         )
             )
 
 
-emptyConsume : a -> BinarySource -> Maybe ( BinarySource, a )
+emptyConsume : a -> BinarySource -> Maybe ( BinarySource, a, Int )
 emptyConsume val source =
-    Just ( source, val )
+    Just ( source, val, 0 )
 
 
 

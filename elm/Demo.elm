@@ -62,6 +62,7 @@ type alias Model =
     , tweakPos : Int
     , tweakSource : String
     , numBitsUsed : Int
+    , demarcatePositions : List Int
     }
 
 
@@ -74,7 +75,7 @@ initModel =
         firstTweakSource =
             String.repeat 256 "0"
 
-        ( nymEntitiesAndPositions, numBitsUsed ) =
+        ( nymEntitiesAndPositions, ( numBitsUsed, demarcatePositions ) ) =
             genNyms firstTweakSource firstSeed
     in
     { mouseInput = MouseInput 0 0
@@ -83,6 +84,7 @@ initModel =
     , tweakPos = 0
     , tweakSource = firstTweakSource
     , numBitsUsed = numBitsUsed
+    , demarcatePositions = demarcatePositions
     }
 
 
@@ -207,12 +209,13 @@ update msg model =
 regenerateNymEntitiesAndPositions : Model -> Model
 regenerateNymEntitiesAndPositions model =
     let
-        (nymEntitiesAndPositions, bitsUsed) =
+        ( nymEntitiesAndPositions, ( bitsUsed, demarcatePositions ) ) =
             genNyms model.tweakSource model.seed
     in
     { model
         | nymEntitiesAndPositions = nymEntitiesAndPositions
         , numBitsUsed = bitsUsed
+        , demarcatePositions = demarcatePositions
     }
 
 
@@ -288,13 +291,13 @@ randomBinarySources masterSeed =
     List.Extra.initialize 14 initFunc
 
 
-remainingBitsAndDemoNymTemplates : String -> Int -> List ( String, Int, NymTemplate )
+remainingBitsAndDemoNymTemplates : String -> Int -> List ( String, ( Int, List Int ), NymTemplate )
 remainingBitsAndDemoNymTemplates tweakSourceStr seed =
     demoNymSources tweakSourceStr seed
         |> List.map binarySourceToNym
 
 
-genNyms : String -> Int -> ( List ( Scene3d.Entity (), Point3dM ), Int )
+genNyms : String -> Int -> ( List ( Scene3d.Entity (), Point3dM ), ( Int, List Int ) )
 genNyms tweakSourceStr seed =
     genNymEntitiesBitsUsedAndPositions tweakSourceStr seed
         |> Tuple.mapFirst
@@ -305,21 +308,23 @@ genNyms tweakSourceStr seed =
             )
 
 
-genNymEntitiesBitsUsedAndPositions : String -> Int -> ( List ( String, Scene3d.Entity (), Point3dM ), Int )
+genNymEntitiesBitsUsedAndPositions : String -> Int -> ( List ( String, Scene3d.Entity (), Point3dM ), ( Int, List Int ) )
 genNymEntitiesBitsUsedAndPositions tweakSourceStr seed =
     let
         bitsLeftAndTemplates =
             remainingBitsAndDemoNymTemplates tweakSourceStr seed
 
-        bitsUsed =
+        ( bitsUsed, demarcatePositions ) =
             bitsLeftAndTemplates
                 |> List.head
                 |> Maybe.map TupleHelpers.tuple3Middle
                 |> Maybe.map
-                    (\bitsLeft ->
-                        256 - bitsLeft
+                    (Tuple.mapFirst
+                        (\bitsLeft ->
+                            256 - bitsLeft
+                        )
                     )
-                |> Maybe.withDefault 0
+                |> Maybe.withDefault ( 0, [] )
 
         _ =
             Debug.log "bits used"
@@ -351,7 +356,7 @@ genNymEntitiesBitsUsedAndPositions tweakSourceStr seed =
                 in
                 ( usedBitsString, Nym.makeNymEntity showDebugLines nymTemplate, nymPosition )
             )
-    , bitsUsed
+    , ( bitsUsed, demarcatePositions )
     )
 
 
@@ -375,20 +380,20 @@ view model =
             , Element.height Element.fill
             , Element.spacing 10
             ]
-            [ viewTweakUX model.tweakSource model.tweakPos model.numBitsUsed
+            [ viewTweakUX model.tweakSource model.tweakPos model.numBitsUsed model.demarcatePositions
             , viewNyms model.mouseInput model.nymEntitiesAndPositions
             ]
 
 
-viewTweakUX : String -> Int -> Int -> Element Msg
-viewTweakUX tweakSource tweakPos lastBitUsed =
+viewTweakUX : String -> Int -> Int -> List Int -> Element Msg
+viewTweakUX tweakSource tweakPos lastBitUsed demarcatePositions =
     Element.row
         [ Element.centerX
         , Element.padding 10
         , Element.spacing 10
         ]
         [ viewTweakPos tweakPos
-        , viewTweakSource tweakSource tweakPos lastBitUsed
+        , viewTweakSource tweakSource tweakPos lastBitUsed demarcatePositions
         , viewTweakCopyUX
         ]
 
@@ -407,8 +412,8 @@ viewTweakPos tweakPos =
             (Element.text <| String.fromInt tweakPos)
 
 
-viewTweakSource : String -> Int -> Int -> Element Msg
-viewTweakSource tweakSource tweakPos lastBitUsed =
+viewTweakSource : String -> Int -> Int -> List Int -> Element Msg
+viewTweakSource tweakSource tweakPos lastBitUsed demarcatePositions =
     Element.column
         [ Font.size 10
         ]
@@ -418,14 +423,31 @@ viewTweakSource tweakSource tweakPos lastBitUsed =
                 (\i bitChar ->
                     let
                         attributes =
-                            [ Border.width 1 ]
+                            let
+                                shouldDemarcate =
+                                    List.member i demarcatePositions
+                            in
+                            (if shouldDemarcate then
+                                [ Border.widthEach
+                                    { top = 0
+                                    , bottom = 0
+                                    , right = 0
+                                    , left = 2
+                                    }
+                                , Border.color (Element.rgb 0 0 0)
+                                ]
+
+                             else
+                                [ Border.width 1
+                                , Border.color (Element.rgb 1 1 1)
+                                ]
+                            )
                                 ++ (if i == tweakPos then
                                         [ Border.color (Element.rgb 1 0 0)
                                         ]
 
                                     else
-                                        [ Border.color (Element.rgb 1 1 1)
-                                        , Element.pointer
+                                        [ Element.pointer
                                         , Events.onClick (ChangeTweakPos i)
                                         ]
                                    )
