@@ -503,7 +503,7 @@ coreStructureTransforms =
                 ( -- x from midline
                   BinarySource.consumeFloatRange 2 ( 0.03, 0.2 )
                 , -- y from highest eyeQuad point
-                  BinarySource.consumeFloatRange 2 ( 0.05, 0.2 )
+                  BinarySource.consumeFloatRange 2 ( 0.05, 0.23 )
                 , -- z units back from eyeQuad.topLeft
                   BinarySource.consumeFloatRange 2 ( 0.1, 0.4 )
                 )
