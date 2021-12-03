@@ -6,7 +6,6 @@ import BinarySource exposing (BinarySource)
 import Browser
 import Browser.Events
 import Camera3d
-import Color
 import Crypto.Hash as Hash
 import Direction3d
 import Element exposing (Element)
@@ -14,7 +13,6 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
-import Generate
 import Html exposing (Html)
 import Html.Events
 import Json.Decode as Decode
@@ -25,7 +23,7 @@ import Maybe.Extra
 import Mouse
 import Nym exposing (..)
 import Pixels
-import Point2d exposing (Point2d, xCoordinate, yCoordinate)
+import Point2d exposing (Point2d)
 import Point3d
 import Random
 import Scene3d
