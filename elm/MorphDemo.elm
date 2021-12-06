@@ -43,7 +43,7 @@ import WebGL
 
 type Msg
     = MouseMove Mouse.MoveData
-    | NewSeed Int
+    | NewSeed
     | AnimateDelta Float
     | MaybeChangeLookDir Time.Posix
     | MaybeChangeSeed Time.Posix
@@ -126,29 +126,25 @@ update msg model =
             , Cmd.none
             )
 
-        NewSeed newSeed ->
-            let
-                _ =
-                    Debug.log "new seed" newSeed
-            in
+        NewSeed ->
             ( { model
                 | lastKeyPressedTime = model.now
               }
-                |> updateWithNewSeed newSeed
+                |> updateWithNewSeed
             , Cmd.none
             )
 
         AnimateDelta delta ->
             let
                 mouseInterpConstant =
-                    if mouseIsIdle model then
+                    if mouseMoveIsIdle model then
                         0.01
 
                     else
                         0.1
 
                 morphRateConstant =
-                    if keyIsIdle model then
+                    if mouseClickIsIdle model then
                         20000
 
                     else
@@ -172,7 +168,7 @@ update msg model =
         MaybeChangeLookDir time ->
             let
                 maybeNewInput =
-                    if not <| mouseIsIdle model then
+                    if not <| mouseMoveIsIdle model then
                         Nothing
 
                     else
@@ -209,31 +205,24 @@ update msg model =
 
         MaybeChangeSeed time ->
             let
-                maybeNewSeed =
-                    if not <| keyIsIdle model then
-                        Nothing
+                doChangeSeed =
+                    if not <| mouseClickIsIdle model then
+                        False
 
                     else
                         time
                             |> pseudoRandomSourceFromTime
                             |> BinarySource.consumeInt 2
                             |> Maybe.map TupleHelpers.tuple3Middle
-                            |> Maybe.andThen
-                                (\roll ->
-                                    if roll == 0 then
-                                        Just <| Time.posixToMillis time
-
-                                    else
-                                        Nothing
-                                )
+                            |> Maybe.withDefault 0
+                            |> (==) 0
 
                 newModel =
-                    case maybeNewSeed of
-                        Just newSeed ->
-                            model |> updateWithNewSeed newSeed
+                    if doChangeSeed then
+                        model |> updateWithNewSeed
 
-                        Nothing ->
-                            model
+                    else
+                        model
             in
             ( newModel
             , Cmd.none
@@ -245,18 +234,22 @@ update msg model =
             )
 
 
-mouseIsIdle : Model -> Bool
-mouseIsIdle model =
+mouseMoveIsIdle : Model -> Bool
+mouseMoveIsIdle model =
     Time.toSecond Time.utc model.now - Time.toSecond Time.utc model.lastMouseMoveTime > 2
 
 
-keyIsIdle : Model -> Bool
-keyIsIdle model =
+mouseClickIsIdle : Model -> Bool
+mouseClickIsIdle model =
     Time.toSecond Time.utc model.now - Time.toSecond Time.utc model.lastKeyPressedTime > 4
 
 
-updateWithNewSeed : Int -> Model -> Model
-updateWithNewSeed newSeed model =
+updateWithNewSeed : Model -> Model
+updateWithNewSeed model =
+    let
+        newSeed =
+            model.seed |> cycleSeed
+    in
     { model
         | seed = newSeed
         , oldNymTemplate =
@@ -268,6 +261,13 @@ updateWithNewSeed newSeed model =
         , morphProgress = 0
         , morphAccel = 0
     }
+
+
+cycleSeed : Int -> Int
+cycleSeed oldSeed =
+    oldSeed
+        |> String.fromInt
+        |> badHashFunction
 
 
 pseudoRandomSourceFromTime : Time.Posix -> BinarySource
@@ -669,16 +669,8 @@ badHashFunction =
 subscriptions : Model -> Sub.Sub Msg
 subscriptions model =
     Sub.batch
-        [ Browser.Events.onKeyDown keyDecoder
-            |> Sub.map
-                (\keyString ->
-                    case interpetCmd keyString of
-                        Just NewRandomSeed ->
-                            NewSeed <| badHashFunction <| String.fromInt <| model.seed
-
-                        Nothing ->
-                            NewSeed <| badHashFunction <| keyString
-                )
+        [ Browser.Events.onMouseDown
+            (Decode.succeed NewSeed)
         , Browser.Events.onAnimationFrameDelta
             AnimateDelta
         , Time.every 1000
