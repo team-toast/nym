@@ -139,6 +139,7 @@ update msg model =
                 mouseInterpConstant =
                     if model.mouseHasMoved then
                         0.1
+
                     else
                         0.01
 
@@ -640,28 +641,6 @@ rotateNyms mouseInput entitiesAndPositions =
             )
 
 
-subscriptions : Model -> Sub.Sub Msg
-subscriptions model =
-    Sub.batch
-        [ Browser.Events.onKeyDown keyDecoder
-            |> Sub.map
-                (\keyString ->
-                    case interpetCmd keyString of
-                        Just NewRandomSeed ->
-                            NewSeed <| badHashFunction <| String.fromInt <| model.seed
-
-                        Nothing ->
-                            NewSeed <| badHashFunction <| keyString
-                )
-        , Browser.Events.onAnimationFrameDelta
-            AnimateDelta
-        , Time.every 1000
-            MaybeChangeLookDir
-        , Time.every 1200
-            MaybeChangeSeed
-        ]
-
-
 type UserCmd
     = NewRandomSeed
 
@@ -693,3 +672,25 @@ badHashFunction =
         >> String.fromList
         >> String.toInt
         >> Maybe.withDefault 0
+
+
+subscriptions : Model -> Sub.Sub Msg
+subscriptions model =
+    Sub.batch
+        [ Browser.Events.onKeyDown keyDecoder
+            |> Sub.map
+                (\keyString ->
+                    case interpetCmd keyString of
+                        Just NewRandomSeed ->
+                            NewSeed <| badHashFunction <| String.fromInt <| model.seed
+
+                        Nothing ->
+                            NewSeed <| badHashFunction <| keyString
+                )
+        , Browser.Events.onAnimationFrameDelta
+            AnimateDelta
+        , Time.every 1000
+            MaybeChangeLookDir
+        , Time.every 1200
+            MaybeChangeSeed
+        ]
