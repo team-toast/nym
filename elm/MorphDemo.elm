@@ -176,8 +176,10 @@ update msg model =
                             |> pseudoRandomSourceFromTime
                             |> BinarySource.consume2
                                 ( BinarySource.consumeBool
-                                , BinarySource.consumeDouble
-                                    (BinarySource.consumeFloatRange 3 ( -0.3, 0.3 ))
+                                , BinarySource.consume2
+                                    (BinarySource.consumeFloatRange 3 ( -0.3, 0.3 )
+                                    ,BinarySource.consumeFloatRange 3 ( -0.2, 0.4 )
+                                    )
                                 )
                             |> Maybe.map TupleHelpers.tuple3Middle
                             |> Maybe.andThen
