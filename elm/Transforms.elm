@@ -93,7 +93,7 @@ consumeEyeQuadAndPupil2d source =
                     , BinarySource.consumeFloatRange 3 ( 0, 3.999 )
                       -- same units as above and relative to it, how much further along the perimeter to draw the final point
                     , BinarySource.consumeFloatRange 2 ( 0.3, 0.99 )
-                      -- note that if the max value is > 1, the code later to construct the pupil will break
+                      -- note that if the above value is > 1, the code later to construct the pupil will break
                     )
                   -- eyeQuad
                 , BinarySource.consume2
