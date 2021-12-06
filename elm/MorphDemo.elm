@@ -339,19 +339,43 @@ interpolateNymsForRendering interp start end =
 
 interpolatePupil : Float -> List ( Vector3, Vector3, Vector3 ) -> List ( Vector3, Vector3, Vector3 ) -> List ( Vector3, Vector3, Vector3 )
 interpolatePupil interp pupil1 pupil2 =
-    List.Extra.zip
+    if interp == 0 then
         pupil1
+
+    else if interp == 1 then
         pupil2
-        |> List.map
-            (\( vectorTupleA, vectorTupleB ) ->
-                TupleHelpers.mergeTuple3
-                    ( Vector3.interpolate interp
-                    , Vector3.interpolate interp
-                    , Vector3.interpolate interp
+
+    else
+        let
+            ( modifiedPupil1, modifiedPupil2 ) =
+                if List.length pupil1 < List.length pupil2 then
+                    ( pupil1
+                        |> List.Extra.cycle (List.length pupil2)
+                    , pupil2
                     )
-                    vectorTupleA
-                    vectorTupleB
-            )
+
+                else if List.length pupil1 > List.length pupil2 then
+                    ( pupil1
+                    , pupil2
+                        |> List.Extra.cycle (List.length pupil1)
+                    )
+
+                else
+                    ( pupil1, pupil2 )
+        in
+        List.Extra.zip
+            modifiedPupil1
+            modifiedPupil2
+            |> List.map
+                (\( vectorTupleA, vectorTupleB ) ->
+                    TupleHelpers.mergeTuple3
+                        ( Vector3.interpolate interp
+                        , Vector3.interpolate interp
+                        , Vector3.interpolate interp
+                        )
+                        vectorTupleA
+                        vectorTupleB
+                )
 
 
 interpolateFloat : Float -> Float -> Float -> Float
