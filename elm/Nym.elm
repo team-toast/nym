@@ -404,6 +404,21 @@ meterTriangle color v1 v2 v3 =
             )
 
 
+meterTriangleDebugLines : Color -> Vector3 -> Vector3 -> Vector3 -> Scene3d.Entity ()
+meterTriangleDebugLines color v1 v2 v3 =
+    [ ( v1, v2 )
+    , ( v2, v3 )
+    , ( v3, v1 )
+    ]
+        |> List.map (TupleHelpers.mapTuple2 Vector3.toMetersPoint)
+        |> List.map LineSegment3d.fromEndpoints
+        |> List.map
+            (Scene3d.lineSegment
+                (Material.color color)
+            )
+        |> Scene3d.group
+
+
 meterTriangleWithDefaults :
     String
     -> Result GenError Color
