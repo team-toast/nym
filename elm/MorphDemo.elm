@@ -47,6 +47,7 @@ type Msg
     | AnimateDelta Float
     | MaybeChangeLookDir Time.Posix
     | MaybeChangeSeed Time.Posix
+    | UpdateNow Time.Posix
     | NoOp
 
 
@@ -64,8 +65,9 @@ type alias Model =
     , morphProgress : Float
     , morphAccel : Float
     , seed : Int
-    , mouseHasMoved : Bool
-    , keyHasPressed : Bool
+    , lastMouseMoveTime : Time.Posix
+    , lastKeyPressedTime : Time.Posix
+    , now : Time.Posix
     }
 
 
@@ -85,8 +87,9 @@ initModel =
     , morphProgress = 1
     , morphAccel = 0
     , seed = firstSeed
-    , mouseHasMoved = False
-    , keyHasPressed = False
+    , lastMouseMoveTime = Time.millisToPosix 0
+    , lastKeyPressedTime = Time.millisToPosix 0
+    , now = Time.millisToPosix 0
     }
 
 
@@ -107,13 +110,18 @@ main =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        UpdateNow time ->
+            ( { model | now = time }
+            , Cmd.none
+            )
+
         MouseMove moveData ->
             ( { model
                 | mouseInput =
                     MouseInput
                         (toFloat moveData.offsetX / moveData.offsetWidth - 0.5)
                         (toFloat moveData.offsetY / moveData.offsetHeight - 0.5)
-                , mouseHasMoved = True
+                , lastMouseMoveTime = model.now
               }
             , Cmd.none
             )
@@ -124,7 +132,7 @@ update msg model =
                     Debug.log "new seed" newSeed
             in
             ( { model
-                | keyHasPressed = True
+                | lastKeyPressedTime = model.now
               }
                 |> updateWithNewSeed newSeed
             , Cmd.none
@@ -133,18 +141,18 @@ update msg model =
         AnimateDelta delta ->
             let
                 mouseInterpConstant =
-                    if model.mouseHasMoved then
-                        0.1
-
-                    else
+                    if mouseIsIdle model then
                         0.01
 
+                    else
+                        0.1
+
                 morphRateConstant =
-                    if model.keyHasPressed then
-                        5000
+                    if keyIsIdle model then
+                        20000
 
                     else
-                        20000
+                        5000
 
                 morphAccel =
                     model.morphAccel + (delta / morphRateConstant)
@@ -164,7 +172,7 @@ update msg model =
         MaybeChangeLookDir time ->
             let
                 maybeNewInput =
-                    if model.mouseHasMoved then
+                    if not <| mouseIsIdle model then
                         Nothing
 
                     else
@@ -202,7 +210,7 @@ update msg model =
         MaybeChangeSeed time ->
             let
                 maybeNewSeed =
-                    if model.keyHasPressed then
+                    if not <| keyIsIdle model then
                         Nothing
 
                     else
@@ -235,6 +243,16 @@ update msg model =
             ( model
             , Cmd.none
             )
+
+
+mouseIsIdle : Model -> Bool
+mouseIsIdle model =
+    Time.toSecond Time.utc model.now - Time.toSecond Time.utc model.lastMouseMoveTime > 4
+
+
+keyIsIdle : Model -> Bool
+keyIsIdle model =
+    Time.toSecond Time.utc model.now - Time.toSecond Time.utc model.lastKeyPressedTime > 4
 
 
 updateWithNewSeed : Int -> Model -> Model
@@ -667,4 +685,6 @@ subscriptions model =
             MaybeChangeLookDir
         , Time.every 1200
             MaybeChangeSeed
+        , Time.every 500
+            UpdateNow
         ]
