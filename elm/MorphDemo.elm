@@ -34,6 +34,7 @@ import Time
 import TupleHelpers
 import Types exposing (..)
 import Utils
+import Vector2 exposing (Vector2)
 import Vector3 exposing (Vector3)
 import Vector3d
 import Viewpoint3d
@@ -47,7 +48,9 @@ showDebugLines =
 type Msg
     = MouseMove Mouse.MoveData
     | NewSeed Int
-    | Animate Float
+    | AnimateDelta Float
+    | MaybeChangeLookDir Time.Posix
+    | MaybeChangeSeed Time.Posix
     | NoOp
 
 
@@ -59,11 +62,14 @@ type alias MouseInput =
 
 type alias Model =
     { mouseInput : MouseInput
+    , laggedMouse : MouseInput
     , oldNymTemplate : NymTemplate
     , newNymTemplate : NymTemplate
     , morphProgress : Float
     , morphAccel : Float
     , seed : Int
+    , mouseHasMoved : Bool
+    , keyHasPressed : Bool
     }
 
 
@@ -77,11 +83,14 @@ initModel =
             genNymTemplate firstSeed
     in
     { mouseInput = MouseInput 0 0
+    , laggedMouse = MouseInput 0 0
     , oldNymTemplate = nymTemplate
     , newNymTemplate = nymTemplate
     , morphProgress = 1
     , morphAccel = 0
     , seed = firstSeed
+    , mouseHasMoved = False
+    , keyHasPressed = False
     }
 
 
@@ -108,6 +117,7 @@ update msg model =
                     MouseInput
                         (toFloat moveData.offsetX / moveData.offsetWidth - 0.5)
                         (toFloat moveData.offsetY / moveData.offsetHeight - 0.5)
+                , mouseHasMoved = True
               }
             , Cmd.none
             )
@@ -118,21 +128,20 @@ update msg model =
                     Debug.log "new seed" newSeed
             in
             ( { model
-                | seed = newSeed
-                , oldNymTemplate =
-                    interpolateNymsForRendering
-                        model.morphProgress
-                        model.oldNymTemplate
-                        model.newNymTemplate
-                , newNymTemplate = genNymTemplate newSeed
-                , morphProgress = 0
-                , morphAccel = 0
+                | keyHasPressed = True
               }
+                |> updateWithNewSeed newSeed
             , Cmd.none
             )
 
-        Animate delta ->
+        AnimateDelta delta ->
             let
+                mouseInterpConstant =
+                    if model.mouseHasMoved then
+                        0.1
+                    else
+                        0.01
+
                 morphAccel =
                     model.morphAccel + (delta / 5000)
             in
@@ -142,7 +151,91 @@ update msg model =
                     min
                         1
                         (model.morphProgress + morphAccel)
+                , laggedMouse =
+                    Vector2.interpolate mouseInterpConstant model.laggedMouse model.mouseInput
               }
+            , Cmd.none
+            )
+
+        -- AnimateTime time ->
+        --     ( { model
+        --         | mouseInput =
+        --             model.mouseInput
+        --                 |> (if not model.mouseHasMoved then
+        --                         varyMouseInput <| Time.posixToMillis time
+        --                     else
+        --                         identity
+        --                    )
+        --       }
+        --     , Cmd.none
+        --     )
+        MaybeChangeLookDir time ->
+            let
+                maybeNewInput =
+                    if model.mouseHasMoved then
+                        Nothing
+
+                    else
+                        time
+                            |> pseudoRandomSourceFromTime
+                            |> BinarySource.consume2
+                                ( BinarySource.consumeBool
+                                , BinarySource.consumeDouble
+                                    (BinarySource.consumeFloatRange 3 ( -0.3, 0.3 ))
+                                )
+                            |> Maybe.map TupleHelpers.tuple3Middle
+                            |> Maybe.andThen
+                                (\( shouldChange, newDir ) ->
+                                    if shouldChange then
+                                        Nothing
+
+                                    else
+                                        Just <| Vector2.fromTuple newDir
+                                )
+
+                newModel =
+                    case maybeNewInput of
+                        Just newInput ->
+                            { model
+                                | mouseInput = newInput
+                            }
+
+                        Nothing ->
+                            model
+            in
+            ( newModel
+            , Cmd.none
+            )
+
+        MaybeChangeSeed time ->
+            let
+                maybeNewSeed =
+                    if model.keyHasPressed then
+                        Nothing
+
+                    else
+                        time
+                            |> pseudoRandomSourceFromTime
+                            |> BinarySource.consumeInt 2
+                            |> Maybe.map TupleHelpers.tuple3Middle
+                            |> Maybe.andThen
+                                (\roll ->
+                                    if roll == 0 then
+                                        Just <| Time.posixToMillis time
+
+                                    else
+                                        Nothing
+                                )
+
+                newModel =
+                    case maybeNewSeed of
+                        Just newSeed ->
+                            model |> updateWithNewSeed newSeed
+
+                        Nothing ->
+                            model
+            in
+            ( newModel
             , Cmd.none
             )
 
@@ -150,6 +243,46 @@ update msg model =
             ( model
             , Cmd.none
             )
+
+
+updateWithNewSeed : Int -> Model -> Model
+updateWithNewSeed newSeed model =
+    { model
+        | seed = newSeed
+        , oldNymTemplate =
+            interpolateNymsForRendering
+                model.morphProgress
+                model.oldNymTemplate
+                model.newNymTemplate
+        , newNymTemplate = genNymTemplate newSeed
+        , morphProgress = 0
+        , morphAccel = 0
+    }
+
+
+pseudoRandomSourceFromTime : Time.Posix -> BinarySource
+pseudoRandomSourceFromTime =
+    Time.posixToMillis
+        >> String.fromInt
+        >> badHashFunction
+        >> seedToBinarySource
+
+
+
+-- varyMouseInput : Int -> MouseInput -> MouseInput
+-- varyMouseInput intSeed mouseInput =
+--     Vector2.plus
+--         mouseInput
+--         (badHashFunction (String.fromInt intSeed)
+--             |> seedToBinarySource
+--             |> BinarySource.consume2
+--                 ( BinarySource.consumeFloatRange 3 ( -0.1, 0.1 )
+--                 , BinarySource.consumeFloatRange 3 ( -0.1, 0.1 )
+--                 )
+--             |> Maybe.map TupleHelpers.tuple3Middle
+--             |> Maybe.withDefault ( 0, 0 )
+--             |> Vector2.fromTuple
+--         )
 
 
 demoBinarySourceLength : Int
@@ -219,7 +352,7 @@ view model =
             , Element.height Element.fill
             , Element.spacing 10
             ]
-            [ viewNym model.mouseInput
+            [ viewNym model.laggedMouse
                 (interpolateNymsForRendering
                     model.morphProgress
                     model.oldNymTemplate
@@ -521,7 +654,11 @@ subscriptions model =
                             NewSeed <| badHashFunction <| keyString
                 )
         , Browser.Events.onAnimationFrameDelta
-            Animate
+            AnimateDelta
+        , Time.every 1000
+            MaybeChangeLookDir
+        , Time.every 1200
+            MaybeChangeSeed
         ]
 
 

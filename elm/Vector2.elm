@@ -18,6 +18,11 @@ zero =
     Vector2 0 0
 
 
+fromTuple : ( Float, Float ) -> Vector2
+fromTuple ( x, y ) =
+    Vector2 x y
+
+
 fromMetersPoint : Point2d Length.Meters () -> Vector2
 fromMetersPoint p =
     p |> Point2d.toRecord Length.inMeters
@@ -99,3 +104,10 @@ quadToMetersPolygon quad =
     ]
         |> List.map toMetersPoint
         |> Polygon2d.singleLoop
+
+
+interpolate : Float -> Vector2 -> Vector2 -> Vector2
+interpolate f v1 v2 =
+    minus v1 v2
+        |> scaleBy f
+        |> plus v1
