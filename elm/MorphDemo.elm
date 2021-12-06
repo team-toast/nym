@@ -143,8 +143,15 @@ update msg model =
                     else
                         0.01
 
+                morphRateConstant =
+                    if model.keyHasPressed then
+                        5000
+
+                    else
+                        20000
+
                 morphAccel =
-                    model.morphAccel + (delta / 5000)
+                    model.morphAccel + (delta / morphRateConstant)
             in
             ( { model
                 | morphAccel = morphAccel
