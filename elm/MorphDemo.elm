@@ -388,33 +388,25 @@ interpolateFloat interp f1 f2 =
 
 viewNym : MouseInput -> Scene3d.Entity () -> Element Msg
 viewNym mouseInput interpolatedNym =
-    Element.el
-        [ Element.width Element.fill
-        , Element.height Element.fill
-        , Background.color <| Element.rgb 0.9 0.9 1
-        , Border.width 1
-        , Border.color <| Element.rgb 0.7 0.7 1
-        ]
-    <|
-        Element.html <|
-            Html.div
-                [ Html.Events.on
-                    "mousemove"
-                    (Decode.map MouseMove Mouse.moveDecoder)
-                ]
-            <|
-                List.singleton <|
-                    WebGL.toHtml
-                        [ Html.Attributes.style "width" "100%"
-                        , Html.Attributes.style "height" "100%"
-                        , Html.Attributes.width 1000
-                        , Html.Attributes.height 900
-                        ]
-                    <|
-                        makeWebGLEntities
-                            ([ ( interpolatedNym, Point3d.origin ) ]
-                                |> rotateNyms mouseInput
-                            )
+    Element.html <|
+        Html.div
+            [ Html.Events.on
+                "mousemove"
+                (Decode.map MouseMove Mouse.moveDecoder)
+            ]
+        <|
+            List.singleton <|
+                WebGL.toHtml
+                    [ Html.Attributes.style "width" "100%"
+                    , Html.Attributes.style "height" "100%"
+                    , Html.Attributes.width 500
+                    , Html.Attributes.height 450
+                    ]
+                <|
+                    makeWebGLEntities
+                        ([ ( interpolatedNym, Point3d.origin ) ]
+                            |> rotateNyms mouseInput
+                        )
 
 
 makeWebGLEntities : List (Scene3d.Entity ()) -> List WebGL.Entity
@@ -436,7 +428,7 @@ makeWebGLEntities nymList =
         , exposure = Scene3d.exposureValue 5
         , toneMapping = Scene3d.noToneMapping
         , whiteBalance = Scene3d.Light.daylight
-        , aspectRatio = 10/9
+        , aspectRatio = 10 / 9
         , supersampling = 1
         , entities = nymList
         }
