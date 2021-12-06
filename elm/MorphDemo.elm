@@ -41,10 +41,6 @@ import Viewpoint3d
 import WebGL
 
 
-showDebugLines =
-    False
-
-
 type Msg
     = MouseMove Mouse.MoveData
     | NewSeed Int
@@ -165,18 +161,6 @@ update msg model =
             , Cmd.none
             )
 
-        -- AnimateTime time ->
-        --     ( { model
-        --         | mouseInput =
-        --             model.mouseInput
-        --                 |> (if not model.mouseHasMoved then
-        --                         varyMouseInput <| Time.posixToMillis time
-        --                     else
-        --                         identity
-        --                    )
-        --       }
-        --     , Cmd.none
-        --     )
         MaybeChangeLookDir time ->
             let
                 maybeNewInput =
@@ -274,23 +258,6 @@ pseudoRandomSourceFromTime =
         >> String.fromInt
         >> badHashFunction
         >> seedToBinarySource
-
-
-
--- varyMouseInput : Int -> MouseInput -> MouseInput
--- varyMouseInput intSeed mouseInput =
---     Vector2.plus
---         mouseInput
---         (badHashFunction (String.fromInt intSeed)
---             |> seedToBinarySource
---             |> BinarySource.consume2
---                 ( BinarySource.consumeFloatRange 3 ( -0.1, 0.1 )
---                 , BinarySource.consumeFloatRange 3 ( -0.1, 0.1 )
---                 )
---             |> Maybe.map TupleHelpers.tuple3Middle
---             |> Maybe.withDefault ( 0, 0 )
---             |> Vector2.fromTuple
---         )
 
 
 demoBinarySourceLength : Int
