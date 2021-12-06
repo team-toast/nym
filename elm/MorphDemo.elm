@@ -14,6 +14,7 @@ import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Html exposing (Html)
+import Html.Attributes
 import Html.Events
 import Json.Decode as Decode
 import Length
@@ -27,6 +28,7 @@ import Point2d exposing (Point2d)
 import Point3d
 import Random
 import Scene3d
+import Scene3d.Light
 import Scene3d.Material as Material exposing (Material)
 import Time
 import TupleHelpers
@@ -35,6 +37,7 @@ import Utils
 import Vector3 exposing (Vector3)
 import Vector3d
 import Viewpoint3d
+import WebGL
 
 
 showDebugLines =
@@ -385,6 +388,62 @@ interpolateFloat interp f1 f2 =
 
 viewNym : MouseInput -> Scene3d.Entity () -> Element Msg
 viewNym mouseInput interpolatedNym =
+    Element.el
+        [ Element.width Element.fill
+        , Element.height Element.fill
+        , Background.color <| Element.rgb 0.9 0.9 1
+        , Border.width 1
+        , Border.color <| Element.rgb 0.7 0.7 1
+        ]
+    <|
+        Element.html <|
+            Html.div
+                [ Html.Events.on
+                    "mousemove"
+                    (Decode.map MouseMove Mouse.moveDecoder)
+                ]
+            <|
+                List.singleton <|
+                    WebGL.toHtml
+                        [ Html.Attributes.style "width" "100%"
+                        , Html.Attributes.style "height" "100%"
+                        , Html.Attributes.width 1000
+                        , Html.Attributes.height 900
+                        ]
+                    <|
+                        makeWebGLEntities
+                            ([ ( interpolatedNym, Point3d.origin ) ]
+                                |> rotateNyms mouseInput
+                            )
+
+
+makeWebGLEntities : List (Scene3d.Entity ()) -> List WebGL.Entity
+makeWebGLEntities nymList =
+    Scene3d.toWebGLEntities
+        { lights = Scene3d.noLights
+        , camera =
+            Camera3d.perspective
+                { viewpoint =
+                    Viewpoint3d.lookAt
+                        { focalPoint = Point3d.origin
+                        , eyePoint =
+                            Point3d.meters 0 0 5
+                        , upDirection = Direction3d.positiveY
+                        }
+                , verticalFieldOfView = Angle.degrees 30
+                }
+        , clipDepth = Length.meters 1
+        , exposure = Scene3d.exposureValue 5
+        , toneMapping = Scene3d.noToneMapping
+        , whiteBalance = Scene3d.Light.daylight
+        , aspectRatio = 10/9
+        , supersampling = 1
+        , entities = nymList
+        }
+
+
+oldViewNym : MouseInput -> Scene3d.Entity () -> Element Msg
+oldViewNym mouseInput interpolatedNym =
     Element.el
         [ Element.centerX
         , Element.centerY
