@@ -247,7 +247,7 @@ update msg model =
 
 mouseIsIdle : Model -> Bool
 mouseIsIdle model =
-    Time.toSecond Time.utc model.now - Time.toSecond Time.utc model.lastMouseMoveTime > 4
+    Time.toSecond Time.utc model.now - Time.toSecond Time.utc model.lastMouseMoveTime > 2
 
 
 keyIsIdle : Model -> Bool
