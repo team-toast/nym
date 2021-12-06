@@ -286,7 +286,7 @@ consumeFullEyeQuadAndPupil source =
                                         , topRight = eyeQuadAndPupil2d.eyeQuad.topRight |> to3d 0
                                         }
                                         (eyeQuadAndPupil2d.pupil
-                                            |> List.map (TupleHelpers.mapTuple3 (to3d 0.01))
+                                            |> List.map (TupleHelpers.mapTuple3 (to3d 0.001))
                                         )
                             in
                             ( source2
