@@ -11,9 +11,7 @@ module BinarySource exposing
     , consumeDouble
     , consumeFloat0to1
     , consumeFloatRange
-    ,  consumeInt
-       -- , consumeSeveralValues
-
+    , consumeInt
     , consumeTriple
     , consumeUnsignedFloat
     , consumeVector3
@@ -24,13 +22,16 @@ module BinarySource exposing
     , empty
     , emptyConsume
     , fromBitsString
+    , fromHexString
     , getBitsString
     , map
     , remainingBits
     , unsafeFromBitsString
     )
 
+import Binary
 import Color exposing (Color)
+import Hex
 import List.Extra
 import Maybe.Extra
 import String
@@ -80,6 +81,38 @@ fromBitsString str =
 unsafeFromBitsString : String -> BinarySource
 unsafeFromBitsString str =
     BinarySource str
+
+
+fromHexString : String -> Maybe BinarySource
+fromHexString =
+    String.toList
+        >> List.map hexCharToPaddedBitsString
+        >> Maybe.Extra.combine
+        >> Maybe.map String.concat
+        >> Maybe.andThen fromBitsString
+
+
+hexCharToPaddedBitsString : Char -> Maybe String
+hexCharToPaddedBitsString =
+    String.fromChar
+        >> String.toLower
+        >> Hex.fromString
+        >> Result.toMaybe
+        >> Maybe.map
+            (Binary.fromDecimal
+                >> Binary.toBooleans
+                >> List.map
+                    (\b ->
+                        if b then
+                            '1'
+
+                        else
+                            '0'
+                    )
+                >> String.fromList
+                >> String.padLeft 4 '0'
+            )
+
 
 
 remainingBits : BinarySource -> Int
