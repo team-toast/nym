@@ -2,6 +2,7 @@ module Types exposing (..)
 
 import BinarySource exposing (BinarySource)
 import Color exposing (Color)
+import Direction3d exposing (Direction3d)
 import Length
 import Point2d exposing (Point2d)
 import Point3d exposing (Point3d)
@@ -10,7 +11,6 @@ import SketchPlane3d exposing (SketchPlane3d)
 import Triangle2d exposing (Triangle2d)
 import Vector2 exposing (Vector2)
 import Vector3 exposing (Vector3)
-import Direction3d exposing (Direction3d)
 
 
 type GenError
@@ -23,6 +23,29 @@ type GenError
 
 type alias Point3dM =
     Point3d Length.Meters ()
+
+
+type alias Structure =
+    { eyeQuadInfo : EyeQuadInfo
+    , noseTop : Vector3
+    , noseBridge : Vector3
+    , noseBottom : Vector3
+    , cheekbone : Vector3
+    , crownFront : Vector3
+    , crownBack : Vector3
+    , backZ : Float
+    , faceSideTop : Vector3
+    , faceSideMid : Vector3
+    , faceSideBottom : Vector3
+    , jawPoint : Vector3
+    , chin : Vector3
+    , earAttachFrontTop : Vector3
+    , earAttachFrontBottom : Vector3
+    , earBaseNormal : Direction3d ()
+    , earAttachBack : Vector3
+    , earAttachInside : Vector3
+    , earTip : Vector3
+    }
 
 
 type alias StructureTemplate =
@@ -67,6 +90,34 @@ type alias EyeQuadAndPupil2d =
 
 type alias Pupil2d =
     List ( Vector2, Vector2, Vector2 )
+
+
+type alias Coloring =
+    { snoutTop : Color
+    , snoutSideTopMajor : Color
+    , snoutSideTopMinor : Color
+    , snoutSideMiddle : Color
+    , noseTip : Color
+    , aboveCheekbone : Color
+    , bridge : Color
+    , forehead : Color
+    , aboveEye : Color
+    , eyeQuad : Color
+    , belowEar : Color
+    , faceSideTop : Color
+    , faceSideBottom : Color
+    , snoutSideBottom : Color
+    , jawSide : Color
+    , mouth : Color
+    , chinBottom : Color
+    , neck : Color
+    , crown : Color
+    , crownSide : Color
+    , earBackOuter : Color
+    , earBackInner : Color
+    , earFrontOuter : Color
+    , earFrontInner : Color
+    }
 
 
 type alias ColoringTemplate =
@@ -122,6 +173,12 @@ testEye =
 type alias NymTemplate =
     { structure : StructureTemplate
     , coloring : ColoringTemplate
+    }
+
+
+type alias Nym =
+    { structure : Structure
+    , coloring : Coloring
     }
 
 

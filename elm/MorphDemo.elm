@@ -275,6 +275,7 @@ cycleSeed oldSeed =
 pseudoRandomSourceFromTime : Time.Posix -> BinarySource
 pseudoRandomSourceFromTime =
     Time.posixToMillis
+        >> modBy 777
         >> String.fromInt
         >> badHashFunction
         >> seedToBinarySource
@@ -289,7 +290,7 @@ genNymTemplate : Int -> NymTemplate
 genNymTemplate seed =
     seed
         |> seedToBinarySource
-        |> binarySourceToNym
+        |> binarySourceToNymTemplate
         |> TupleHelpers.tuple3Last
 
 
@@ -352,7 +353,7 @@ view model =
                     model.morphProgress
                     model.oldNymTemplate
                     model.newNymTemplate
-                    |> makeNymEntity False
+                    |> renderNymTemplate False
                 )
             ]
 

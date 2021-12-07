@@ -30,8 +30,13 @@ import Vector3 exposing (Vector3)
 import Vector3d
 
 
-makeNymEntity : Bool -> NymTemplate -> Scene3d.Entity ()
-makeNymEntity showDebugLines nymTemplate =
+renderNym : Nym -> Scene3d.Entity ()
+renderNym nym =
+    Debug.todo ""
+
+
+renderNymTemplate : Bool -> NymTemplate -> Scene3d.Entity ()
+renderNymTemplate showDebugLines nymTemplate =
     let
         maybeDebugLines =
             if showDebugLines then
@@ -441,8 +446,15 @@ meterTriangleWithDefaults name colorResult v1Result v2Result v3Result =
         |> defaultAndLogEntityError name
 
 
-binarySourceToNym : BinarySource -> ( String, ( Int, List Int ), NymTemplate )
-binarySourceToNym source =
+binarySourceToNym : BinarySource -> Result ( String, GenError ) Nym
+binarySourceToNym =
+    binarySourceToNymTemplate
+        >> TupleHelpers.tuple3Last
+        >> finalizeTemplate
+
+
+binarySourceToNymTemplate : BinarySource -> ( String, ( Int, List Int ), NymTemplate )
+binarySourceToNymTemplate source =
     let
         ( rSource1, coreStructureTemplate, structureDemarcatePositions ) =
             Generate.consumeCoreStructureToTemplate source
@@ -495,6 +507,11 @@ defaultAndLogColorError name =
             Color.black
         )
         identity
+
+
+finalizeTemplate : NymTemplate -> Result ( String, GenError ) Nym
+finalizeTemplate template =
+    Debug.todo ""
 
 
 

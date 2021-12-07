@@ -21,9 +21,11 @@
             "ianmackenzie/elm-3d-scene": "1.0.1",
             "ianmackenzie/elm-geometry": "3.9.1",
             "ianmackenzie/elm-units": "2.9.0",
+            "icidasset/elm-binary": "2.1.0",
             "ktonon/elm-crypto": "1.1.2",
             "malaire/elm-uint64": "2.0.0",
-            "mdgriffith/elm-ui": "1.1.8"
+            "mdgriffith/elm-ui": "1.1.8",
+            "rtfeldman/elm-hex": "1.0.0"
         },
         "indirect": {
             "elm/url": "1.0.0",

@@ -292,7 +292,7 @@ randomBinarySources masterSeed =
 remainingBitsAndDemoNymTemplates : String -> Int -> List ( String, ( Int, List Int ), NymTemplate )
 remainingBitsAndDemoNymTemplates tweakSourceStr seed =
     demoNymSources tweakSourceStr seed
-        |> List.map binarySourceToNym
+        |> List.map binarySourceToNymTemplate
 
 
 genNyms : String -> Int -> ( List ( Scene3d.Entity (), Point3dM ), ( Int, List Int ) )
@@ -352,7 +352,7 @@ genNymEntitiesBitsUsedAndPositions tweakSourceStr seed =
                         in
                         Point3d.meters x y 0
                 in
-                ( usedBitsString, Nym.makeNymEntity showDebugLines nymTemplate, nymPosition )
+                ( usedBitsString, Nym.renderNymTemplate showDebugLines nymTemplate, nymPosition )
             )
     , ( bitsUsed, demarcatePositions )
     )
