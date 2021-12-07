@@ -66,7 +66,7 @@ type alias Model =
     , morphAccel : Float
     , seed : Int
     , lastMouseMoveTime : Time.Posix
-    , lastKeyPressedTime : Time.Posix
+    , lastMouseClickTime : Time.Posix
     , now : Time.Posix
     }
 
@@ -88,7 +88,7 @@ initModel =
     , morphAccel = 0
     , seed = firstSeed
     , lastMouseMoveTime = Time.millisToPosix 0
-    , lastKeyPressedTime = Time.millisToPosix 0
+    , lastMouseClickTime = Time.millisToPosix 0
     , now = Time.millisToPosix 0
     }
 
@@ -128,7 +128,7 @@ update msg model =
 
         NewSeed ->
             ( { model
-                | lastKeyPressedTime = model.now
+                | lastMouseClickTime = model.now
               }
                 |> updateWithNewSeed
             , Cmd.none
@@ -243,7 +243,7 @@ mouseMoveIsIdle model =
 
 mouseClickIsIdle : Model -> Bool
 mouseClickIsIdle model =
-    Time.toSecond Time.utc model.now - Time.toSecond Time.utc model.lastKeyPressedTime > 4
+    Time.toSecond Time.utc model.now - Time.toSecond Time.utc model.lastMouseClickTime > 4
 
 
 updateWithNewSeed : Model -> Model
