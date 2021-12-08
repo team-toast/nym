@@ -4,4 +4,4 @@ import RenderNym
 
 main = 
     RenderNym.reactor
-        "F"
+        (String.repeat 32 "F")

@@ -23,6 +23,7 @@ module BinarySource exposing
     , emptyConsume
     , fromBitsString
     , fromHexString
+    , fromUint256Hex
     , getBitsString
     , map
     , remainingBits
@@ -83,6 +84,12 @@ unsafeFromBitsString str =
     BinarySource str
 
 
+fromUint256Hex : String -> Maybe BinarySource
+fromUint256Hex =
+    String.padLeft 32 '0'
+        >> fromHexString
+
+
 fromHexString : String -> Maybe BinarySource
 fromHexString =
     String.toList
@@ -112,7 +119,6 @@ hexCharToPaddedBitsString =
                 >> String.fromList
                 >> String.padLeft 4 '0'
             )
-
 
 
 remainingBits : BinarySource -> Int

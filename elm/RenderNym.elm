@@ -97,7 +97,7 @@ init : Flags -> ( Model, Cmd Msg )
 init nymHexData =
     let
         nymResult =
-            BinarySource.fromHexString nymHexData
+            BinarySource.fromUint256Hex nymHexData
                 |> Result.fromMaybe MalformedHexIdentifier
                 |> Result.andThen
                     (binarySourceToNym
