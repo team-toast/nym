@@ -4,3 +4,7 @@ sol/migrations
 Migrations.sol
 **/node_modules
 org/
+.vscode/
+index.html
+flat.sol
+testDeploys.sol
