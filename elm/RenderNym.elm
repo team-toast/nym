@@ -1,4 +1,4 @@
-module RenderNym exposing (main)
+module RenderNym exposing (main, reactor)
 
 import Angle
 import Axis3d
@@ -73,6 +73,26 @@ type alias Flags =
     String
 
 
+main : Program Flags Model Msg
+main =
+    Browser.element
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
+
+
+reactor : Flags -> Program () Model Msg
+reactor flags =
+    Browser.element
+        { init = always <| init flags
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
+
+
 init : Flags -> ( Model, Cmd Msg )
 init nymHexData =
     let
@@ -81,7 +101,14 @@ init nymHexData =
                 |> Result.fromMaybe MalformedHexIdentifier
                 |> Result.andThen
                     (binarySourceToNym
-                        >> Result.mapError NymGenError
+                        >> Result.mapError
+                            (\e ->
+                                let
+                                    _ =
+                                        Debug.log "something wrong with this template" (Tuple.first e)
+                                in
+                                NymGenError e
+                            )
                     )
     in
     ( { mouseInput = MouseInput 0 0
@@ -92,16 +119,6 @@ init nymHexData =
       }
     , Cmd.none
     )
-
-
-main : Program Flags Model Msg
-main =
-    Browser.element
-        { init = init
-        , view = view
-        , update = update
-        , subscriptions = subscriptions
-        }
 
 
 pseudoRandomSourceFromTime : Time.Posix -> BinarySource
@@ -275,11 +292,7 @@ viewRenderError err =
                 MalformedHexIdentifier ->
                     "Malformed Nym Identifier - invalid hex uint"
 
-                NymGenError ( template, genErr ) ->
-                    let
-                        _ =
-                            Debug.log "something wrong with this template" template
-                    in
+                NymGenError ( _, genErr ) ->
                     genErrorToString genErr
 
 
