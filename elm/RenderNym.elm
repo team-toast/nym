@@ -55,15 +55,15 @@ type alias MouseInput =
     }
 
 
-type GenerateError
+type NymRenderError
     = MalformedHexIdentifier
-    | NymGenError ( String, GenError )
+    | NymGenError ( NymTemplate, GenError )
 
 
 type alias Model =
     { mouseInput : MouseInput
     , laggedMouse : MouseInput
-    , nymResult : Result GenerateError Nym
+    , nymResult : Result NymRenderError Nym
     , lastMouseMoveTime : Time.Posix
     , now : Time.Posix
     }
@@ -243,23 +243,44 @@ mouseInputToNymFocusPoint3d mouseInput =
 
 view : Model -> Html Msg
 view model =
-    case model.nymResult of
+    Element.layout
+        [ Element.width Element.fill
+        , Element.height Element.fill
+        ]
+    <|
+        viewNymOrError model.laggedMouse model.nymResult
+
+
+viewNymOrError : MouseInput -> Result NymRenderError Nym -> Element Msg
+viewNymOrError laggedMouse nymResult =
+    case nymResult of
         Ok nym ->
-            Element.layout
-                [ Element.width Element.fill
-                , Element.height Element.fill
-                ]
-            <|
-                Element.column
-                    [ Element.width Element.fill
-                    , Element.height Element.fill
-                    , Element.spacing 10
-                    ]
-                    [ viewNym model.laggedMouse nym
-                    ]
+            viewNym laggedMouse nym
 
         Err e ->
-            Debug.todo ""
+            viewRenderError e
+
+
+viewRenderError : NymRenderError -> Element Msg
+viewRenderError err =
+    Element.el
+        [ Element.centerX
+        , Element.centerY
+        , Font.size 20
+        , Font.color <| Element.rgb 0.3 0.3 0.3
+        ]
+    <|
+        Element.text <|
+            case err of
+                MalformedHexIdentifier ->
+                    "Malformed Nym Identifier - invalid hex uint"
+
+                NymGenError ( template, genErr ) ->
+                    let
+                        _ =
+                            Debug.log "something wrong with this template" template
+                    in
+                    genErrorToString genErr
 
 
 viewNym : MouseInput -> Nym -> Element Msg

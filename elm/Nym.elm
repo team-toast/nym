@@ -31,8 +31,9 @@ import Vector3d
 
 
 renderNym : Nym -> Scene3d.Entity ()
-renderNym nym =
-    Debug.todo ""
+renderNym =
+    nymToOkTemplate
+        >> renderNymTemplate False
 
 
 renderNymTemplate : Bool -> NymTemplate -> Scene3d.Entity ()
@@ -446,11 +447,14 @@ meterTriangleWithDefaults name colorResult v1Result v2Result v3Result =
         |> defaultAndLogEntityError name
 
 
-binarySourceToNym : BinarySource -> Result ( String, GenError ) Nym
+binarySourceToNym : BinarySource -> Result ( NymTemplate, GenError ) Nym
 binarySourceToNym =
     binarySourceToNymTemplate
         >> TupleHelpers.tuple3Last
-        >> finalizeTemplate
+        >> (\template ->
+                finalizeTemplate template
+                    |> Result.mapError (Tuple.pair template)
+           )
 
 
 binarySourceToNymTemplate : BinarySource -> ( String, ( Int, List Int ), NymTemplate )
@@ -509,9 +513,243 @@ defaultAndLogColorError name =
         identity
 
 
-finalizeTemplate : NymTemplate -> Result ( String, GenError ) Nym
+finalizeTemplate : NymTemplate -> Result GenError Nym
 finalizeTemplate template =
-    Debug.todo ""
+    Result.map2 Tuple.pair
+        (Result.map3 TupleHelpers.tuple3
+            (Result.map3 TupleHelpers.tuple3
+                (Result.map3 TupleHelpers.tuple3
+                    template.structure.eyeQuadInfo
+                    template.structure.noseTop
+                    template.structure.noseBridge
+                )
+                (Result.map3 TupleHelpers.tuple3
+                    template.structure.noseBottom
+                    template.structure.cheekbone
+                    template.structure.crownFront
+                )
+                (Result.map3 TupleHelpers.tuple3
+                    template.structure.crownBack
+                    template.structure.backZ
+                    template.structure.faceSideTop
+                )
+            )
+            (Result.map3 TupleHelpers.tuple3
+                (Result.map3 TupleHelpers.tuple3
+                    template.structure.faceSideMid
+                    template.structure.faceSideBottom
+                    template.structure.jawPoint
+                )
+                (Result.map3 TupleHelpers.tuple3
+                    template.structure.chin
+                    template.structure.earAttachFrontTop
+                    template.structure.earAttachFrontBottom
+                )
+                (Result.map3 TupleHelpers.tuple3
+                    template.structure.earBaseNormal
+                    template.structure.earAttachBack
+                    template.structure.earAttachInside
+                )
+            )
+            (Result.map3 TupleHelpers.tuple3
+                (Result.map3 TupleHelpers.tuple3
+                    template.structure.earTip
+                    template.coloring.snoutTop
+                    template.coloring.snoutSideTopMajor
+                )
+                (Result.map3 TupleHelpers.tuple3
+                    template.coloring.snoutSideTopMinor
+                    template.coloring.snoutSideMiddle
+                    template.coloring.noseTip
+                )
+                (Result.map3 TupleHelpers.tuple3
+                    template.coloring.aboveCheekbone
+                    template.coloring.bridge
+                    template.coloring.forehead
+                )
+            )
+        )
+        (Result.map2 Tuple.pair
+            (Result.map3 TupleHelpers.tuple3
+                (Result.map3 TupleHelpers.tuple3
+                    template.coloring.aboveEye
+                    template.coloring.eyeQuad
+                    template.coloring.belowEar
+                )
+                (Result.map3 TupleHelpers.tuple3
+                    template.coloring.faceSideTop
+                    template.coloring.faceSideBottom
+                    template.coloring.snoutSideBottom
+                )
+                (Result.map3 TupleHelpers.tuple3
+                    template.coloring.jawSide
+                    template.coloring.mouth
+                    template.coloring.chinBottom
+                )
+            )
+            (Result.map3 TupleHelpers.tuple3
+                (Result.map3 TupleHelpers.tuple3
+                    template.coloring.neck
+                    template.coloring.crown
+                    template.coloring.crownSide
+                )
+                (Result.map3 TupleHelpers.tuple3
+                    template.coloring.earBackOuter
+                    template.coloring.earBackInner
+                    template.coloring.earFrontOuter
+                )
+                template.coloring.earFrontInner
+            )
+        )
+        |> Result.map
+            (\( ( ( ( structureEyeQuadInfo, structureNoseTop, structureNoseBridge ), ( structureNoseBottom, structureCheekbone, structureCrownFront ), ( structureCrownBack, structureBackZ, structureFaceSideTop ) ), ( ( structureFaceSideMid, structureFaceSideBottom, structureJawPoint ), ( structureChin, structureEarAttachFrontTop, structureEarAttachFrontBottom ), ( structureEarBaseNormal, structureEarAttachBack, structureEarAttachInside ) ), ( ( structureEarTip, coloringSnoutTop, coloringSnoutSideTopMajor ), ( coloringSnoutSideTopMinor, coloringSnoutSideMiddle, coloringNoseTip ), ( coloringAboveCheekbone, coloringBridge, coloringForehead ) ) ), ( ( ( coloringAboveEye, coloringEyeQuad, coloringBelowEar ), ( coloringFaceSideTop, coloringFaceSideBottom, coloringSnoutSideBottom ), ( coloringJawSide, coloringMouth, coloringChinBottom ) ), ( ( coloringNeck, coloringCrown, coloringCrownSide ), ( coloringEarBackOuter, coloringEarBackInner, coloringEarFrontOuter ), coloringEarFrontInner ) ) ) ->
+                Nym
+                    { eyeQuadInfo = structureEyeQuadInfo
+                    , noseTop = structureNoseTop
+                    , noseBridge = structureNoseBridge
+                    , noseBottom = structureNoseBottom
+                    , cheekbone = structureCheekbone
+                    , crownFront = structureCrownFront
+                    , crownBack = structureCrownBack
+                    , backZ = structureBackZ
+                    , faceSideTop = structureFaceSideTop
+                    , faceSideMid = structureFaceSideMid
+                    , faceSideBottom = structureFaceSideBottom
+                    , jawPoint = structureJawPoint
+                    , chin = structureChin
+                    , earAttachFrontTop = structureEarAttachFrontTop
+                    , earAttachFrontBottom = structureEarAttachFrontBottom
+                    , earBaseNormal = structureEarBaseNormal
+                    , earAttachBack = structureEarAttachBack
+                    , earAttachInside = structureEarAttachInside
+                    , earTip = structureEarTip
+                    }
+                    { snoutTop = coloringSnoutTop
+                    , snoutSideTopMajor = coloringSnoutSideTopMajor
+                    , snoutSideTopMinor = coloringSnoutSideTopMinor
+                    , snoutSideMiddle = coloringSnoutSideMiddle
+                    , noseTip = coloringNoseTip
+                    , aboveCheekbone = coloringAboveCheekbone
+                    , bridge = coloringBridge
+                    , forehead = coloringForehead
+                    , aboveEye = coloringAboveEye
+                    , eyeQuad = coloringEyeQuad
+                    , belowEar = coloringBelowEar
+                    , faceSideTop = coloringFaceSideTop
+                    , faceSideBottom = coloringFaceSideBottom
+                    , snoutSideBottom = coloringSnoutSideBottom
+                    , jawSide = coloringJawSide
+                    , mouth = coloringMouth
+                    , chinBottom = coloringChinBottom
+                    , neck = coloringNeck
+                    , crown = coloringCrown
+                    , crownSide = coloringCrownSide
+                    , earBackOuter = coloringEarBackOuter
+                    , earBackInner = coloringEarBackInner
+                    , earFrontOuter = coloringEarFrontOuter
+                    , earFrontInner = coloringEarFrontInner
+                    }
+            )
+
+
+
+-- case
+-- Nym
+--     { eyeQuadInfo = template.structure.eyeQuadInfo
+--     , noseTop = template.structure.noseTop
+--     , noseBridge = template.structure.noseBridge
+--     , noseBottom = template.structure.noseBottom
+--     , cheekbone = template.structure.cheekbone
+--     , crownFront = template.structure.crownFront
+--     , crownBack = template.structure.crownBack
+--     , backZ = template.structure.backZ
+--     , faceSideTop = template.structure.faceSideTop
+--     , faceSideMid = template.structure.faceSideMid
+--     , faceSideBottom = template.structure.faceSideBottom
+--     , jawPoint = template.structure.jawPoint
+--     , chin = template.structure.chin
+--     , earAttachFrontTop = template.structure.earAttachFrontTop
+--     , earAttachFrontBottom = template.structure.earAttachFrontBottom
+--     , earBaseNormal = template.structure.earBaseNormal
+--     , earAttachBack = template.structure.earAttachBack
+--     , earAttachInside = template.structure.earAttachInside
+--     , earTip = template.structure.earTip
+--     }
+--     { snoutTop = template.coloring.snoutTop
+--     , snoutSideTopMajor = template.coloring.snoutSideTopMajor
+--     , snoutSideTopMinor = template.coloring.snoutSideTopMinor
+--     , snoutSideMiddle = template.coloring.snoutSideMiddle
+--     , noseTip = template.coloring.noseTip
+--     , aboveCheekbone = template.coloring.aboveCheekbone
+--     , bridge = template.coloring.bridge
+--     , forehead = template.coloring.forehead
+--     , aboveEye = template.coloring.aboveEye
+--     , eyeQuad = template.coloring.eyeQuad
+--     , belowEar = template.coloring.belowEar
+--     , faceSideTop = template.coloring.faceSideTop
+--     , faceSideBottom = template.coloring.faceSideBottom
+--     , snoutSideBottom = template.coloring.snoutSideBottom
+--     , jawSide = template.coloring.jawSide
+--     , mouth = template.coloring.mouth
+--     , chinBottom = template.coloring.chinBottom
+--     , neck = template.coloring.neck
+--     , crown = template.coloring.crown
+--     , crownSide = template.coloring.crownSide
+--     , earBackOuter = template.coloring.earBackOuter
+--     , earBackInner = template.coloring.earBackInner
+--     , earFrontOuter = template.coloring.earFrontOuter
+--     , earFrontInner = template.coloring.earFrontInner
+--     }
+
+
+nymToOkTemplate : Nym -> NymTemplate
+nymToOkTemplate nym =
+    NymTemplate
+        { eyeQuadInfo = Ok nym.structure.eyeQuadInfo
+        , noseTop = Ok nym.structure.noseTop
+        , noseBridge = Ok nym.structure.noseBridge
+        , noseBottom = Ok nym.structure.noseBottom
+        , cheekbone = Ok nym.structure.cheekbone
+        , crownFront = Ok nym.structure.crownFront
+        , crownBack = Ok nym.structure.crownBack
+        , backZ = Ok nym.structure.backZ
+        , faceSideTop = Ok nym.structure.faceSideTop
+        , faceSideMid = Ok nym.structure.faceSideMid
+        , faceSideBottom = Ok nym.structure.faceSideBottom
+        , jawPoint = Ok nym.structure.jawPoint
+        , chin = Ok nym.structure.chin
+        , earAttachFrontTop = Ok nym.structure.earAttachFrontTop
+        , earAttachFrontBottom = Ok nym.structure.earAttachFrontBottom
+        , earBaseNormal = Ok nym.structure.earBaseNormal
+        , earAttachBack = Ok nym.structure.earAttachBack
+        , earAttachInside = Ok nym.structure.earAttachInside
+        , earTip = Ok nym.structure.earTip
+        }
+        { snoutTop = Ok nym.coloring.snoutTop
+        , snoutSideTopMajor = Ok nym.coloring.snoutSideTopMajor
+        , snoutSideTopMinor = Ok nym.coloring.snoutSideTopMinor
+        , snoutSideMiddle = Ok nym.coloring.snoutSideMiddle
+        , noseTip = Ok nym.coloring.noseTip
+        , aboveCheekbone = Ok nym.coloring.aboveCheekbone
+        , bridge = Ok nym.coloring.bridge
+        , forehead = Ok nym.coloring.forehead
+        , aboveEye = Ok nym.coloring.aboveEye
+        , eyeQuad = Ok nym.coloring.eyeQuad
+        , belowEar = Ok nym.coloring.belowEar
+        , faceSideTop = Ok nym.coloring.faceSideTop
+        , faceSideBottom = Ok nym.coloring.faceSideBottom
+        , snoutSideBottom = Ok nym.coloring.snoutSideBottom
+        , jawSide = Ok nym.coloring.jawSide
+        , mouth = Ok nym.coloring.mouth
+        , chinBottom = Ok nym.coloring.chinBottom
+        , neck = Ok nym.coloring.neck
+        , crown = Ok nym.coloring.crown
+        , crownSide = Ok nym.coloring.crownSide
+        , earBackOuter = Ok nym.coloring.earBackOuter
+        , earBackInner = Ok nym.coloring.earBackInner
+        , earFrontOuter = Ok nym.coloring.earFrontOuter
+        , earFrontInner = Ok nym.coloring.earFrontInner
+        }
 
 
 

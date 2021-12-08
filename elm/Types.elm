@@ -15,10 +15,8 @@ import Vector3 exposing (Vector3)
 
 type GenError
     = NotEnoughSource
-    | InvalidIndex
     | NotYetSet
     | UnexpectedNothing String
-    | OtherError String
 
 
 type alias Point3dM =
@@ -161,15 +159,6 @@ testEye =
     Point3d.meters 0.3 0.05 0.4
 
 
-
--- testNym : Nym
--- testNym =
---     Nym
---         testStructure
---         testEye
---         testColoring
-
-
 type alias NymTemplate =
     { structure : StructureTemplate
     , coloring : ColoringTemplate
@@ -248,3 +237,18 @@ allSetStructurePoints structureTemplate =
                         True
             )
         |> Result.Extra.combine
+
+
+genErrorToString : GenError -> String
+genErrorToString err =
+    (case err of
+        NotEnoughSource ->
+            "Ran out of data while generating nym structure and color."
+
+        NotYetSet ->
+            "A data field was left empty in the template."
+
+        UnexpectedNothing info ->
+            "Unexpected \"Nothing\": " ++ info ++ " | "
+    )
+        ++ " Check the console for more debug information."

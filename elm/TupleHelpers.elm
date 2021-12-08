@@ -4,6 +4,11 @@ import List.Extra
 import Tuple
 
 
+tuple3 : a -> b -> c -> (a, b, c)
+tuple3 a b c =
+    (a, b, c)
+
+
 extractTuple3Maybe : ( Maybe a, Maybe b, Maybe c ) -> Maybe ( a, b, c )
 extractTuple3Maybe ( ma, mb, mc ) =
     case ( ma, mb, mc ) of
