@@ -1,0 +1,21 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Render Nym</title>
+  <script src="renderNym.js"></script>
+</head>
+
+<body>
+    <div id="elmdiv"></div>
+    <script>
+        function getIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
+        }
+        var app = Elm.RenderNym.init({
+            node: document.getElementById('elmdiv'),
+            flags: getIdFromUrl()
+        });
+    </script>
+</body>
+</html>
