@@ -2,6 +2,7 @@ module RenderNym exposing (main, reactor)
 
 import Angle
 import Axis3d
+import BigInt
 import BinarySource exposing (BinarySource)
 import Browser
 import Browser.Events
@@ -56,7 +57,7 @@ type alias MouseInput =
 
 
 type NymRenderError
-    = MalformedHexIdentifier
+    = MalformedIdentifier
     | NymGenError ( NymTemplate, GenError )
 
 
@@ -94,11 +95,12 @@ reactor flags =
 
 
 init : Flags -> ( Model, Cmd Msg )
-init nymHexData =
+init nymDataString =
     let
         nymResult =
-            BinarySource.fromUint256Hex nymHexData
-                |> Result.fromMaybe MalformedHexIdentifier
+            nymDataString
+                |> binarySourceFromDecIfPossibleOtherwiseHex
+                |> Result.fromMaybe MalformedIdentifier
                 |> Result.andThen
                     (binarySourceToNym
                         >> Result.mapError
@@ -119,6 +121,34 @@ init nymHexData =
       }
     , Cmd.none
     )
+
+
+binarySourceFromDecIfPossibleOtherwiseHex : String -> Maybe BinarySource
+binarySourceFromDecIfPossibleOtherwiseHex ambiguousData =
+    -- this rests on the assumption that the Alpha Nym set will never mint a Nym
+    -- whose hex-encoded uint data results in an all decimal string.
+    -- (this will be specifically enforced during the airdrop).
+    --
+    -- Thus we can assume that any all-decimal string is meant as a decimal
+    -- (even though this violates the ERC1155 standard. Thanks OpenSea!)
+    -- we attempt a decimal decoding first, knowing that if there are any alpha characters this will fail
+    -- (and then attempt hex decoding).
+    --
+    -- This way we serve both the standard-following clients
+    -- (who will supply a hex encoding that's guaranteed to have at least one non-decimal character as per the minting)
+    -- and the OpenSea-type retards, who will supply a fully decimal number.
+    let
+        maybeBigintData =
+            case BigInt.fromIntString ambiguousData of
+                Just bigint ->
+                    Just bigint
+
+                Nothing ->
+                    ambiguousData
+                        |> BigInt.fromHexString
+    in
+    maybeBigintData
+        |> Maybe.andThen BinarySource.fromBigInt
 
 
 pseudoRandomSourceFromTime : Time.Posix -> BinarySource
@@ -289,8 +319,8 @@ viewRenderError err =
     <|
         Element.text <|
             case err of
-                MalformedHexIdentifier ->
-                    "Malformed Nym Identifier - invalid hex uint"
+                MalformedIdentifier ->
+                    "Malformed Nym Identifier - must provide hex or decimal uint"
 
                 NymGenError ( _, genErr ) ->
                     genErrorToString genErr

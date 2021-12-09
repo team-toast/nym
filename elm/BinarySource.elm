@@ -21,8 +21,10 @@ module BinarySource exposing
     , debugLogAboutToConsume
     , empty
     , emptyConsume
+    , fromBigInt
     , fromBitsString
     , fromHexString
+    , fromIntString
     , fromUint256Hex
     , getBitsString
     , map
@@ -30,6 +32,7 @@ module BinarySource exposing
     , unsafeFromBitsString
     )
 
+import BigInt exposing (BigInt)
 import Binary
 import Color exposing (Color)
 import Hex
@@ -97,6 +100,20 @@ fromHexString =
         >> Maybe.Extra.combine
         >> Maybe.map String.concat
         >> Maybe.andThen fromBitsString
+
+
+fromIntString : String -> Maybe BinarySource
+fromIntString =
+    BigInt.fromIntString
+        >> Maybe.map BigInt.toHexString
+        >> Maybe.andThen fromHexString
+
+
+fromBigInt : BigInt -> Maybe BinarySource
+fromBigInt =
+    BigInt.toHexString
+        >> String.padLeft 64 '0'
+        >> fromHexString
 
 
 hexCharToPaddedBitsString : Char -> Maybe String
