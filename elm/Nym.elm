@@ -354,6 +354,21 @@ renderNymTemplate showDebugLines nymTemplate =
         -- testPoint nymTemplate.structure.jawPoint
     in
     allFeatures
+        |> Scene3d.translateBy
+            (nymBoundingBoxCenterPoint nymTemplate
+                |> Result.withDefault (Vector3 0 0 0)
+                |> Vector3.negate
+                |> Vector3.toMetersVector
+            )
+
+
+nymBoundingBoxCenterPoint : NymTemplate -> Result GenError Vector3
+nymBoundingBoxCenterPoint template =
+    getBoundingBox template.structure
+        |> Result.map
+            (\( boundStart, boundEnd ) ->
+                Vector3.midpoint boundStart boundEnd
+            )
 
 
 testPoint vectorResult =

@@ -323,7 +323,7 @@ viewRenderError err =
                     "Malformed Nym Identifier - must provide hex or decimal uint"
 
                 NymGenError ( _, genErr ) ->
-                    genErrorToString genErr
+                    Utils.genErrorToString genErr
 
 
 viewNym : MouseInput -> Nym -> Element Msg

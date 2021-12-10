@@ -1,5 +1,6 @@
 module Utils exposing (..)
 
+import Result.Extra
 import Color exposing (Color)
 import Direction3d
 import Html.Attributes exposing (wrap)
@@ -97,8 +98,8 @@ scaleColorAndCap scale color =
 interpolateColors : Float -> Color -> Color -> Color
 interpolateColors interp c1 c2 =
     let
-        (c1Rgba, c2Rgba) =
-            (c1, c2)
+        ( c1Rgba, c2Rgba ) =
+            ( c1, c2 )
                 |> TupleHelpers.mapTuple2 Color.toRgba
     in
     Color.fromRgba
@@ -167,3 +168,94 @@ interpolateVector2InQuad quad v =
     Vector2
         (v.x * (xRangeEnd - xRangeStart) + xRangeStart)
         (v.y * (yRangeEnd - yRangeStart) + yRangeStart)
+
+
+
+-- filters out NotYetSet points, and returns either a full list of points or the first other error it encounters.
+
+
+allSetStructurePoints : StructureTemplate -> Result GenError (List Vector3)
+allSetStructurePoints structureTemplate =
+    let
+        toMirror =
+            [ structureTemplate.eyeQuadInfo |> Result.map (.eyeQuad >> .topLeft)
+            , structureTemplate.eyeQuadInfo |> Result.map (.eyeQuad >> .topRight)
+            , structureTemplate.eyeQuadInfo |> Result.map (.eyeQuad >> .bottomLeft)
+            , structureTemplate.eyeQuadInfo |> Result.map (.eyeQuad >> .bottomRight)
+            , structureTemplate.noseTop
+            , structureTemplate.noseBridge
+            , structureTemplate.noseBottom
+            , structureTemplate.cheekbone
+            , structureTemplate.crownFront
+            , structureTemplate.faceSideTop
+            , structureTemplate.faceSideMid
+            , structureTemplate.faceSideBottom
+            , structureTemplate.jawPoint
+            , structureTemplate.chin
+            , structureTemplate.crownBack
+            , structureTemplate.earAttachFrontTop
+            , structureTemplate.earAttachFrontBottom
+            , structureTemplate.earAttachBack
+            , structureTemplate.earTip
+            , structureTemplate.earAttachInside
+            ]
+    in
+    List.append
+        toMirror
+        (toMirror
+            |> List.map (Result.map mirrorPoint)
+        )
+        |> List.filter
+            -- filter out all Err NotYetSet
+            (\res ->
+                case res of
+                    Err NotYetSet ->
+                        False
+
+                    _ ->
+                        True
+            )
+        |> Result.Extra.combine
+
+
+genErrorToString : GenError -> String
+genErrorToString err =
+    (case err of
+        NotEnoughSource ->
+            "Ran out of data while generating nym structure and color."
+
+        NotYetSet ->
+            "A data field was left empty in the template."
+
+        UnexpectedNothing info ->
+            "Unexpected \"Nothing\": " ++ info ++ " | "
+    )
+        ++ " Check the console for more debug information."
+
+
+getBoundingBox : StructureTemplate -> Result GenError Vector3.RectBounds
+getBoundingBox template =
+    let
+        folder : Vector3 -> Maybe Vector3.RectBounds -> Maybe Vector3.RectBounds
+        folder point maybeBounds =
+            case maybeBounds of
+                Nothing ->
+                    Just ( point, point )
+
+                Just ( boundStart, boundEnd ) ->
+                    Just
+                        ( Vector3
+                            (min point.x boundStart.x)
+                            (min point.y boundStart.y)
+                            (min point.z boundStart.z)
+                        , Vector3
+                            (max point.x boundEnd.x)
+                            (max point.y boundEnd.y)
+                            (max point.z boundEnd.z)
+                        )
+    in
+    allSetStructurePoints template
+        |> Result.map
+            (List.foldl folder Nothing)
+        |> Result.map (Result.fromMaybe (UnexpectedNothing "getBoundingBox had no points to iterate over"))
+        |> Result.Extra.join

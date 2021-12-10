@@ -1202,29 +1202,4 @@ getDimensionSizes template =
             )
 
 
-getBoundingBox : StructureTemplate -> Result GenError Vector3.RectBounds
-getBoundingBox template =
-    let
-        folder : Vector3 -> Maybe Vector3.RectBounds -> Maybe Vector3.RectBounds
-        folder point maybeBounds =
-            case maybeBounds of
-                Nothing ->
-                    Just ( point, point )
 
-                Just ( boundStart, boundEnd ) ->
-                    Just
-                        ( Vector3
-                            (min point.x boundStart.x)
-                            (min point.y boundStart.y)
-                            (min point.z boundStart.z)
-                        , Vector3
-                            (max point.x boundEnd.x)
-                            (max point.y boundEnd.y)
-                            (max point.z boundEnd.z)
-                        )
-    in
-    allSetStructurePoints template
-        |> Result.map
-            (List.foldl folder Nothing)
-        |> Result.map (Result.fromMaybe (UnexpectedNothing "getBoundingBox had no points to iterate over"))
-        |> Result.Extra.join
