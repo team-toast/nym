@@ -652,56 +652,6 @@ finalizeTemplate template =
             )
 
 
-
--- case
--- Nym
---     { eyeQuadInfo = template.structure.eyeQuadInfo
---     , noseTop = template.structure.noseTop
---     , noseBridge = template.structure.noseBridge
---     , noseBottom = template.structure.noseBottom
---     , cheekbone = template.structure.cheekbone
---     , crownFront = template.structure.crownFront
---     , crownBack = template.structure.crownBack
---     , backZ = template.structure.backZ
---     , faceSideTop = template.structure.faceSideTop
---     , faceSideMid = template.structure.faceSideMid
---     , faceSideBottom = template.structure.faceSideBottom
---     , jawPoint = template.structure.jawPoint
---     , chin = template.structure.chin
---     , earAttachFrontTop = template.structure.earAttachFrontTop
---     , earAttachFrontBottom = template.structure.earAttachFrontBottom
---     , earBaseNormal = template.structure.earBaseNormal
---     , earAttachBack = template.structure.earAttachBack
---     , earAttachInside = template.structure.earAttachInside
---     , earTip = template.structure.earTip
---     }
---     { snoutTop = template.coloring.snoutTop
---     , snoutSideTopMajor = template.coloring.snoutSideTopMajor
---     , snoutSideTopMinor = template.coloring.snoutSideTopMinor
---     , snoutSideMiddle = template.coloring.snoutSideMiddle
---     , noseTip = template.coloring.noseTip
---     , aboveCheekbone = template.coloring.aboveCheekbone
---     , bridge = template.coloring.bridge
---     , forehead = template.coloring.forehead
---     , aboveEye = template.coloring.aboveEye
---     , eyeQuad = template.coloring.eyeQuad
---     , belowEar = template.coloring.belowEar
---     , faceSideTop = template.coloring.faceSideTop
---     , faceSideBottom = template.coloring.faceSideBottom
---     , snoutSideBottom = template.coloring.snoutSideBottom
---     , jawSide = template.coloring.jawSide
---     , mouth = template.coloring.mouth
---     , chinBottom = template.coloring.chinBottom
---     , neck = template.coloring.neck
---     , crown = template.coloring.crown
---     , crownSide = template.coloring.crownSide
---     , earBackOuter = template.coloring.earBackOuter
---     , earBackInner = template.coloring.earBackInner
---     , earFrontOuter = template.coloring.earFrontOuter
---     , earFrontInner = template.coloring.earFrontInner
---     }
-
-
 nymToOkTemplate : Nym -> NymTemplate
 nymToOkTemplate nym =
     NymTemplate
@@ -750,60 +700,6 @@ nymToOkTemplate nym =
         , earFrontOuter = Ok nym.coloring.earFrontOuter
         , earFrontInner = Ok nym.coloring.earFrontInner
         }
-
-
-
--- fillTemplateWithDefaults : NymTemplate -> NymTemplate
--- fillTemplateWithDefaults template =
---     { template
---         | coloring =
---             let
---                 coloring =
---                     template.coloring
---             in
---             { coloring
---                 | snoutTop = coloring.snoutTop |> Result.withDefault Color.lightRed |> Ok
---                 , snoutSideTopMajor = coloring.snoutSideTopMajor |> Result.withDefault Color.red |> Ok
---                 , snoutSideTopMinor = coloring.snoutSideTopMinor |> Result.withDefault Color.darkRed |> Ok
---                 , snoutSideMiddle = coloring.snoutSideMiddle |> Result.withDefault Color.lightOrange |> Ok
---                 , noseTip = coloring.noseTip |> Result.withDefault Color.orange |> Ok
---                 , aboveCheekbone = coloring.aboveCheekbone |> Result.withDefault Color.darkOrange |> Ok
---                 , bridge = coloring.bridge |> Result.withDefault Color.lightYellow |> Ok
---                 , forehead = coloring.forehead |> Result.withDefault Color.yellow |> Ok
---                 , aboveEye = coloring.aboveEye |> Result.withDefault Color.darkYellow |> Ok
---                 , eyeQuad = coloring.eyeQuad |> Result.withDefault Color.lightGreen |> Ok
---                 , belowEar = coloring.eyeQuad |> Result.withDefault Color.darkGreen |> Ok
---             }
---         , structure =
---             let
---                 coreStructure =
---                     template.structure
---             in
---             { coreStructure
---                 | eyeQuadInfo = coreStructure.eyeQuadInfo |> Result.withDefault defaultEyeQuadAndPupil |> Ok
---                 , noseTop = coreStructure.noseTop |> Result.withDefault (Vector3 0.1 0 1) |> Ok
---                 -- , crownBack = coreStructure.crownBack |> Result.withDefault (Vector3 0.5 1 0) |> Ok
---                 -- , crownFront = coreStructure.crownFront |> Result.withDefault (Vector3 0.5 1 0.25) |> Ok
---                 -- , innerBrow = coreStructure.innerBrow |> Result.withDefault (Vector3 0.3 0.4 0.3) |> Ok
---                 -- , outerBrow = coreStructure.outerBrow |> Result.withDefault (Vector3 0.7 0.45 0.2) |> Ok
---                 -- , outerTop = coreStructure.outerTop |> Result.withDefault (Vector3 1 0.5 0) |> Ok
---                 -- , jawBottom = coreStructure.jawBottom |> Result.withDefault (Vector3 1 -1 0) |> Ok
---                 -- , noseYandZ = coreStructure.noseYandZ |> Result.withDefault ( -0.8, 1 ) |> Ok
---             }
---     }
-
-
-defaultEyeQuadAndPupil : EyeQuadInfo
-defaultEyeQuadAndPupil =
-    EyeQuadInfo
-        SketchPlane3d.xy
-        (Vector3.Quad
-            (Vector3 0 0 0)
-            (Vector3 0 0 0)
-            (Vector3 0 0 0)
-            (Vector3 0 0 0)
-        )
-        [ ( Vector3 0 0 0, Vector3 0 0 0, Vector3 0 0 0 ) ]
 
 
 type alias EyeQuadAndPupil2d =
