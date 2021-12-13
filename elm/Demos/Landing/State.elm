@@ -2,27 +2,16 @@ module Demos.Landing.State exposing (..)
 
 import Demos.Common
 import Demos.Landing.Types exposing (..)
+import Demos.Morph
 
 
 init : Flags -> ( Model, Cmd Msg )
 init initialSeed =
-    ( { morphingModel =
-            initMorphingModel initialSeed
+    ( { morphModel =
+            Demos.Morph.initModel initialSeed
       }
     , Cmd.none
     )
-
-
-initMorphingModel : Int -> MorphingModel
-initMorphingModel seed =
-    let
-        initialNym =
-            Demos.Common.genNymTemplate seed
-    in
-    { oldNym = initialNym
-    , newNym = initialNym
-    , morphProgress = 1
-    }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -33,7 +22,19 @@ update msg model =
             , Cmd.none
             )
 
+        MorphMsg morphMsg ->
+            let
+                ( morphModel, morphCmd ) =
+                    Demos.Morph.update morphMsg model.morphModel
+            in
+            ( { model
+                | morphModel = morphModel
+              }
+            , Cmd.map MorphMsg morphCmd
+            )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Demos.Morph.subscriptions model.morphModel
+        |> Sub.map MorphMsg

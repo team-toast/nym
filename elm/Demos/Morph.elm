@@ -1,4 +1,4 @@
-module Demos.Morph exposing (main)
+module Demos.Morph exposing (..)
 
 import BinarySource exposing (BinarySource)
 import Browser
@@ -50,12 +50,9 @@ type alias Model =
     }
 
 
-initModel : Model
-initModel =
+initModel : Int -> Model
+initModel firstSeed =
     let
-        firstSeed =
-            badHashFunction "1"
-
         nymTemplate =
             Demos.Common.genNymTemplate firstSeed
     in
@@ -77,7 +74,7 @@ main =
     Browser.element
         { init =
             always
-                ( initModel
+                ( initModel <| badHashFunction "1"
                 , Cmd.none
                 )
         , view = view
@@ -140,6 +137,7 @@ update msg model =
                         (model.morphProgress + morphAccel)
                 , laggedMouse =
                     Vector2.interpolate mouseInterpConstant model.laggedMouse model.mouseInput
+                        |> Debug.log "lm"
               }
             , Cmd.none
             )

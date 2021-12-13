@@ -4,11 +4,13 @@ import Demos.Common
 import Demos.ElementHelpers as EH exposing (DisplayProfile(..), responsiveVal)
 import Demos.Landing.Theme exposing (italic, newTabLink, normalText)
 import Demos.Landing.Types exposing (..)
+import Demos.Morph
 import Element exposing (Attribute, Element, column, el, fill, padding, paddingEach, paragraph, px, row, shrink, spacing)
 import Element.Background as Background
 import Element.Font as Font
 import Html exposing (Html)
 import Json.Decode as Decode
+import Mouse
 import Nym
 import Vector2 exposing (Vector2)
 
@@ -67,13 +69,13 @@ body dProfile model =
                     }
               , normalText ". As a PFP project, Nyms are intended to be used as unique a social avatar, easily recognizable as an "
               , italic "individual"
-              , normalText " on various social platforms. But as a generative NFT project, each Nym has a uniqueness that goes far above the typical PFP project's method of simply combining a limited set of art pieces top of one another."
+              , normalText " on various social platforms. But as a generative NFT project, each Nym has a uniqueness that goes far above the typical PFP project's method of simply layering a limited set features onto a template."
               ]
-            , [ normalText "Instead, each Nym is a 3D structure and color scheme generated entirely from a random data source, with constraints designed to target a mammal-like head. This results in a set of more strikingly visually distinct items as well as drastically increasing the possibility space of the set."
+            , [ normalText "Instead, each Nym's structuring and color is generated bottom-up from a random data source, with constraints designed to target a mammal-like head while leaving a lot of room for variety. This results in a set of more strikingly visually distinct items, and drastically increases the possibility space of the set."
               ]
-            , [ normalText "To make the point visually, consider the visual variety in these two sets:"
+            , [ viewMorphDemo model.morphModel
+                    |> Element.map MorphMsg
               ]
-            , [ compareBaycToNyms dProfile model.morphingModel ]
             , [ normalText "INSERT SIDE-BY-SIDE COMPARISON" ]
             , [ normalText "Oh, and they're 3D too, which has some exciting implications for use in the Metaverse." ]
             , [ normalText "INSERT NYMS ZOOMING AROUND?" ]
@@ -81,53 +83,71 @@ body dProfile model =
         )
 
 
-compareBaycToNyms : DisplayProfile -> MorphingModel -> Element Msg
-compareBaycToNyms dProfile morphingModel =
-    let
-        width =
-            400
-    in
-    Element.row
-        [ Element.centerX
-        , Element.width shrink
-        , Element.height shrink
-        ]
-        [ morphingNym width morphingModel
-        , baycGif
-            [ Element.width <| px width
-            , Element.height <| px width
-            ]
-        ]
+
+-- compareBaycToNyms : DisplayProfile -> MorphingModel -> Element Msg
+-- compareBaycToNyms dProfile morphingModel =
+--     let
+--         width =
+--             400
+--     in
+--     Element.row
+--         [ Element.centerX
+--         , Element.width shrink
+--         , Element.height shrink
+--         ]
+--         [ morphingNym width morphingModel
+--         , baycGif
+--             [ Element.width <| px width
+--             , Element.height <| px width
+--             ]
+--         ]
 
 
-morphingNym : Int -> MorphingModel -> Element Msg
-morphingNym width morphingModel =
+viewMorphDemo : Demos.Morph.Model -> Element Demos.Morph.Msg
+viewMorphDemo morphModel =
     el
-        [ Element.width <| px width
-        , Element.height <| px width
-        ]
+        [ Element.width <| px 500 ]
     <|
-        let
-            widthStr =
-                String.fromInt width ++ "px"
-        in
         Demos.Common.viewNymWithPixelDimensions
-            ( width, width )
-            ( widthStr, widthStr )
-            (Vector2 0.5 0.5)
+            ( 500, 500 )
+            ( "100%", "100%" )
+            morphModel.laggedMouse
             (Demos.Common.interpolateNymsForRendering
-                morphingModel.morphProgress
-                morphingModel.oldNym
-                morphingModel.newNym
+                morphModel.morphProgress
+                morphModel.oldNymTemplate
+                morphModel.newNymTemplate
                 |> Nym.renderNymTemplate False
             )
-            (Decode.succeed NoOp)
+            (Decode.map Demos.Morph.MouseMove Mouse.moveDecoder)
 
 
-baycGif : List (Attribute Msg) -> Element Msg
-baycGif attributes =
-    Element.image
-        attributes
-        { src = "http://jingculturecommerce.com/wp-content/uploads/2021/09/sothebys-bored-apes-2.gif"
-        , description = "Bored Apes Cycling Gif"
-        }
+
+-- morphingNyms : MorphingNymsModel -> Element Msg
+-- morphingNyms morphingNymsModel =
+--     el
+--         [ Element.width <| px width
+--         , Element.height <| px width
+--         ]
+--     <|
+--         let
+--             widthStr =
+--                 String.fromInt width ++ "px"
+--         in
+--         Demos.Common.viewNymWithPixelDimensions
+--             ( width, width )
+--             ( widthStr, widthStr )
+--             (Vector2 0.5 0.5)
+--             (Demos.Common.interpolateNymsForRendering
+--                 morphingModel.morphProgress
+--                 morphingModel.oldNym
+--                 morphingModel.newNym
+--                 |> Nym.renderNymTemplate False
+--             )
+--             (Decode.succeed NoOp)
+-- baycGif : List (Attribute Msg) -> Element Msg
+-- baycGif attributes =
+--     Element.image
+--         attributes
+--         { src = "http://jingculturecommerce.com/wp-content/uploads/2021/09/sothebys-bored-apes-2.gif"
+--         , description = "Bored Apes Cycling Gif"
+--         }

@@ -1,6 +1,8 @@
 module Demos.Landing.Types exposing (..)
 
+import Demos.Morph
 import Types exposing (..)
+import Vector2 exposing (Vector2)
 
 
 type alias Flags =
@@ -8,15 +10,9 @@ type alias Flags =
 
 
 type alias Model =
-    { morphingModel : MorphingModel }
+    { morphModel : Demos.Morph.Model }
 
 
 type Msg
     = NoOp
-
-
-type alias MorphingModel =
-    { oldNym : NymTemplate
-    , newNym : NymTemplate
-    , morphProgress : Float
-    }
+    | MorphMsg Demos.Morph.Msg
