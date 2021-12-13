@@ -1,0 +1,17 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Render Nym</title>
+    <script src="landing.js"></script>
+</head>
+
+<body>
+    <div id="elmdiv"></div>
+    <script>
+        var app = Elm.Demos.Landing.Main.init({
+            node: document.getElementById('elmdiv'),
+            flags: Date.now()
+        });
+    </script>
+</body>
+</html>
