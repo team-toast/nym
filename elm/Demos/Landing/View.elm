@@ -5,7 +5,7 @@ import Demos.ElementHelpers as EH exposing (DisplayProfile(..), responsiveVal)
 import Demos.Landing.Theme exposing (italic, newTabLink, normalText)
 import Demos.Landing.Types exposing (..)
 import Demos.Morph
-import Element exposing (Attribute, Element, column, el, fill, padding, paddingEach, paragraph, px, row, shrink, spacing)
+import Element exposing (Attribute, Element, centerX, column, el, fill, padding, paddingEach, paragraph, px, row, shrink, spacing, wrappedRow)
 import Element.Background as Background
 import Element.Font as Font
 import Html exposing (Html)
@@ -13,7 +13,6 @@ import Json.Decode as Decode
 import Mouse
 import Nym
 import Vector2 exposing (Vector2)
-import Element exposing (wrappedRow)
 
 
 view : Model -> Html Msg
@@ -26,6 +25,7 @@ view model =
         [ Element.width fill
         , Element.height Element.shrink
         , Background.color <| Element.rgb 0.1 0.1 0.1
+        , Element.paddingXY 0 50
         ]
     <|
         el
@@ -68,14 +68,39 @@ body dProfile model =
               , italic "individual"
               , normalText " on various social platforms. But as a generative NFT project, each Nym has a uniqueness that goes far above the typical PFP project's method of simply layering a limited set features onto a template."
               ]
-            , [ normalText "Instead, each Nym's structuring and color is generated bottom-up from a random data source, with constraints designed to target a mammal-like head while leaving a lot of room for variety. This results in a set of more strikingly visually distinct items, and drastically increases the possibility space of the set."
+            , [ normalText "Instead, each Nym's structuring and color is generated bottom-up from a random data source, with constraints designed to target a mammal-like head while leaving a lot of room for variety. This results in more striking visual distinction between the items in the set, and drastically increases the possibility space of the set."
+              ]
+            , [ normalText "We call this first set Alpha Nyms. These consume 113 bits of entropy (72 for structure and 41 for color), resulting in over one thousand quintillion (1,000,000,000,000,000,000,000,000,000,000,000) visually distinct possibilities. Here are some of them:"
               ]
             ]
-        , viewMorphDemos model.morphModels
+        , el
+            [ paddingEach
+                { bottom = 40
+                , top = 0
+                , right = 0
+                , left = 0
+                }
+            , centerX
+            ]
+          <|
+            viewMorphDemos model.morphModels
         , paragraphs
-            [ [ normalText "INSERT SIDE-BY-SIDE COMPARISON" ]
-            , [ normalText "Oh, and they're 3D too, which has some exciting implications for use in the Metaverse." ]
-            , [ normalText "INSERT NYMS ZOOMING AROUND?" ]
+            [ [ normalText "The Alpha Nyms have been airdropped today (2021.12.13) to any address that ever held FRY, the token for "
+              , newTabLink
+                    { url = "https://foundrydao.com/"
+                    , text = "the Foundry project"
+                    }
+              , normalText ", as of Ethereum block 13727946 (2021.12.2)."
+            ]
+            , [ normalText "If this concept is validated by hype, we will move forward to produce a Beta Nym set, complete with a never-ending but rate-limited sale of a much more visually polished execution of the core Nym idea. A goal for this version is to consume a full 256 bits of entropy into visual features - this would make Nyms as uncollidable and \"effectively infinite\" as hashes."
+              ]
+            , [ normalText "We will update this page regularly throughout the week following the airdrop, with more info on our plans and how we envision Nyms being used. In the meantime, come say hi on "
+              , newTabLink
+                    { url = "https://discord.gg/35eMjwmKXU"
+                    , text = "Discord"
+                    }
+              , normalText "!"
+              ]
             ]
         ]
 
@@ -106,8 +131,11 @@ viewMorphDemos morphModels =
         (morphModels
             |> List.indexedMap
                 (\i morphModel ->
-                    el [ Element.width <| px 200
-                    , Element.height <| px 200 ] <|
+                    el
+                        [ Element.width <| px 200
+                        , Element.height <| px 200
+                        ]
+                    <|
                         Element.map (MorphMsg i) <|
                             viewMorphDemo morphModel
                 )
