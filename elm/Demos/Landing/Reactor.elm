@@ -2,6 +2,10 @@ module Demos.Landing.Reactor exposing (main)
 
 import Demos.Landing.Main as Main
 
-main = 
+
+main =
     Main.reactor
-        0
+        { nowInMillis = 0
+        , width = 1000
+        , height = 700
+        }

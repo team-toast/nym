@@ -8,7 +8,7 @@ import Element.Font as Font
 normalText : String -> Element Msg
 normalText s =
     el
-        [ Font.color <| Element.rgb 1 1 1 ]
+        [ Font.color <| Element.rgb 0.8 0.8 0.8]
     <|
         Element.text s
 

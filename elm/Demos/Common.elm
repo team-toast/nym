@@ -4,6 +4,7 @@ import Angle
 import Axis3d
 import BinarySource exposing (BinarySource)
 import Camera3d
+import Demos.ElementHelpers exposing (DisplayProfile(..))
 import Direction3d
 import Element exposing (Element)
 import Html
@@ -321,3 +322,12 @@ genNymTemplate seed =
         |> seedTo256BinarySource
         |> Nym.binarySourceToNymTemplate
         |> TupleHelpers.tuple3Last
+
+
+screenWidthToDisplayProfile : Int -> DisplayProfile
+screenWidthToDisplayProfile width =
+    if width >= 1150 then
+        Desktop
+
+    else
+        Mobile

@@ -19,7 +19,7 @@ view : Model -> Html Msg
 view model =
     let
         dProfile =
-            Desktop
+            model.dProfile
     in
     Element.layout
         [ Element.width fill
@@ -39,7 +39,7 @@ view model =
                 , Element.width <| (fill |> Element.maximum 1000)
                 , Element.centerX
                 ]
-                [ padding 10
+                [ padding 30
                 , Element.width fill
                 ]
             )
@@ -51,9 +51,10 @@ body : DisplayProfile -> Model -> Element Msg
 body dProfile model =
     column
         [ Element.width fill
-        , spacing 25
+        , spacing <| responsiveVal dProfile 25 40
+        , Font.size <| responsiveVal dProfile 20 40
         ]
-        [ paragraphs
+        [ paragraphs dProfile
             [ [ normalText "Nyms combine two trends in the NFT space: PFP (profile pic) projects like "
               , newTabLink
                     { url = "https://boredapeyachtclub.com/"
@@ -84,14 +85,14 @@ body dProfile model =
             ]
           <|
             viewMorphDemos model.morphModels
-        , paragraphs
+        , paragraphs dProfile
             [ [ normalText "The Alpha Nyms have been airdropped today (2021.12.13) to any address that ever held FRY, the token for "
               , newTabLink
                     { url = "https://foundrydao.com/"
                     , text = "the Foundry project"
                     }
               , normalText ", as of Ethereum block 13727946 (2021.12.2)."
-            ]
+              ]
             , [ normalText "If this concept is validated by hype, we will move forward to produce a Beta Nym set, complete with a never-ending but rate-limited sale of a much more visually polished execution of the core Nym idea. A goal for this version is to consume a full 256 bits of entropy into visual features - this would make Nyms as uncollidable and \"effectively infinite\" as hashes."
               ]
             , [ normalText "We will update this page regularly throughout the week following the airdrop, with more info on our plans and how we envision Nyms being used. In the meantime, come say hi on "
@@ -105,10 +106,10 @@ body dProfile model =
         ]
 
 
-paragraphs : List (List (Element Msg)) -> Element Msg
-paragraphs items =
+paragraphs : DisplayProfile -> List (List (Element Msg)) -> Element Msg
+paragraphs dProfile items =
     Element.column
-        [ spacing 15
+        [ spacing <| responsiveVal dProfile 15 30
         , Element.width fill
         ]
         (List.map

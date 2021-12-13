@@ -1,5 +1,6 @@
 module Demos.Landing.State exposing (..)
 
+import Browser.Events
 import Demos.Common
 import Demos.Landing.Config as Config
 import Demos.Landing.Types exposing (..)
@@ -8,13 +9,14 @@ import List.Extra
 
 
 init : Flags -> ( Model, Cmd Msg )
-init initialSeed =
+init flags =
     ( { morphModels =
             List.Extra.initialize
                 Config.numMorphModels
                 (\i ->
-                    Demos.Morph.initModel (initialSeed + i)
+                    Demos.Morph.initModel (flags.nowInMillis + i)
                 )
+      , dProfile = Demos.Common.screenWidthToDisplayProfile flags.width
       }
     , Cmd.none
     )
@@ -25,6 +27,14 @@ update msg model =
     case msg of
         NoOp ->
             ( model
+            , Cmd.none
+            )
+        
+        Resize width _ ->
+            ( { model
+                | dProfile =
+                    Demos.Common.screenWidthToDisplayProfile width
+              }
             , Cmd.none
             )
 
@@ -49,10 +59,13 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    model.morphModels
+    ((model.morphModels
         |> List.indexedMap
             (\i morphModel ->
                 Demos.Morph.subscriptions morphModel
                     |> Sub.map (MorphMsg i)
             )
+     )
+        ++ [ Browser.Events.onResize Resize ]
+    )
         |> Sub.batch
