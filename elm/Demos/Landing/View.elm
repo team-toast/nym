@@ -1,6 +1,7 @@
 module Demos.Landing.View exposing (..)
 
 import Demos.ElementHelpers as EH exposing (DisplayProfile(..), responsiveVal)
+import Demos.Landing.Theme exposing (italic, newTabLink, normalText)
 import Demos.Landing.Types exposing (..)
 import Element exposing (Element, column, el, fill, height, padding, paddingEach, paragraph, row, spacing, width)
 import Element.Background as Background
@@ -36,11 +37,11 @@ view model =
                 ]
             )
         <|
-            justAllTheTextEl dProfile
+            body dProfile
 
 
-justAllTheTextEl : DisplayProfile -> Element Msg
-justAllTheTextEl dProfile =
+body : DisplayProfile -> Element Msg
+body dProfile =
     Element.column
         [ spacing 15
         ]
@@ -75,30 +76,3 @@ justAllTheTextEl dProfile =
             , [ normalText "INSERT NYMS ZOOMING AROUND?" ]
             ]
         )
-
-
-normalText : String -> Element Msg
-normalText s =
-    el
-        [ Font.color <| Element.rgb 1 1 1 ]
-    <|
-        Element.text s
-
-
-italic : String -> Element Msg
-italic =
-    el [ Font.italic ] << normalText
-
-
-newTabLink : { url : String, text : String } -> Element Msg
-newTabLink d =
-    Element.newTabLink
-        []
-        { url = d.url
-        , label =
-            Element.el
-                [ Font.color <| Element.rgb 0.4 0.4 1
-                ]
-            <|
-                Element.text d.text
-        }
