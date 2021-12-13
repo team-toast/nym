@@ -10,9 +10,9 @@ type alias Flags =
 
 
 type alias Model =
-    { morphModel : Demos.Morph.Model }
+    { morphModels : List Demos.Morph.Model }
 
 
 type Msg
     = NoOp
-    | MorphMsg Demos.Morph.Msg
+    | MorphMsg Int Demos.Morph.Msg

@@ -1,14 +1,20 @@
 module Demos.Landing.State exposing (..)
 
 import Demos.Common
+import Demos.Landing.Config as Config
 import Demos.Landing.Types exposing (..)
 import Demos.Morph
+import List.Extra
 
 
 init : Flags -> ( Model, Cmd Msg )
 init initialSeed =
-    ( { morphModel =
-            Demos.Morph.initModel initialSeed
+    ( { morphModels =
+            List.Extra.initialize
+                Config.numMorphModels
+                (\i ->
+                    Demos.Morph.initModel (initialSeed + i)
+                )
       }
     , Cmd.none
     )
@@ -22,19 +28,31 @@ update msg model =
             , Cmd.none
             )
 
-        MorphMsg morphMsg ->
-            let
-                ( morphModel, morphCmd ) =
-                    Demos.Morph.update morphMsg model.morphModel
-            in
-            ( { model
-                | morphModel = morphModel
-              }
-            , Cmd.map MorphMsg morphCmd
-            )
+        MorphMsg which morphMsg ->
+            case model.morphModels |> List.Extra.getAt which of
+                Just morphModel ->
+                    let
+                        ( newMorphModel, morphCmd ) =
+                            Demos.Morph.update morphMsg morphModel
+                    in
+                    ( { model
+                        | morphModels =
+                            model.morphModels
+                                |> List.Extra.setAt which newMorphModel
+                      }
+                    , Cmd.map (MorphMsg which) morphCmd
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Demos.Morph.subscriptions model.morphModel
-        |> Sub.map MorphMsg
+    model.morphModels
+        |> List.indexedMap
+            (\i morphModel ->
+                Demos.Morph.subscriptions morphModel
+                    |> Sub.map (MorphMsg i)
+            )
+        |> Sub.batch

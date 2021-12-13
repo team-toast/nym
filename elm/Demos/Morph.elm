@@ -137,7 +137,6 @@ update msg model =
                         (model.morphProgress + morphAccel)
                 , laggedMouse =
                     Vector2.interpolate mouseInterpConstant model.laggedMouse model.mouseInput
-                        |> Debug.log "lm"
               }
             , Cmd.none
             )
@@ -149,8 +148,8 @@ update msg model =
                         Nothing
 
                     else
-                        time
-                            |> pseudoRandomSourceFromTime
+                        (Time.posixToMillis time + model.seed)
+                            |> pseudoRandomSourceInt
                             |> BinarySource.consume2
                                 ( BinarySource.consumeBool
                                 , BinarySource.consume2
@@ -189,8 +188,8 @@ update msg model =
                         False
 
                     else
-                        time
-                            |> pseudoRandomSourceFromTime
+                        (Time.posixToMillis time + model.seed)
+                            |> pseudoRandomSourceInt
                             |> BinarySource.consumeInt 2
                             |> Maybe.map TupleHelpers.tuple3Middle
                             |> Maybe.withDefault 0
@@ -249,10 +248,9 @@ cycleSeed oldSeed =
         |> badHashFunction
 
 
-pseudoRandomSourceFromTime : Time.Posix -> BinarySource
-pseudoRandomSourceFromTime =
-    Time.posixToMillis
-        >> modBy 777
+pseudoRandomSourceInt : Int -> BinarySource
+pseudoRandomSourceInt =
+    modBy 777
         >> String.fromInt
         >> badHashFunction
         >> Demos.Common.seedTo256BinarySource

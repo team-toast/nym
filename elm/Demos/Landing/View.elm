@@ -13,6 +13,7 @@ import Json.Decode as Decode
 import Mouse
 import Nym
 import Vector2 exposing (Vector2)
+import Element exposing (wrappedRow)
 
 
 view : Model -> Html Msg
@@ -48,15 +49,11 @@ view model =
 
 body : DisplayProfile -> Model -> Element Msg
 body dProfile model =
-    Element.column
-        [ spacing 15
+    column
+        [ Element.width fill
+        , spacing 25
         ]
-        (List.map
-            (paragraph
-                [ spacing 2
-                , Element.width fill
-                ]
-            )
+        [ paragraphs
             [ [ normalText "Nyms combine two trends in the NFT space: PFP (profile pic) projects like "
               , newTabLink
                     { url = "https://boredapeyachtclub.com/"
@@ -73,43 +70,59 @@ body dProfile model =
               ]
             , [ normalText "Instead, each Nym's structuring and color is generated bottom-up from a random data source, with constraints designed to target a mammal-like head while leaving a lot of room for variety. This results in a set of more strikingly visually distinct items, and drastically increases the possibility space of the set."
               ]
-            , [ viewMorphDemo model.morphModel
-                    |> Element.map MorphMsg
-              ]
-            , [ normalText "INSERT SIDE-BY-SIDE COMPARISON" ]
+            ]
+        , viewMorphDemos model.morphModels
+        , paragraphs
+            [ [ normalText "INSERT SIDE-BY-SIDE COMPARISON" ]
             , [ normalText "Oh, and they're 3D too, which has some exciting implications for use in the Metaverse." ]
             , [ normalText "INSERT NYMS ZOOMING AROUND?" ]
             ]
+        ]
+
+
+paragraphs : List (List (Element Msg)) -> Element Msg
+paragraphs items =
+    Element.column
+        [ spacing 15
+        , Element.width fill
+        ]
+        (List.map
+            (paragraph
+                [ spacing 2
+                , Element.width fill
+                ]
+            )
+            items
         )
 
 
-
--- compareBaycToNyms : DisplayProfile -> MorphingModel -> Element Msg
--- compareBaycToNyms dProfile morphingModel =
---     let
---         width =
---             400
---     in
---     Element.row
---         [ Element.centerX
---         , Element.width shrink
---         , Element.height shrink
---         ]
---         [ morphingNym width morphingModel
---         , baycGif
---             [ Element.width <| px width
---             , Element.height <| px width
---             ]
---         ]
+viewMorphDemos : List Demos.Morph.Model -> Element Msg
+viewMorphDemos morphModels =
+    wrappedRow
+        [ Element.spaceEvenly
+        , Element.width <| px 600
+        , Element.centerX
+        ]
+        (morphModels
+            |> List.indexedMap
+                (\i morphModel ->
+                    el [ Element.width <| px 200
+                    , Element.height <| px 200 ] <|
+                        Element.map (MorphMsg i) <|
+                            viewMorphDemo morphModel
+                )
+        )
 
 
 viewMorphDemo : Demos.Morph.Model -> Element Demos.Morph.Msg
 viewMorphDemo morphModel =
     el
-        [ Element.width <| px 500 ]
+        [ Element.width <| px 300
+        , Element.centerX
+        ]
     <|
         Demos.Common.viewNymWithPixelDimensions
-            ( 500, 500 )
+            ( 300, 300 )
             ( "100%", "100%" )
             morphModel.laggedMouse
             (Demos.Common.interpolateNymsForRendering
@@ -119,35 +132,3 @@ viewMorphDemo morphModel =
                 |> Nym.renderNymTemplate False
             )
             (Decode.map Demos.Morph.MouseMove Mouse.moveDecoder)
-
-
-
--- morphingNyms : MorphingNymsModel -> Element Msg
--- morphingNyms morphingNymsModel =
---     el
---         [ Element.width <| px width
---         , Element.height <| px width
---         ]
---     <|
---         let
---             widthStr =
---                 String.fromInt width ++ "px"
---         in
---         Demos.Common.viewNymWithPixelDimensions
---             ( width, width )
---             ( widthStr, widthStr )
---             (Vector2 0.5 0.5)
---             (Demos.Common.interpolateNymsForRendering
---                 morphingModel.morphProgress
---                 morphingModel.oldNym
---                 morphingModel.newNym
---                 |> Nym.renderNymTemplate False
---             )
---             (Decode.succeed NoOp)
--- baycGif : List (Attribute Msg) -> Element Msg
--- baycGif attributes =
---     Element.image
---         attributes
---         { src = "http://jingculturecommerce.com/wp-content/uploads/2021/09/sothebys-bored-apes-2.gif"
---         , description = "Bored Apes Cycling Gif"
---         }
