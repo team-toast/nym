@@ -1,4 +1,4 @@
-module Demo exposing (main)
+module Demos.Demo exposing (main)
 
 import Angle
 import Axis3d

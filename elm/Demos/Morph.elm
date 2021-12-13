@@ -1,4 +1,4 @@
-module MorphDemo exposing (main)
+module Demos.Morph exposing (main)
 
 import Angle
 import Axis3d

@@ -1,4 +1,4 @@
-module RenderNym exposing (main, reactor)
+module Demos.RenderNym exposing (main, reactor)
 
 import Angle
 import Axis3d
