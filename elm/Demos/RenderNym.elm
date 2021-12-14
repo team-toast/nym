@@ -151,15 +151,6 @@ binarySourceFromDecIfPossibleOtherwiseHex ambiguousData =
         |> Maybe.andThen BinarySource.fromBigInt
 
 
-pseudoRandomSourceFromTime : Time.Posix -> BinarySource
-pseudoRandomSourceFromTime =
-    Time.posixToMillis
-        >> modBy 777
-        >> String.fromInt
-        >> badHashFunction
-        >> seedTo256BinarySource
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -203,7 +194,9 @@ update msg model =
 
                     else
                         time
-                            |> pseudoRandomSourceFromTime
+                            |> Time.posixToMillis
+                            |> String.fromInt
+                            |> BinarySource.seedTo256Bits
                             |> BinarySource.consume2
                                 ( BinarySource.consumeBool
                                 , BinarySource.consume2
@@ -244,40 +237,6 @@ update msg model =
 mouseMoveIsIdle : Model -> Bool
 mouseMoveIsIdle model =
     Time.toSecond Time.utc model.now - Time.toSecond Time.utc model.lastMouseMoveTime > 2
-
-
-seedTo256BinarySource : Int -> BinarySource
-seedTo256BinarySource initialSeedInt =
-    let
-        bitGenerator : Random.Generator Char
-        bitGenerator =
-            Random.uniform '0' [ '1' ]
-
-        initialSeed =
-            Random.initialSeed initialSeedInt
-
-        unfoldFunc : ( Int, Random.Seed ) -> Maybe ( Char, ( Int, Random.Seed ) )
-        unfoldFunc ( count, seed ) =
-            if count < 256 then
-                Just <|
-                    let
-                        ( bit, newSeed ) =
-                            Random.step bitGenerator seed
-                    in
-                    ( bit
-                    , ( count + 1
-                      , newSeed
-                      )
-                    )
-
-            else
-                Nothing
-    in
-    List.Extra.unfoldr
-        unfoldFunc
-        ( 0, initialSeed )
-        |> String.fromList
-        |> BinarySource.unsafeFromBitsString
 
 
 mouseInputToNymFocusPoint3d : MouseInput -> Point3dM
@@ -406,21 +365,6 @@ rotateNyms mouseInput entitiesAndPositions =
                     |> Scene3d.translateBy
                         (Vector3d.from Point3d.origin position)
             )
-
-
-badHashFunction : String -> Int
-badHashFunction =
-    -- take a string and turn it into an int. Unique strings map to unique ints.
-    Hash.sha224
-        >> String.toList
-        >> List.map Char.toCode
-        >> List.map String.fromInt
-        >> List.foldl (++) ""
-        >> String.toList
-        >> List.take 8
-        >> String.fromList
-        >> String.toInt
-        >> Maybe.withDefault 0
 
 
 subscriptions : Model -> Sub.Sub Msg

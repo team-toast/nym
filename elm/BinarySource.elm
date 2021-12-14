@@ -18,6 +18,8 @@ module BinarySource exposing
     , consumeVector3ByComponent
     , consumeVector3DimNeg1to1
     , consumeVector3FromBounds
+    , cycle
+    , cycleWithSalt
     , debugLogAboutToConsume
     , empty
     , emptyConsume
@@ -29,12 +31,13 @@ module BinarySource exposing
     , getBitsString
     , map
     , remainingBits
-    , unsafeFromBitsString
+    , seedTo256Bits
     )
 
 import BigInt exposing (BigInt)
-import Binary
+import Binary exposing (Bits)
 import Color exposing (Color)
+import Crypto.Hash as Hash
 import Hex
 import List.Extra
 import Maybe.Extra
@@ -47,16 +50,40 @@ import Vector3d exposing (Vector3d)
 
 
 type BinarySource
-    = BinarySource String
+    = BinarySource Bits
 
 
 type BinaryChunk
-    = BinaryChunk String
+    = BinaryChunk Bits
 
 
 empty : BinarySource
 empty =
-    BinarySource ""
+    BinarySource Binary.empty
+
+
+seedTo256Bits : String -> BinarySource
+seedTo256Bits =
+    Hash.sha256
+        >> fromHexString
+        >> Maybe.withDefault empty
+
+
+cycle : BinarySource -> BinarySource
+cycle =
+    getHexString
+        >> Hash.sha256
+        >> fromHexString
+        >> Maybe.withDefault empty
+
+
+cycleWithSalt : String -> BinarySource -> BinarySource
+cycleWithSalt salt =
+    getHexString
+        >> (++) salt
+        >> Hash.sha256
+        >> fromHexString
+        >> Maybe.withDefault empty
 
 
 debugLogAboutToConsume : BinarySource -> BinarySource
@@ -70,21 +97,59 @@ debugLogAboutToConsume s =
 
 getBitsString : BinarySource -> String
 getBitsString (BinarySource s) =
-    s
+    Binary.toIntegers s
+        |> List.map
+            (\c ->
+                if c == 1 then
+                    '1'
+
+                else
+                    '0'
+            )
+        |> String.fromList
 
 
-fromBitsString : String -> Maybe BinarySource
-fromBitsString str =
-    if str |> String.all (\c -> c == '1' || c == '0') then
-        Just <| unsafeFromBitsString str
-
-    else
-        Nothing
+getHexString : BinarySource -> String
+getHexString (BinarySource s) =
+    Binary.toHex s
 
 
-unsafeFromBitsString : String -> BinarySource
-unsafeFromBitsString str =
-    BinarySource str
+fromBitsString : String -> BinarySource
+fromBitsString =
+    bitsStringToBooleans
+        >> Binary.fromBooleans
+        >> BinarySource
+
+
+bitsStringToBooleans : String -> List Bool
+bitsStringToBooleans =
+    String.toList
+        >> List.map
+            (\c ->
+                if c == '0' then
+                    False
+
+                else
+                    True
+            )
+
+
+booleansToBitsString : List Bool -> String
+booleansToBitsString =
+    List.map
+        (\b ->
+            if b then
+                '1'
+
+            else
+                '0'
+        )
+        >> String.fromList
+
+
+fromIntegers : List Int -> BinarySource
+fromIntegers =
+    BinarySource << Binary.fromIntegers
 
 
 fromUint256Hex : String -> Maybe BinarySource
@@ -99,7 +164,7 @@ fromHexString =
         >> List.map hexCharToPaddedBitsString
         >> Maybe.Extra.combine
         >> Maybe.map String.concat
-        >> Maybe.andThen fromBitsString
+        >> Maybe.map fromBitsString
 
 
 fromIntString : String -> Maybe BinarySource
@@ -139,16 +204,20 @@ hexCharToPaddedBitsString =
 
 
 remainingBits : BinarySource -> Int
-remainingBits (BinarySource source) =
-    String.length source
+remainingBits source =
+    String.length <| getBitsString source
 
 
 consumeChunk : Int -> BinarySource -> Maybe ( BinarySource, BinaryChunk, Int )
-consumeChunk numBits (BinarySource source) =
-    if String.length source >= numBits then
+consumeChunk numBits source =
+    let
+        bitsString =
+            getBitsString source
+    in
+    if String.length bitsString >= numBits then
         Just
-            ( BinarySource <| String.dropLeft numBits source
-            , BinaryChunk <| String.left numBits source
+            ( fromBitsString <| String.dropLeft numBits bitsString
+            , BinaryChunk <| Binary.fromBooleans <| bitsStringToBooleans <| String.left numBits bitsString
             , numBits
             )
 
@@ -282,7 +351,7 @@ chunkToInt32 chunk =
 
 encodeBinaryString : BinaryChunk -> String
 encodeBinaryString (BinaryChunk chunk) =
-    "0b" ++ chunk
+    "0b" ++ (booleansToBitsString <| Binary.toBooleans chunk)
 
 
 consumeColorFromPallette : BinarySource -> Maybe ( BinarySource, Color, Int )

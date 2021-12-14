@@ -14,7 +14,7 @@ init flags =
             List.Extra.initialize
                 Config.numMorphModels
                 (\i ->
-                    Demos.Morph.initModel (flags.nowInMillis + i)
+                    Demos.Morph.initModel (String.fromInt <| flags.nowInMillis + i)
                 )
       , dProfile = Demos.Common.screenWidthToDisplayProfile flags.width
       }

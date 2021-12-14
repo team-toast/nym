@@ -4,6 +4,7 @@ import Angle
 import Axis3d
 import BinarySource exposing (BinarySource)
 import Camera3d
+import Crypto.Hash as Hash
 import Demos.ElementHelpers exposing (DisplayProfile(..))
 import Direction3d
 import Element exposing (Element)
@@ -185,8 +186,8 @@ interpolateFloat interp f1 f2 =
     (f2 - f1) * interp + f1
 
 
-viewNymWithPixelDimensions : ( Int, Int ) -> ( String, String ) -> Vector2 -> Scene3d.Entity () -> Decoder msg -> Element msg
-viewNymWithPixelDimensions renderDimensions displayDimensionStrings lookVector interpolatedNym onMouseMove =
+viewNymWithPixelDimensions : ( Int, Int ) -> ( String, String ) -> Vector2 -> Scene3d.Entity () -> Decoder msg -> Decoder msg -> Element msg
+viewNymWithPixelDimensions renderDimensions displayDimensionStrings lookVector interpolatedNym onMouseMove onMouseClick =
     let
         ( renderWidth, renderHeight ) =
             renderDimensions
@@ -199,6 +200,9 @@ viewNymWithPixelDimensions renderDimensions displayDimensionStrings lookVector i
             [ Html.Events.on
                 "mousemove"
                 onMouseMove
+            , Html.Events.on
+                "mousedown"
+                onMouseClick
             ]
         <|
             List.singleton <|
@@ -282,44 +286,26 @@ lookVectorToNymFocusPoint3d lookVector =
         2
 
 
-seedTo256BinarySource : Int -> BinarySource
-seedTo256BinarySource initialSeedInt =
-    let
-        bitGenerator : Random.Generator Char
-        bitGenerator =
-            Random.uniform '0' [ '1' ]
-
-        initialSeed =
-            Random.initialSeed initialSeedInt
-
-        unfoldFunc : ( Int, Random.Seed ) -> Maybe ( Char, ( Int, Random.Seed ) )
-        unfoldFunc ( count, seed ) =
-            if count < 256 then
-                Just <|
-                    let
-                        ( bit, newSeed ) =
-                            Random.step bitGenerator seed
-                    in
-                    ( bit
-                    , ( count + 1
-                      , newSeed
-                      )
-                    )
-
-            else
-                Nothing
-    in
-    List.Extra.unfoldr
-        unfoldFunc
-        ( 0, initialSeed )
-        |> String.fromList
-        |> BinarySource.unsafeFromBitsString
+intSeedToBinarySource : Int -> BinarySource
+intSeedToBinarySource =
+    String.fromInt
+        >> stringSeedToBinarySource
 
 
-genNymTemplate : Int -> NymTemplate
-genNymTemplate seed =
-    seed
-        |> seedTo256BinarySource
+stringSeedToBinarySource : String -> BinarySource
+stringSeedToBinarySource =
+    BinarySource.seedTo256Bits
+
+
+hashInt : Int -> String
+hashInt =
+    String.fromInt
+        >> Hash.sha256
+
+
+genNymTemplate : BinarySource -> NymTemplate
+genNymTemplate source =
+    source
         |> Nym.binarySourceToNymTemplate
         |> TupleHelpers.tuple3Last
 

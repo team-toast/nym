@@ -41,7 +41,7 @@ showDebugLines =
 
 type Msg
     = MouseMove Mouse.MoveData
-    | NewSeed Int
+    | NewSeed String
     | TweakSource TweakSourceCmd
     | ChangeTweakPos Int
     | TweakCopy Int
@@ -56,7 +56,7 @@ type alias MouseInput =
 type alias Model =
     { mouseInput : MouseInput
     , nymEntitiesAndPositions : List ( Scene3d.Entity (), Point3dM )
-    , seed : Int
+    , seed : String
     , tweakPos : Int
     , tweakSource : String
     , numBitsUsed : Int
@@ -68,7 +68,7 @@ initModel : Model
 initModel =
     let
         firstSeed =
-            badHashFunction "1"
+            ""
 
         firstTweakSource =
             String.repeat 256 "0"
@@ -234,7 +234,7 @@ demoBinarySourceLength =
     256
 
 
-demoNymSources : String -> Int -> List BinarySource
+demoNymSources : String -> String -> List BinarySource
 demoNymSources tweakSourceStr seed =
     ([ tweakSourceStr
      , "111111111111111111111111"
@@ -245,57 +245,26 @@ demoNymSources tweakSourceStr seed =
                 >> String.fromList
             )
         |> List.map BinarySource.fromBitsString
-        |> Maybe.Extra.values
     )
         ++ randomBinarySources seed
 
 
-randomBinarySources : Int -> List BinarySource
+randomBinarySources : String -> List BinarySource
 randomBinarySources masterSeed =
-    let
-        bitGenerator : Random.Generator Char
-        bitGenerator =
-            Random.uniform '0' [ '1' ]
-
-        initFunc : Int -> BinarySource
-        initFunc partialSeed =
-            let
-                initialSeed =
-                    Random.initialSeed <| masterSeed + partialSeed
-
-                unfoldFunc : ( Int, Random.Seed ) -> Maybe ( Char, ( Int, Random.Seed ) )
-                unfoldFunc ( count, seed ) =
-                    if count < demoBinarySourceLength then
-                        Just <|
-                            let
-                                ( bit, newSeed ) =
-                                    Random.step bitGenerator seed
-                            in
-                            ( bit
-                            , ( count + 1
-                              , newSeed
-                              )
-                            )
-
-                    else
-                        Nothing
-            in
-            List.Extra.unfoldr
-                unfoldFunc
-                ( 0, initialSeed )
-                |> String.fromList
-                |> BinarySource.unsafeFromBitsString
-    in
-    List.Extra.initialize 14 initFunc
+    List.Extra.initialize 14
+        (\i ->
+            (masterSeed ++ String.fromInt i)
+                |> BinarySource.seedTo256Bits
+        )
 
 
-remainingBitsAndDemoNymTemplates : String -> Int -> List ( String, ( Int, List Int ), NymTemplate )
+remainingBitsAndDemoNymTemplates : String -> String -> List ( String, ( Int, List Int ), NymTemplate )
 remainingBitsAndDemoNymTemplates tweakSourceStr seed =
     demoNymSources tweakSourceStr seed
         |> List.map binarySourceToNymTemplate
 
 
-genNyms : String -> Int -> ( List ( Scene3d.Entity (), Point3dM ), ( Int, List Int ) )
+genNyms : String -> String -> ( List ( Scene3d.Entity (), Point3dM ), ( Int, List Int ) )
 genNyms tweakSourceStr seed =
     genNymEntitiesBitsUsedAndPositions tweakSourceStr seed
         |> Tuple.mapFirst
@@ -306,7 +275,7 @@ genNyms tweakSourceStr seed =
             )
 
 
-genNymEntitiesBitsUsedAndPositions : String -> Int -> ( List ( String, Scene3d.Entity (), Point3dM ), ( Int, List Int ) )
+genNymEntitiesBitsUsedAndPositions : String -> String -> ( List ( String, Scene3d.Entity (), Point3dM ), ( Int, List Int ) )
 genNymEntitiesBitsUsedAndPositions tweakSourceStr seed =
     let
         bitsLeftAndTemplates =
@@ -584,7 +553,7 @@ subscriptions _ =
                         TweakSource cmd
 
                     Nothing ->
-                        NewSeed <| badHashFunction <| keyString
+                        NewSeed keyString
             )
 
 
@@ -620,18 +589,3 @@ interpretTweakSourceCmd s =
 keyDecoder : Decode.Decoder String
 keyDecoder =
     Decode.field "key" Decode.string
-
-
-badHashFunction : String -> Int
-badHashFunction =
-    -- take a string and turn it into an int. Unique strings map to unique ints.
-    Hash.sha224
-        >> String.toList
-        >> List.map Char.toCode
-        >> List.map String.fromInt
-        >> List.foldl (++) ""
-        >> String.toList
-        >> List.take 8
-        >> String.fromList
-        >> String.toInt
-        >> Maybe.withDefault 0

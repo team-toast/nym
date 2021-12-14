@@ -43,18 +43,23 @@ type alias Model =
     , newNymTemplate : NymTemplate
     , morphProgress : Float
     , morphAccel : Float
-    , seed : Int
+    , lastGeneratedSource : BinarySource
     , lastMouseMoveTime : Time.Posix
     , lastMouseClickTime : Time.Posix
     , now : Time.Posix
     }
 
 
-initModel : Int -> Model
-initModel firstSeed =
+initModel : String -> Model
+initModel seed =
     let
+        source =
+            seed
+                |> BinarySource.seedTo256Bits
+
         nymTemplate =
-            Demos.Common.genNymTemplate firstSeed
+            source
+                |> Demos.Common.genNymTemplate
     in
     { mouseInput = MouseInput 0 0
     , laggedMouse = MouseInput 0 0
@@ -62,7 +67,7 @@ initModel firstSeed =
     , newNymTemplate = nymTemplate
     , morphProgress = 1
     , morphAccel = 0
-    , seed = firstSeed
+    , lastGeneratedSource = source
     , lastMouseMoveTime = Time.millisToPosix 0
     , lastMouseClickTime = Time.millisToPosix 0
     , now = Time.millisToPosix 0
@@ -74,7 +79,7 @@ main =
     Browser.element
         { init =
             always
-                ( initModel <| badHashFunction "1"
+                ( initModel ""
                 , Cmd.none
                 )
         , view = view
@@ -106,7 +111,7 @@ update msg model =
             ( { model
                 | lastMouseClickTime = model.now
               }
-                |> updateWithNewSeed
+                |> updateWithNewSource
             , Cmd.none
             )
 
@@ -143,13 +148,13 @@ update msg model =
 
         MaybeChangeLookDir time ->
             let
-                maybeNewInput =
+                maybeNewInputAndSource =
                     if not <| mouseMoveIsIdle model then
                         Nothing
 
                     else
-                        (Time.posixToMillis time + model.seed)
-                            |> pseudoRandomSourceInt
+                        model.lastGeneratedSource
+                            |> BinarySource.cycleWithSalt (time |> Time.posixToMillis |> String.fromInt)
                             |> BinarySource.consume2
                                 ( BinarySource.consumeBool
                                 , BinarySource.consume2
@@ -157,21 +162,21 @@ update msg model =
                                     , BinarySource.consumeFloatRange 3 ( -0.2, 0.4 )
                                     )
                                 )
-                            |> Maybe.map TupleHelpers.tuple3Middle
                             |> Maybe.andThen
-                                (\( shouldChange, newDir ) ->
+                                (\( newSource, ( shouldChange, newDir ), _ ) ->
                                     if shouldChange then
                                         Nothing
 
                                     else
-                                        Just <| Vector2.fromTuple newDir
+                                        Just <| ( newSource, Vector2.fromTuple newDir )
                                 )
 
                 newModel =
-                    case maybeNewInput of
-                        Just newInput ->
+                    case maybeNewInputAndSource of
+                        Just ( newSource, newInput ) ->
                             { model
                                 | mouseInput = newInput
+                                , lastGeneratedSource = newSource
                             }
 
                         Nothing ->
@@ -188,8 +193,8 @@ update msg model =
                         False
 
                     else
-                        (Time.posixToMillis time + model.seed)
-                            |> pseudoRandomSourceInt
+                        model.lastGeneratedSource
+                            |> BinarySource.cycleWithSalt (String.fromInt <| Time.posixToMillis time)
                             |> BinarySource.consumeInt 2
                             |> Maybe.map TupleHelpers.tuple3Middle
                             |> Maybe.withDefault 0
@@ -197,7 +202,7 @@ update msg model =
 
                 newModel =
                     if doChangeSeed then
-                        model |> updateWithNewSeed
+                        model |> updateWithNewSource
 
                     else
                         model
@@ -222,38 +227,24 @@ mouseClickIsIdle model =
     Time.toSecond Time.utc model.now - Time.toSecond Time.utc model.lastMouseClickTime > 4
 
 
-updateWithNewSeed : Model -> Model
-updateWithNewSeed model =
+updateWithNewSource : Model -> Model
+updateWithNewSource model =
     let
-        newSeed =
-            model.seed |> cycleSeed
+        newSource =
+            model.lastGeneratedSource
+                |> BinarySource.cycle
     in
     { model
-        | seed = newSeed
+        | lastGeneratedSource = newSource
         , oldNymTemplate =
             Demos.Common.interpolateNymsForRendering
                 model.morphProgress
                 model.oldNymTemplate
                 model.newNymTemplate
-        , newNymTemplate = Demos.Common.genNymTemplate newSeed
+        , newNymTemplate = Demos.Common.genNymTemplate newSource
         , morphProgress = 0
         , morphAccel = 0
     }
-
-
-cycleSeed : Int -> Int
-cycleSeed oldSeed =
-    oldSeed
-        |> String.fromInt
-        |> badHashFunction
-
-
-pseudoRandomSourceInt : Int -> BinarySource
-pseudoRandomSourceInt =
-    modBy 777
-        >> String.fromInt
-        >> badHashFunction
-        >> Demos.Common.seedTo256BinarySource
 
 
 view : Model -> Html Msg
@@ -279,6 +270,7 @@ view model =
                     |> renderNymTemplate False
                 )
                 (Decode.map MouseMove Mouse.moveDecoder)
+                (Decode.map (always NewSeed) (Decode.succeed ()))
             ]
 
 
@@ -300,27 +292,10 @@ keyDecoder =
     Decode.field "key" Decode.string
 
 
-badHashFunction : String -> Int
-badHashFunction =
-    -- take a string and turn it into an int. Unique strings map to unique ints.
-    Hash.sha224
-        >> String.toList
-        >> List.map Char.toCode
-        >> List.map String.fromInt
-        >> List.foldl (++) ""
-        >> String.toList
-        >> List.take 8
-        >> String.fromList
-        >> String.toInt
-        >> Maybe.withDefault 0
-
-
 subscriptions : Model -> Sub.Sub Msg
 subscriptions model =
     Sub.batch
-        [ Browser.Events.onMouseDown
-            (Decode.succeed NewSeed)
-        , Browser.Events.onAnimationFrameDelta
+        [ Browser.Events.onAnimationFrameDelta
             AnimateDelta
         , Time.every 1000
             MaybeChangeLookDir

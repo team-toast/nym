@@ -161,3 +161,4 @@ viewMorphDemo morphModel =
                 |> Nym.renderNymTemplate False
             )
             (Decode.map Demos.Morph.MouseMove Mouse.moveDecoder)
+            (Decode.map (always Demos.Morph.NewSeed) (Decode.succeed ()))
