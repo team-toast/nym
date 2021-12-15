@@ -13976,6 +13976,9 @@ var $elm$time$Time$utc = A2($elm$time$Time$Zone, 0, _List_Nil);
 var $author$project$Demos$Morph$mouseClickIsIdle = function (model) {
 	return (A2($elm$time$Time$toSecond, $elm$time$Time$utc, model.now) - A2($elm$time$Time$toSecond, $elm$time$Time$utc, model.lastMouseClickTime)) > 4;
 };
+var $author$project$Demos$Common$mouseMoveDataToLookDir = function (moveData) {
+	return A2($author$project$Vector2$Vector2, (moveData.offsetX / moveData.offsetWidth) - 0.5, (moveData.offsetY / moveData.offsetHeight) - 0.5);
+};
 var $author$project$Demos$Morph$mouseMoveIsIdle = function (model) {
 	return (A2($elm$time$Time$toSecond, $elm$time$Time$utc, model.now) - A2($elm$time$Time$toSecond, $elm$time$Time$utc, model.lastMouseMoveTime)) > 2;
 };
@@ -14359,7 +14362,7 @@ var $author$project$Demos$Morph$update = F2(
 						model,
 						{
 							lastMouseMoveTime: model.now,
-							mouseInput: A2($author$project$Demos$Morph$MouseInput, (moveData.offsetX / moveData.offsetWidth) - 0.5, (moveData.offsetY / moveData.offsetHeight) - 0.5)
+							mouseInput: $author$project$Demos$Common$mouseMoveDataToLookDir(moveData)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 'NewSeed':
@@ -14372,7 +14375,7 @@ var $author$project$Demos$Morph$update = F2(
 			case 'AnimateDelta':
 				var delta = msg.a;
 				var mouseInterpConstant = $author$project$Demos$Morph$mouseMoveIsIdle(model) ? 0.01 : 0.1;
-				var morphRateConstant = $author$project$Demos$Morph$mouseClickIsIdle(model) ? 20000 : 5000;
+				var morphRateConstant = $author$project$Demos$Morph$mouseClickIsIdle(model) ? 5000 : 5000;
 				var morphAccel = model.morphAccel + (delta / morphRateConstant);
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -23389,7 +23392,7 @@ var $author$project$Demos$Common$makeWebGLEntities = F2(
 						verticalFieldOfView: $ianmackenzie$elm_units$Angle$degrees(30),
 						viewpoint: $ianmackenzie$elm_3d_camera$Viewpoint3d$lookAt(
 							{
-								eyePoint: A3($ianmackenzie$elm_geometry$Point3d$meters, 0, 0, 5),
+								eyePoint: A3($ianmackenzie$elm_geometry$Point3d$meters, 0, 0, 7),
 								focalPoint: $ianmackenzie$elm_geometry$Point3d$origin,
 								upDirection: $ianmackenzie$elm_geometry$Direction3d$positiveY
 							})
@@ -23874,7 +23877,7 @@ var $author$project$Demos$Landing$View$body = F2(
 							]),
 							_List_fromArray(
 							[
-								$author$project$Demos$Landing$Theme$normalText('We call this first set Alpha Nyms. These consume 113 bits of entropy (72 for structure and 41 for color), resulting in over one thousand quintillion (1,000,000,000,000,000,000,000,000,000,000,000) visually distinct possibilities. Here are some of them:')
+								$author$project$Demos$Landing$Theme$normalText('We call this first set Alpha Nyms. These consume 113 bits of entropy (72 for structure and 41 for color), resulting in over one thousand quintillion (1,000,000,000,000,000,000,000,000,000,000,000) visually distinct possibilities. Here are some of them, morphing through various possibilities:')
 							])
 						])),
 					A2(
@@ -23893,10 +23896,14 @@ var $author$project$Demos$Landing$View$body = F2(
 						[
 							_List_fromArray(
 							[
-								$author$project$Demos$Landing$Theme$normalText('The Alpha Nyms have been airdropped today (2021.12.13) to any address that ever held FRY, the token for '),
+								$author$project$Demos$Landing$Theme$normalText('Nyms exhibit \"emergent rarity\": we expect some Nyms to be much more highly valued than others, not because this rarity was declared by protocol, but because a few of the Nyms will \"emerge\" looking a little like (for instance) the Metamask fox.')
+							]),
+							_List_fromArray(
+							[
+								$author$project$Demos$Landing$Theme$normalText('One Alpha Nym each was airdropped on 2021.12.15 to any address that ever held FRY, the token for '),
 								$author$project$Demos$Landing$Theme$newTabLink(
 								{text: 'the Foundry project', url: 'https://foundrydao.com/'}),
-								$author$project$Demos$Landing$Theme$normalText(', as of Ethereum block 13727946 (2021.12.2).')
+								$author$project$Demos$Landing$Theme$normalText(', as of Ethereum block 13727946 (2021.12.2). This set, as with all future Nym sets, are generated randomly (technically, using block headers as an input). Combine this with the huge possibility space of the set, and you can be sure that no one will ever get a Nym that looks quite like another.')
 							]),
 							_List_fromArray(
 							[
@@ -23904,7 +23911,7 @@ var $author$project$Demos$Landing$View$body = F2(
 							]),
 							_List_fromArray(
 							[
-								$author$project$Demos$Landing$Theme$normalText('We will update this page regularly throughout the week following the airdrop, with more info on our plans and how we envision Nyms being used. In the meantime, come say hi on '),
+								$author$project$Demos$Landing$Theme$normalText('We will be updating this page regularly after the airdrop, with more info on our plans and how we envision Nyms being used. In the meantime, come say hi on '),
 								$author$project$Demos$Landing$Theme$newTabLink(
 								{text: 'Discord', url: 'https://discord.gg/35eMjwmKXU'}),
 								$author$project$Demos$Landing$Theme$normalText('!')
