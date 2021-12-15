@@ -7189,12 +7189,12 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$element = _Browser_element;
-var $author$project$RenderNym$MalformedIdentifier = {$: 'MalformedIdentifier'};
-var $author$project$RenderNym$MouseInput = F2(
+var $author$project$Demos$RenderNym$MalformedIdentifier = {$: 'MalformedIdentifier'};
+var $author$project$Demos$RenderNym$MouseInput = F2(
 	function (x, y) {
 		return {x: x, y: y};
 	});
-var $author$project$RenderNym$NymGenError = function (a) {
+var $author$project$Demos$RenderNym$NymGenError = function (a) {
 	return {$: 'NymGenError', a: a};
 };
 var $elm$core$Result$andThen = F2(
@@ -7246,22 +7246,27 @@ var $elm$core$String$concat = function (strings) {
 var $author$project$BinarySource$BinarySource = function (a) {
 	return {$: 'BinarySource', a: a};
 };
-var $author$project$BinarySource$unsafeFromBitsString = function (str) {
-	return $author$project$BinarySource$BinarySource(str);
+var $elm$core$String$foldr = _String_foldr;
+var $elm$core$String$toList = function (string) {
+	return A3($elm$core$String$foldr, $elm$core$List$cons, _List_Nil, string);
 };
-var $author$project$BinarySource$fromBitsString = function (str) {
-	return A2(
-		$elm$core$String$all,
+var $author$project$BinarySource$bitsStringToBooleans = A2(
+	$elm$core$Basics$composeR,
+	$elm$core$String$toList,
+	$elm$core$List$map(
 		function (c) {
 			return _Utils_eq(
 				c,
-				_Utils_chr('1')) || _Utils_eq(
-				c,
-				_Utils_chr('0'));
-		},
-		str) ? $elm$core$Maybe$Just(
-		$author$project$BinarySource$unsafeFromBitsString(str)) : $elm$core$Maybe$Nothing;
+				_Utils_chr('0')) ? false : true;
+		}));
+var $icidasset$elm_binary$Binary$Bits = function (a) {
+	return {$: 'Bits', a: a};
 };
+var $icidasset$elm_binary$Binary$fromBooleans = $icidasset$elm_binary$Binary$Bits;
+var $author$project$BinarySource$fromBitsString = A2(
+	$elm$core$Basics$composeR,
+	$author$project$BinarySource$bitsStringToBooleans,
+	A2($elm$core$Basics$composeR, $icidasset$elm_binary$Binary$fromBooleans, $author$project$BinarySource$BinarySource));
 var $elm$core$String$cons = _String_cons;
 var $elm$core$String$fromChar = function (_char) {
 	return A2($elm$core$String$cons, _char, '');
@@ -7289,9 +7294,6 @@ var $icidasset$elm_binary$Binary$fromDecimal_ = F2(
 			}
 		}
 	});
-var $icidasset$elm_binary$Binary$Bits = function (a) {
-	return {$: 'Bits', a: a};
-};
 var $icidasset$elm_binary$Binary$ifThenElse = F3(
 	function (bool, a, b) {
 		return bool ? a : b;
@@ -7489,10 +7491,6 @@ var $elm$core$List$tail = function (list) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
-var $elm$core$String$foldr = _String_foldr;
-var $elm$core$String$toList = function (string) {
-	return A3($elm$core$String$foldr, $elm$core$List$cons, _List_Nil, string);
-};
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
 		if (maybe.$ === 'Just') {
@@ -7629,7 +7627,7 @@ var $author$project$BinarySource$fromHexString = A2(
 			A2(
 				$elm$core$Basics$composeR,
 				$elm$core$Maybe$map($elm$core$String$concat),
-				$elm$core$Maybe$andThen($author$project$BinarySource$fromBitsString)))));
+				$elm$core$Maybe$map($author$project$BinarySource$fromBitsString)))));
 var $cmditch$elm_bigint$BigInt$Magnitude = function (a) {
 	return {$: 'Magnitude', a: a};
 };
@@ -8797,7 +8795,7 @@ var $cmditch$elm_bigint$BigInt$fromIntString = function (x) {
 		}
 	}
 };
-var $author$project$RenderNym$binarySourceFromDecIfPossibleOtherwiseHex = function (ambiguousData) {
+var $author$project$Demos$RenderNym$binarySourceFromDecIfPossibleOtherwiseHex = function (ambiguousData) {
 	var maybeBigintData = function () {
 		var _v0 = $cmditch$elm_bigint$BigInt$fromIntString(ambiguousData);
 		if (_v0.$ === 'Just') {
@@ -8975,9 +8973,17 @@ var $author$project$BinarySource$consume2 = F2(
 			},
 			f1(source));
 	});
+var $author$project$BinarySource$booleansToBitsString = A2(
+	$elm$core$Basics$composeR,
+	$elm$core$List$map(
+		function (b) {
+			return b ? _Utils_chr('1') : _Utils_chr('0');
+		}),
+	$elm$core$String$fromList);
 var $author$project$BinarySource$encodeBinaryString = function (_v0) {
 	var chunk = _v0.a;
-	return '0b' + chunk;
+	return '0b' + $author$project$BinarySource$booleansToBitsString(
+		$icidasset$elm_binary$Binary$toBooleans(chunk));
 };
 var $malaire$elm_uint64$UInt64$charToBinaryDigit = function (_char) {
 	switch (_char.valueOf()) {
@@ -9380,17 +9386,38 @@ var $author$project$BinarySource$BinaryChunk = function (a) {
 	return {$: 'BinaryChunk', a: a};
 };
 var $elm$core$Basics$ge = _Utils_ge;
+var $icidasset$elm_binary$Binary$toIntegers = function (_v0) {
+	var bits = _v0.a;
+	return A2(
+		$elm$core$List$map,
+		function (b) {
+			return A3($icidasset$elm_binary$Binary$ifThenElse, b, 1, 0);
+		},
+		bits);
+};
+var $author$project$BinarySource$getBitsString = function (_v0) {
+	var s = _v0.a;
+	return $elm$core$String$fromList(
+		A2(
+			$elm$core$List$map,
+			function (c) {
+				return (c === 1) ? _Utils_chr('1') : _Utils_chr('0');
+			},
+			$icidasset$elm_binary$Binary$toIntegers(s)));
+};
 var $author$project$BinarySource$consumeChunk = F2(
-	function (numBits, _v0) {
-		var source = _v0.a;
+	function (numBits, source) {
+		var bitsString = $author$project$BinarySource$getBitsString(source);
 		return (_Utils_cmp(
-			$elm$core$String$length(source),
+			$elm$core$String$length(bitsString),
 			numBits) > -1) ? $elm$core$Maybe$Just(
 			_Utils_Tuple3(
-				$author$project$BinarySource$BinarySource(
-					A2($elm$core$String$dropLeft, numBits, source)),
+				$author$project$BinarySource$fromBitsString(
+					A2($elm$core$String$dropLeft, numBits, bitsString)),
 				$author$project$BinarySource$BinaryChunk(
-					A2($elm$core$String$left, numBits, source)),
+					$icidasset$elm_binary$Binary$fromBooleans(
+						$author$project$BinarySource$bitsStringToBooleans(
+							A2($elm$core$String$left, numBits, bitsString)))),
 				numBits)) : $elm$core$Maybe$Nothing;
 	});
 var $author$project$TupleHelpers$mapTuple3Middle = F2(
@@ -9659,7 +9686,8 @@ var $author$project$Utils$scaleColorAndCap = F2(
 				$author$project$Utils$colorToRgbVector3(color)));
 	});
 var $author$project$Types$NotEnoughSource = {$: 'NotEnoughSource'};
-var $author$project$BinarySource$empty = $author$project$BinarySource$BinarySource('');
+var $icidasset$elm_binary$Binary$empty = $icidasset$elm_binary$Binary$Bits(_List_Nil);
+var $author$project$BinarySource$empty = $author$project$BinarySource$BinarySource($icidasset$elm_binary$Binary$empty);
 var $elm$core$Result$fromMaybe = F2(
 	function (err, maybe) {
 		if (maybe.$ === 'Just') {
@@ -10138,7 +10166,75 @@ var $elm$core$List$filter = F2(
 			_List_Nil,
 			list);
 	});
-var $author$project$Types$allSetStructurePoints = function (structureTemplate) {
+var $author$project$Utils$mirrorPoint = function (v) {
+	return _Utils_update(
+		v,
+		{x: -v.x});
+};
+var $author$project$Utils$allSetStructurePoints = function (structureTemplate) {
+	var toMirror = _List_fromArray(
+		[
+			A2(
+			$elm$core$Result$map,
+			A2(
+				$elm$core$Basics$composeR,
+				function ($) {
+					return $.eyeQuad;
+				},
+				function ($) {
+					return $.topLeft;
+				}),
+			structureTemplate.eyeQuadInfo),
+			A2(
+			$elm$core$Result$map,
+			A2(
+				$elm$core$Basics$composeR,
+				function ($) {
+					return $.eyeQuad;
+				},
+				function ($) {
+					return $.topRight;
+				}),
+			structureTemplate.eyeQuadInfo),
+			A2(
+			$elm$core$Result$map,
+			A2(
+				$elm$core$Basics$composeR,
+				function ($) {
+					return $.eyeQuad;
+				},
+				function ($) {
+					return $.bottomLeft;
+				}),
+			structureTemplate.eyeQuadInfo),
+			A2(
+			$elm$core$Result$map,
+			A2(
+				$elm$core$Basics$composeR,
+				function ($) {
+					return $.eyeQuad;
+				},
+				function ($) {
+					return $.bottomRight;
+				}),
+			structureTemplate.eyeQuadInfo),
+			structureTemplate.noseTop,
+			structureTemplate.noseBridge,
+			structureTemplate.noseBottom,
+			structureTemplate.cheekbone,
+			structureTemplate.crownFront,
+			structureTemplate.faceSideTop,
+			structureTemplate.faceSideMid,
+			structureTemplate.faceSideBottom,
+			structureTemplate.jawPoint,
+			structureTemplate.chin,
+			structureTemplate.crownBack,
+			structureTemplate.earAttachFrontTop,
+			structureTemplate.earAttachFrontBottom,
+			structureTemplate.earAttachBack,
+			structureTemplate.earTip,
+			structureTemplate.earAttachInside
+		]);
 	return $elm_community$result_extra$Result$Extra$combine(
 		A2(
 			$elm$core$List$filter,
@@ -10150,69 +10246,13 @@ var $author$project$Types$allSetStructurePoints = function (structureTemplate) {
 					return true;
 				}
 			},
-			_List_fromArray(
-				[
-					A2(
-					$elm$core$Result$map,
-					A2(
-						$elm$core$Basics$composeR,
-						function ($) {
-							return $.eyeQuad;
-						},
-						function ($) {
-							return $.topLeft;
-						}),
-					structureTemplate.eyeQuadInfo),
-					A2(
-					$elm$core$Result$map,
-					A2(
-						$elm$core$Basics$composeR,
-						function ($) {
-							return $.eyeQuad;
-						},
-						function ($) {
-							return $.topRight;
-						}),
-					structureTemplate.eyeQuadInfo),
-					A2(
-					$elm$core$Result$map,
-					A2(
-						$elm$core$Basics$composeR,
-						function ($) {
-							return $.eyeQuad;
-						},
-						function ($) {
-							return $.bottomLeft;
-						}),
-					structureTemplate.eyeQuadInfo),
-					A2(
-					$elm$core$Result$map,
-					A2(
-						$elm$core$Basics$composeR,
-						function ($) {
-							return $.eyeQuad;
-						},
-						function ($) {
-							return $.bottomRight;
-						}),
-					structureTemplate.eyeQuadInfo),
-					structureTemplate.noseTop,
-					structureTemplate.noseBridge,
-					structureTemplate.noseBottom,
-					structureTemplate.cheekbone,
-					structureTemplate.crownFront,
-					structureTemplate.faceSideTop,
-					structureTemplate.faceSideMid,
-					structureTemplate.faceSideBottom,
-					structureTemplate.jawPoint,
-					structureTemplate.chin,
-					structureTemplate.crownBack,
-					structureTemplate.earAttachFrontTop,
-					structureTemplate.earAttachFrontBottom,
-					structureTemplate.earAttachBack,
-					structureTemplate.earTip,
-					structureTemplate.earAttachInside
-				])));
+			A2(
+				$elm$core$List$append,
+				toMirror,
+				A2(
+					$elm$core$List$map,
+					$elm$core$Result$map($author$project$Utils$mirrorPoint),
+					toMirror))));
 };
 var $author$project$TupleHelpers$combineTuple2 = F2(
 	function (f, _v0) {
@@ -11668,7 +11708,7 @@ var $author$project$Transforms$coreStructureTransforms = _List_fromArray(
 									function ($) {
 										return $.z;
 									}),
-								$author$project$Types$allSetStructurePoints(template))));
+								$author$project$Utils$allSetStructurePoints(template))));
 					return _Utils_update(
 						template,
 						{
@@ -12099,13 +12139,9 @@ var $author$project$Generate$consumeCoreStructureToTemplate = function (fullSour
 		_Utils_Tuple3(fullSource, $author$project$Generate$blankStructureTemplate, _List_Nil),
 		$author$project$Transforms$coreStructureTransforms);
 };
-var $author$project$BinarySource$getBitsString = function (_v0) {
-	var s = _v0.a;
-	return s;
-};
-var $author$project$BinarySource$remainingBits = function (_v0) {
-	var source = _v0.a;
-	return $elm$core$String$length(source);
+var $author$project$BinarySource$remainingBits = function (source) {
+	return $elm$core$String$length(
+		$author$project$BinarySource$getBitsString(source));
 };
 var $author$project$Nym$binarySourceToNymTemplate = function (source) {
 	var _v0 = $author$project$Generate$consumeCoreStructureToTemplate(source);
@@ -12279,7 +12315,7 @@ var $elm$time$Time$Posix = function (a) {
 var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $author$project$RenderNym$init = function (nymDataString) {
+var $author$project$Demos$RenderNym$init = function (nymDataString) {
 	var nymResult = A2(
 		$elm$core$Result$andThen,
 		A2(
@@ -12288,30 +12324,30 @@ var $author$project$RenderNym$init = function (nymDataString) {
 			$elm$core$Result$mapError(
 				function (e) {
 					var _v0 = A2($elm$core$Debug$log, 'something wrong with this template', e.a);
-					return $author$project$RenderNym$NymGenError(e);
+					return $author$project$Demos$RenderNym$NymGenError(e);
 				})),
 		A2(
 			$elm$core$Result$fromMaybe,
-			$author$project$RenderNym$MalformedIdentifier,
-			$author$project$RenderNym$binarySourceFromDecIfPossibleOtherwiseHex(nymDataString)));
+			$author$project$Demos$RenderNym$MalformedIdentifier,
+			$author$project$Demos$RenderNym$binarySourceFromDecIfPossibleOtherwiseHex(nymDataString)));
 	return _Utils_Tuple2(
 		{
-			laggedMouse: A2($author$project$RenderNym$MouseInput, 0, 0),
+			laggedMouse: A2($author$project$Demos$RenderNym$MouseInput, 0, 0),
 			lastMouseMoveTime: $elm$time$Time$millisToPosix(0),
-			mouseInput: A2($author$project$RenderNym$MouseInput, 0, 0),
+			mouseInput: A2($author$project$Demos$RenderNym$MouseInput, 0, 0),
 			now: $elm$time$Time$millisToPosix(0),
 			nymResult: nymResult
 		},
 		$elm$core$Platform$Cmd$none);
 };
 var $elm$json$Json$Decode$string = _Json_decodeString;
-var $author$project$RenderNym$AnimateDelta = function (a) {
+var $author$project$Demos$RenderNym$AnimateDelta = function (a) {
 	return {$: 'AnimateDelta', a: a};
 };
-var $author$project$RenderNym$MaybeChangeLookDir = function (a) {
+var $author$project$Demos$RenderNym$MaybeChangeLookDir = function (a) {
 	return {$: 'MaybeChangeLookDir', a: a};
 };
-var $author$project$RenderNym$UpdateNow = function (a) {
+var $author$project$Demos$RenderNym$UpdateNow = function (a) {
 	return {$: 'UpdateNow', a: a};
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
@@ -12842,13 +12878,13 @@ var $elm$browser$Browser$AnimationManager$onAnimationFrameDelta = function (tagg
 		$elm$browser$Browser$AnimationManager$Delta(tagger));
 };
 var $elm$browser$Browser$Events$onAnimationFrameDelta = $elm$browser$Browser$AnimationManager$onAnimationFrameDelta;
-var $author$project$RenderNym$subscriptions = function (model) {
+var $author$project$Demos$RenderNym$subscriptions = function (model) {
 	return $elm$core$Platform$Sub$batch(
 		_List_fromArray(
 			[
-				$elm$browser$Browser$Events$onAnimationFrameDelta($author$project$RenderNym$AnimateDelta),
-				A2($elm$time$Time$every, 1000, $author$project$RenderNym$MaybeChangeLookDir),
-				A2($elm$time$Time$every, 500, $author$project$RenderNym$UpdateNow)
+				$elm$browser$Browser$Events$onAnimationFrameDelta($author$project$Demos$RenderNym$AnimateDelta),
+				A2($elm$time$Time$every, 1000, $author$project$Demos$RenderNym$MaybeChangeLookDir),
+				A2($elm$time$Time$every, 500, $author$project$Demos$RenderNym$UpdateNow)
 			]));
 };
 var $author$project$Vector2$fromTuple = function (_v0) {
@@ -12885,10 +12921,10 @@ var $elm$time$Time$toSecond = F2(
 				1000));
 	});
 var $elm$time$Time$utc = A2($elm$time$Time$Zone, 0, _List_Nil);
-var $author$project$RenderNym$mouseMoveIsIdle = function (model) {
+var $author$project$Demos$RenderNym$mouseMoveIsIdle = function (model) {
 	return (A2($elm$time$Time$toSecond, $elm$time$Time$utc, model.now) - A2($elm$time$Time$toSecond, $elm$time$Time$utc, model.lastMouseMoveTime)) > 2;
 };
-var $ktonon$elm_crypto$Crypto$SHA$Alg$SHA224 = {$: 'SHA224'};
+var $ktonon$elm_crypto$Crypto$SHA$Alg$SHA256 = {$: 'SHA256'};
 var $ktonon$elm_crypto$Crypto$SHA$Types$WorkingVars = F8(
 	function (a, b, c, d, e, f, g, h) {
 		return {a: a, b: b, c: c, d: d, e: e, f: f, g: g, h: h};
@@ -13017,7 +13053,6 @@ var $ktonon$elm_word$Word$complement = function (word) {
 			return $ktonon$elm_word$Word$Mismatch;
 	}
 };
-var $ktonon$elm_crypto$Crypto$SHA$Alg$SHA256 = {$: 'SHA256'};
 var $ktonon$elm_crypto$Crypto$SHA$Alg$SHA512 = {$: 'SHA512'};
 var $ktonon$elm_word$Word$Helpers$lowMask = function (n) {
 	switch (n) {
@@ -14541,210 +14576,21 @@ var $ktonon$elm_word$Word$Hex$fromWord = function (word) {
 	}
 };
 var $ktonon$elm_word$Word$Hex$fromWordArray = $ktonon$elm_word$Word$Hex$fromArray($ktonon$elm_word$Word$Hex$fromWord);
-var $ktonon$elm_crypto$Crypto$Hash$sha224 = function (message) {
+var $ktonon$elm_crypto$Crypto$Hash$sha256 = function (message) {
 	return $ktonon$elm_word$Word$Hex$fromWordArray(
 		A2(
 			$ktonon$elm_crypto$Crypto$SHA$digest,
-			$ktonon$elm_crypto$Crypto$SHA$Alg$SHA224,
+			$ktonon$elm_crypto$Crypto$SHA$Alg$SHA256,
 			$ktonon$elm_word$Word$Bytes$fromUTF8(message)));
 };
-var $author$project$RenderNym$badHashFunction = A2(
+var $author$project$BinarySource$seedTo256Bits = A2(
 	$elm$core$Basics$composeR,
-	$ktonon$elm_crypto$Crypto$Hash$sha224,
+	$ktonon$elm_crypto$Crypto$Hash$sha256,
 	A2(
 		$elm$core$Basics$composeR,
-		$elm$core$String$toList,
-		A2(
-			$elm$core$Basics$composeR,
-			$elm$core$List$map($elm$core$Char$toCode),
-			A2(
-				$elm$core$Basics$composeR,
-				$elm$core$List$map($elm$core$String$fromInt),
-				A2(
-					$elm$core$Basics$composeR,
-					A2($elm$core$List$foldl, $elm$core$Basics$append, ''),
-					A2(
-						$elm$core$Basics$composeR,
-						$elm$core$String$toList,
-						A2(
-							$elm$core$Basics$composeR,
-							$elm$core$List$take(8),
-							A2(
-								$elm$core$Basics$composeR,
-								$elm$core$String$fromList,
-								A2(
-									$elm$core$Basics$composeR,
-									$elm$core$String$toInt,
-									$elm$core$Maybe$withDefault(0))))))))));
-var $elm$random$Random$Seed = F2(
-	function (a, b) {
-		return {$: 'Seed', a: a, b: b};
-	});
-var $elm$random$Random$next = function (_v0) {
-	var state0 = _v0.a;
-	var incr = _v0.b;
-	return A2($elm$random$Random$Seed, ((state0 * 1664525) + incr) >>> 0, incr);
-};
-var $elm$random$Random$initialSeed = function (x) {
-	var _v0 = $elm$random$Random$next(
-		A2($elm$random$Random$Seed, 0, 1013904223));
-	var state1 = _v0.a;
-	var incr = _v0.b;
-	var state2 = (state1 + x) >>> 0;
-	return $elm$random$Random$next(
-		A2($elm$random$Random$Seed, state2, incr));
-};
-var $elm$random$Random$step = F2(
-	function (_v0, seed) {
-		var generator = _v0.a;
-		return generator(seed);
-	});
-var $elm_community$list_extra$List$Extra$unfoldr = F2(
-	function (f, seed) {
-		var _v0 = f(seed);
-		if (_v0.$ === 'Nothing') {
-			return _List_Nil;
-		} else {
-			var _v1 = _v0.a;
-			var a = _v1.a;
-			var b = _v1.b;
-			return A2(
-				$elm$core$List$cons,
-				a,
-				A2($elm_community$list_extra$List$Extra$unfoldr, f, b));
-		}
-	});
-var $elm$random$Random$addOne = function (value) {
-	return _Utils_Tuple2(1, value);
-};
-var $elm$random$Random$Generator = function (a) {
-	return {$: 'Generator', a: a};
-};
-var $elm$random$Random$peel = function (_v0) {
-	var state = _v0.a;
-	var word = (state ^ (state >>> ((state >>> 28) + 4))) * 277803737;
-	return ((word >>> 22) ^ word) >>> 0;
-};
-var $elm$random$Random$float = F2(
-	function (a, b) {
-		return $elm$random$Random$Generator(
-			function (seed0) {
-				var seed1 = $elm$random$Random$next(seed0);
-				var range = $elm$core$Basics$abs(b - a);
-				var n1 = $elm$random$Random$peel(seed1);
-				var n0 = $elm$random$Random$peel(seed0);
-				var lo = (134217727 & n1) * 1.0;
-				var hi = (67108863 & n0) * 1.0;
-				var val = ((hi * 134217728.0) + lo) / 9007199254740992.0;
-				var scaled = (val * range) + a;
-				return _Utils_Tuple2(
-					scaled,
-					$elm$random$Random$next(seed1));
-			});
-	});
-var $elm$random$Random$getByWeight = F3(
-	function (_v0, others, countdown) {
-		getByWeight:
-		while (true) {
-			var weight = _v0.a;
-			var value = _v0.b;
-			if (!others.b) {
-				return value;
-			} else {
-				var second = others.a;
-				var otherOthers = others.b;
-				if (_Utils_cmp(
-					countdown,
-					$elm$core$Basics$abs(weight)) < 1) {
-					return value;
-				} else {
-					var $temp$_v0 = second,
-						$temp$others = otherOthers,
-						$temp$countdown = countdown - $elm$core$Basics$abs(weight);
-					_v0 = $temp$_v0;
-					others = $temp$others;
-					countdown = $temp$countdown;
-					continue getByWeight;
-				}
-			}
-		}
-	});
-var $elm$random$Random$map = F2(
-	function (func, _v0) {
-		var genA = _v0.a;
-		return $elm$random$Random$Generator(
-			function (seed0) {
-				var _v1 = genA(seed0);
-				var a = _v1.a;
-				var seed1 = _v1.b;
-				return _Utils_Tuple2(
-					func(a),
-					seed1);
-			});
-	});
-var $elm$core$List$sum = function (numbers) {
-	return A3($elm$core$List$foldl, $elm$core$Basics$add, 0, numbers);
-};
-var $elm$random$Random$weighted = F2(
-	function (first, others) {
-		var normalize = function (_v0) {
-			var weight = _v0.a;
-			return $elm$core$Basics$abs(weight);
-		};
-		var total = normalize(first) + $elm$core$List$sum(
-			A2($elm$core$List$map, normalize, others));
-		return A2(
-			$elm$random$Random$map,
-			A2($elm$random$Random$getByWeight, first, others),
-			A2($elm$random$Random$float, 0, total));
-	});
-var $elm$random$Random$uniform = F2(
-	function (value, valueList) {
-		return A2(
-			$elm$random$Random$weighted,
-			$elm$random$Random$addOne(value),
-			A2($elm$core$List$map, $elm$random$Random$addOne, valueList));
-	});
-var $author$project$RenderNym$seedTo256BinarySource = function (initialSeedInt) {
-	var initialSeed = $elm$random$Random$initialSeed(initialSeedInt);
-	var bitGenerator = A2(
-		$elm$random$Random$uniform,
-		_Utils_chr('0'),
-		_List_fromArray(
-			[
-				_Utils_chr('1')
-			]));
-	var unfoldFunc = function (_v1) {
-		var count = _v1.a;
-		var seed = _v1.b;
-		return (count < 256) ? $elm$core$Maybe$Just(
-			function () {
-				var _v0 = A2($elm$random$Random$step, bitGenerator, seed);
-				var bit = _v0.a;
-				var newSeed = _v0.b;
-				return _Utils_Tuple2(
-					bit,
-					_Utils_Tuple2(count + 1, newSeed));
-			}()) : $elm$core$Maybe$Nothing;
-	};
-	return $author$project$BinarySource$unsafeFromBitsString(
-		$elm$core$String$fromList(
-			A2(
-				$elm_community$list_extra$List$Extra$unfoldr,
-				unfoldFunc,
-				_Utils_Tuple2(0, initialSeed))));
-};
-var $author$project$RenderNym$pseudoRandomSourceFromTime = A2(
-	$elm$core$Basics$composeR,
-	$elm$time$Time$posixToMillis,
-	A2(
-		$elm$core$Basics$composeR,
-		$elm$core$Basics$modBy(777),
-		A2(
-			$elm$core$Basics$composeR,
-			$elm$core$String$fromInt,
-			A2($elm$core$Basics$composeR, $author$project$RenderNym$badHashFunction, $author$project$RenderNym$seedTo256BinarySource))));
-var $author$project$RenderNym$update = F2(
+		$author$project$BinarySource$fromHexString,
+		$elm$core$Maybe$withDefault($author$project$BinarySource$empty)));
+var $author$project$Demos$RenderNym$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
 			case 'UpdateNow':
@@ -14761,12 +14607,12 @@ var $author$project$RenderNym$update = F2(
 						model,
 						{
 							lastMouseMoveTime: model.now,
-							mouseInput: A2($author$project$RenderNym$MouseInput, (moveData.offsetX / moveData.offsetWidth) - 0.5, (moveData.offsetY / moveData.offsetHeight) - 0.5)
+							mouseInput: A2($author$project$Demos$RenderNym$MouseInput, (moveData.offsetX / moveData.offsetWidth) - 0.5, (moveData.offsetY / moveData.offsetHeight) - 0.5)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 'AnimateDelta':
 				var delta = msg.a;
-				var mouseInterpConstant = $author$project$RenderNym$mouseMoveIsIdle(model) ? 0.01 : 0.1;
+				var mouseInterpConstant = $author$project$Demos$RenderNym$mouseMoveIsIdle(model) ? 0.01 : 0.1;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -14776,7 +14622,7 @@ var $author$project$RenderNym$update = F2(
 					$elm$core$Platform$Cmd$none);
 			case 'MaybeChangeLookDir':
 				var time = msg.a;
-				var maybeNewInput = (!$author$project$RenderNym$mouseMoveIsIdle(model)) ? $elm$core$Maybe$Nothing : A2(
+				var maybeNewInput = (!$author$project$Demos$RenderNym$mouseMoveIsIdle(model)) ? $elm$core$Maybe$Nothing : A2(
 					$elm$core$Maybe$andThen,
 					function (_v2) {
 						var shouldChange = _v2.a;
@@ -14801,7 +14647,9 @@ var $author$project$RenderNym$update = F2(
 											$author$project$BinarySource$consumeFloatRange,
 											3,
 											_Utils_Tuple2(-0.2, 0.4))))),
-							$author$project$RenderNym$pseudoRandomSourceFromTime(time))));
+							$author$project$BinarySource$seedTo256Bits(
+								$elm$core$String$fromInt(
+									$elm$time$Time$posixToMillis(time))))));
 				var newModel = function () {
 					if (maybeNewInput.$ === 'Just') {
 						var newInput = maybeNewInput.a;
@@ -20485,7 +20333,7 @@ var $mdgriffith$elm_ui$Element$layoutWith = F3(
 	});
 var $mdgriffith$elm_ui$Element$layout = $mdgriffith$elm_ui$Element$layoutWith(
 	{options: _List_Nil});
-var $author$project$RenderNym$MouseMove = function (a) {
+var $author$project$Demos$RenderNym$MouseMove = function (a) {
 	return {$: 'MouseMove', a: a};
 };
 var $elm$html$Html$Attributes$height = function (n) {
@@ -21831,7 +21679,7 @@ var $ianmackenzie$elm_3d_scene$Scene3d$toWebGLEntities = function (_arguments) {
 		}
 	}
 };
-var $author$project$RenderNym$makeWebGLEntities = function (nymList) {
+var $author$project$Demos$RenderNym$makeWebGLEntities = function (nymList) {
 	return $ianmackenzie$elm_3d_scene$Scene3d$toWebGLEntities(
 		{
 			aspectRatio: 10 / 9,
@@ -23406,11 +23254,81 @@ var $ianmackenzie$elm_geometry$Plane3d$through = F2(
 	});
 var $ianmackenzie$elm_geometry$Plane3d$yz = A2($ianmackenzie$elm_geometry$Plane3d$through, $ianmackenzie$elm_geometry$Point3d$origin, $ianmackenzie$elm_geometry$Direction3d$x);
 var $author$project$Scene3dHelpers$mirrorGroup = $ianmackenzie$elm_3d_scene$Scene3d$mirrorAcross($ianmackenzie$elm_geometry$Plane3d$yz);
-var $author$project$Utils$mirrorPoint = function (v) {
-	return _Utils_update(
-		v,
-		{x: -v.x});
+var $author$project$Utils$getBoundingBox = function (template) {
+	var folder = F2(
+		function (point, maybeBounds) {
+			if (maybeBounds.$ === 'Nothing') {
+				return $elm$core$Maybe$Just(
+					_Utils_Tuple2(point, point));
+			} else {
+				var _v1 = maybeBounds.a;
+				var boundStart = _v1.a;
+				var boundEnd = _v1.b;
+				return $elm$core$Maybe$Just(
+					_Utils_Tuple2(
+						A3(
+							$author$project$Vector3$Vector3,
+							A2($elm$core$Basics$min, point.x, boundStart.x),
+							A2($elm$core$Basics$min, point.y, boundStart.y),
+							A2($elm$core$Basics$min, point.z, boundStart.z)),
+						A3(
+							$author$project$Vector3$Vector3,
+							A2($elm$core$Basics$max, point.x, boundEnd.x),
+							A2($elm$core$Basics$max, point.y, boundEnd.y),
+							A2($elm$core$Basics$max, point.z, boundEnd.z))));
+			}
+		});
+	return $elm_community$result_extra$Result$Extra$join(
+		A2(
+			$elm$core$Result$map,
+			$elm$core$Result$fromMaybe(
+				$author$project$Types$UnexpectedNothing('getBoundingBox had no points to iterate over')),
+			A2(
+				$elm$core$Result$map,
+				A2($elm$core$List$foldl, folder, $elm$core$Maybe$Nothing),
+				$author$project$Utils$allSetStructurePoints(template))));
 };
+var $author$project$Nym$nymBoundingBoxCenterPoint = function (template) {
+	return A2(
+		$elm$core$Result$map,
+		function (_v0) {
+			var boundStart = _v0.a;
+			var boundEnd = _v0.b;
+			return A2($author$project$Vector3$midpoint, boundStart, boundEnd);
+		},
+		$author$project$Utils$getBoundingBox(template.structure));
+};
+var $author$project$Vector3$toMetersVector = function (v) {
+	return $ianmackenzie$elm_geometry$Vector3d$unsafe(v);
+};
+var $ianmackenzie$elm_geometry$Vector3d$unwrap = function (_v0) {
+	var givenComponents = _v0.a;
+	return givenComponents;
+};
+var $ianmackenzie$elm_3d_scene$Scene3d$Transformation$translateBy = function (displacement) {
+	var v = $ianmackenzie$elm_geometry$Vector3d$unwrap(displacement);
+	return {isRightHanded: true, ix: 1, iy: 0, iz: 0, jx: 0, jy: 1, jz: 0, kx: 0, ky: 0, kz: 1, px: v.x, py: v.y, pz: v.z, scale: 1};
+};
+var $ianmackenzie$elm_3d_scene$Scene3d$Entity$translateBy = F2(
+	function (displacement, givenDrawable) {
+		return A2(
+			$ianmackenzie$elm_3d_scene$Scene3d$Entity$transformBy,
+			$ianmackenzie$elm_3d_scene$Scene3d$Transformation$translateBy(displacement),
+			givenDrawable);
+	});
+var $ianmackenzie$elm_3d_scene$Scene3d$translateBy = F2(
+	function (displacement, entity) {
+		return A2($ianmackenzie$elm_3d_scene$Scene3d$Entity$translateBy, displacement, entity);
+	});
+var $elm$core$Result$withDefault = F2(
+	function (def, result) {
+		if (result.$ === 'Ok') {
+			var a = result.a;
+			return a;
+		} else {
+			return def;
+		}
+	});
 var $author$project$Nym$renderNymTemplate = F2(
 	function (showDebugLines, nymTemplate) {
 		var testEntity = $ianmackenzie$elm_3d_scene$Scene3d$nothing;
@@ -23683,7 +23601,15 @@ var $author$project$Nym$renderNymTemplate = F2(
 		var allFeatures = $ianmackenzie$elm_3d_scene$Scene3d$group(
 			_List_fromArray(
 				[middleGroup, symmetryGroup, copiedSymmetryGroup, maybeDebugLines]));
-		return allFeatures;
+		return A2(
+			$ianmackenzie$elm_3d_scene$Scene3d$translateBy,
+			$author$project$Vector3$toMetersVector(
+				$author$project$Vector3$negate(
+					A2(
+						$elm$core$Result$withDefault,
+						A3($author$project$Vector3$Vector3, 0, 0, 0),
+						$author$project$Nym$nymBoundingBoxCenterPoint(nymTemplate)))),
+			allFeatures);
 	});
 var $author$project$Nym$renderNym = A2(
 	$elm$core$Basics$composeR,
@@ -23694,7 +23620,7 @@ var $ianmackenzie$elm_units$Angle$asin = function (x) {
 	return $ianmackenzie$elm_units$Quantity$Quantity(
 		$elm$core$Basics$asin(x));
 };
-var $author$project$RenderNym$mouseInputToNymFocusPoint3d = function (mouseInput) {
+var $author$project$Demos$RenderNym$mouseInputToNymFocusPoint3d = function (mouseInput) {
 	return A3($ianmackenzie$elm_geometry$Point3d$meters, mouseInput.x * 10.4, -(mouseInput.y * 10.4), 2);
 };
 var $ianmackenzie$elm_geometry$Axis3d$rotateAround = F2(
@@ -23761,25 +23687,6 @@ var $ianmackenzie$elm_3d_scene$Scene3d$rotateAround = F3(
 	function (axis, angle, entity) {
 		return A3($ianmackenzie$elm_3d_scene$Scene3d$Entity$rotateAround, axis, angle, entity);
 	});
-var $ianmackenzie$elm_geometry$Vector3d$unwrap = function (_v0) {
-	var givenComponents = _v0.a;
-	return givenComponents;
-};
-var $ianmackenzie$elm_3d_scene$Scene3d$Transformation$translateBy = function (displacement) {
-	var v = $ianmackenzie$elm_geometry$Vector3d$unwrap(displacement);
-	return {isRightHanded: true, ix: 1, iy: 0, iz: 0, jx: 0, jy: 1, jz: 0, kx: 0, ky: 0, kz: 1, px: v.x, py: v.y, pz: v.z, scale: 1};
-};
-var $ianmackenzie$elm_3d_scene$Scene3d$Entity$translateBy = F2(
-	function (displacement, givenDrawable) {
-		return A2(
-			$ianmackenzie$elm_3d_scene$Scene3d$Entity$transformBy,
-			$ianmackenzie$elm_3d_scene$Scene3d$Transformation$translateBy(displacement),
-			givenDrawable);
-	});
-var $ianmackenzie$elm_3d_scene$Scene3d$translateBy = F2(
-	function (displacement, entity) {
-		return A2($ianmackenzie$elm_3d_scene$Scene3d$Entity$translateBy, displacement, entity);
-	});
 var $ianmackenzie$elm_geometry$Axis3d$x = A2($ianmackenzie$elm_geometry$Axis3d$through, $ianmackenzie$elm_geometry$Point3d$origin, $ianmackenzie$elm_geometry$Direction3d$x);
 var $ianmackenzie$elm_geometry$Direction3d$xComponent = function (_v0) {
 	var d = _v0.a;
@@ -23790,14 +23697,14 @@ var $ianmackenzie$elm_geometry$Direction3d$yComponent = function (_v0) {
 	var d = _v0.a;
 	return d.y;
 };
-var $author$project$RenderNym$rotateNyms = F2(
+var $author$project$Demos$RenderNym$rotateNyms = F2(
 	function (mouseInput, entitiesAndPositions) {
 		return A2(
 			$elm$core$List$map,
 			function (_v0) {
 				var nymEntity = _v0.a;
 				var position = _v0.b;
-				var focusPoint = $author$project$RenderNym$mouseInputToNymFocusPoint3d(mouseInput);
+				var focusPoint = $author$project$Demos$RenderNym$mouseInputToNymFocusPoint3d(mouseInput);
 				var lookDir = A2(
 					$elm$core$Maybe$withDefault,
 					$ianmackenzie$elm_geometry$Direction3d$z,
@@ -23850,7 +23757,7 @@ var $elm$html$Html$Attributes$width = function (n) {
 		'width',
 		$elm$core$String$fromInt(n));
 };
-var $author$project$RenderNym$viewNym = F2(
+var $author$project$Demos$RenderNym$viewNym = F2(
 	function (mouseInput, nym) {
 		return $mdgriffith$elm_ui$Element$html(
 			A2(
@@ -23860,7 +23767,7 @@ var $author$project$RenderNym$viewNym = F2(
 						A2(
 						$elm$html$Html$Events$on,
 						'mousemove',
-						A2($elm$json$Json$Decode$map, $author$project$RenderNym$MouseMove, $author$project$Mouse$moveDecoder))
+						A2($elm$json$Json$Decode$map, $author$project$Demos$RenderNym$MouseMove, $author$project$Mouse$moveDecoder))
 					]),
 				$elm$core$List$singleton(
 					A2(
@@ -23872,9 +23779,9 @@ var $author$project$RenderNym$viewNym = F2(
 								$elm$html$Html$Attributes$width(500),
 								$elm$html$Html$Attributes$height(450)
 							]),
-						$author$project$RenderNym$makeWebGLEntities(
+						$author$project$Demos$RenderNym$makeWebGLEntities(
 							A2(
-								$author$project$RenderNym$rotateNyms,
+								$author$project$Demos$RenderNym$rotateNyms,
 								mouseInput,
 								_List_fromArray(
 									[
@@ -23926,7 +23833,7 @@ var $mdgriffith$elm_ui$Element$el = F2(
 				_List_fromArray(
 					[child])));
 	});
-var $author$project$Types$genErrorToString = function (err) {
+var $author$project$Utils$genErrorToString = function (err) {
 	return function () {
 		switch (err.$) {
 			case 'NotEnoughSource':
@@ -23955,7 +23862,7 @@ var $mdgriffith$elm_ui$Internal$Model$Text = function (a) {
 var $mdgriffith$elm_ui$Element$text = function (content) {
 	return $mdgriffith$elm_ui$Internal$Model$Text(content);
 };
-var $author$project$RenderNym$viewRenderError = function (err) {
+var $author$project$Demos$RenderNym$viewRenderError = function (err) {
 	return A2(
 		$mdgriffith$elm_ui$Element$el,
 		_List_fromArray(
@@ -23973,21 +23880,21 @@ var $author$project$RenderNym$viewRenderError = function (err) {
 				} else {
 					var _v1 = err.a;
 					var genErr = _v1.b;
-					return $author$project$Types$genErrorToString(genErr);
+					return $author$project$Utils$genErrorToString(genErr);
 				}
 			}()));
 };
-var $author$project$RenderNym$viewNymOrError = F2(
+var $author$project$Demos$RenderNym$viewNymOrError = F2(
 	function (laggedMouse, nymResult) {
 		if (nymResult.$ === 'Ok') {
 			var nym = nymResult.a;
-			return A2($author$project$RenderNym$viewNym, laggedMouse, nym);
+			return A2($author$project$Demos$RenderNym$viewNym, laggedMouse, nym);
 		} else {
 			var e = nymResult.a;
-			return $author$project$RenderNym$viewRenderError(e);
+			return $author$project$Demos$RenderNym$viewRenderError(e);
 		}
 	});
-var $author$project$RenderNym$view = function (model) {
+var $author$project$Demos$RenderNym$view = function (model) {
 	return A2(
 		$mdgriffith$elm_ui$Element$layout,
 		_List_fromArray(
@@ -23995,11 +23902,11 @@ var $author$project$RenderNym$view = function (model) {
 				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 				$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
 			]),
-		A2($author$project$RenderNym$viewNymOrError, model.laggedMouse, model.nymResult));
+		A2($author$project$Demos$RenderNym$viewNymOrError, model.laggedMouse, model.nymResult));
 };
-var $author$project$RenderNym$main = $elm$browser$Browser$element(
-	{init: $author$project$RenderNym$init, subscriptions: $author$project$RenderNym$subscriptions, update: $author$project$RenderNym$update, view: $author$project$RenderNym$view});
-_Platform_export({'RenderNym':{'init':$author$project$RenderNym$main($elm$json$Json$Decode$string)(0)}});}(this));
+var $author$project$Demos$RenderNym$main = $elm$browser$Browser$element(
+	{init: $author$project$Demos$RenderNym$init, subscriptions: $author$project$Demos$RenderNym$subscriptions, update: $author$project$Demos$RenderNym$update, view: $author$project$Demos$RenderNym$view});
+_Platform_export({'Demos':{'RenderNym':{'init':$author$project$Demos$RenderNym$main($elm$json$Json$Decode$string)(0)}}});}(this));
 
     </script>
 </head>
@@ -24011,7 +23918,7 @@ _Platform_export({'RenderNym':{'init':$author$project$RenderNym$main($elm$json$J
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get('id');
         }
-        var app = Elm.RenderNym.init({
+        var app = Elm.Demos.RenderNym.init({
             node: document.getElementById('elmdiv'),
             flags: getIdFromUrl()
         });
