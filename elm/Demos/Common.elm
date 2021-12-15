@@ -1,5 +1,6 @@
 module Demos.Common exposing (..)
 
+import Mouse
 import Angle
 import Axis3d
 import BinarySource exposing (BinarySource)
@@ -229,7 +230,7 @@ makeWebGLEntities aspectRatio nymList =
                     Viewpoint3d.lookAt
                         { focalPoint = Point3d.origin
                         , eyePoint =
-                            Point3d.meters 0 0 5
+                            Point3d.meters 0 0 7
                         , upDirection = Direction3d.positiveY
                         }
                 , verticalFieldOfView = Angle.degrees 30
@@ -317,3 +318,10 @@ screenWidthToDisplayProfile width =
 
     else
         Mobile
+
+
+mouseMoveDataToLookDir : Mouse.MoveData -> Vector2
+mouseMoveDataToLookDir moveData =
+    Vector2
+        (toFloat moveData.offsetX / moveData.offsetWidth - 0.5)
+        (toFloat moveData.offsetY / moveData.offsetHeight - 0.5)

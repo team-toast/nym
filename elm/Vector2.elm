@@ -18,6 +18,13 @@ zero =
     Vector2 0 0
 
 
+fromLengthAndRadians : Float -> Float -> Vector2
+fromLengthAndRadians length angle =
+    Vector2
+        (length * cos angle)
+        (length * sin angle)
+
+
 fromTuple : ( Float, Float ) -> Vector2
 fromTuple ( x, y ) =
     Vector2 x y

@@ -99,9 +99,7 @@ update msg model =
         MouseMove moveData ->
             ( { model
                 | mouseInput =
-                    MouseInput
-                        (toFloat moveData.offsetX / moveData.offsetWidth - 0.5)
-                        (toFloat moveData.offsetY / moveData.offsetHeight - 0.5)
+                    Demos.Common.mouseMoveDataToLookDir moveData
                 , lastMouseMoveTime = model.now
               }
             , Cmd.none
