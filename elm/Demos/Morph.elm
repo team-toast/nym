@@ -124,7 +124,7 @@ update msg model =
 
                 morphRateConstant =
                     if mouseClickIsIdle model then
-                        20000
+                        5000
 
                     else
                         5000

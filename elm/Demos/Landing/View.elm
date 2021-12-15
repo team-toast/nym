@@ -71,7 +71,7 @@ body dProfile model =
               ]
             , [ normalText "Instead, each Nym's structuring and color is generated bottom-up from a random data source, with constraints designed to target a mammal-like head while leaving a lot of room for variety. This results in more striking visual distinction between the items in the set, and drastically increases the possibility space of the set."
               ]
-            , [ normalText "We call this first set Alpha Nyms. These consume 113 bits of entropy (72 for structure and 41 for color), resulting in over one thousand quintillion (1,000,000,000,000,000,000,000,000,000,000,000) visually distinct possibilities. Here are some of them:"
+            , [ normalText "We call this first set Alpha Nyms. These consume 113 bits of entropy (72 for structure and 41 for color), resulting in over one thousand quintillion (1,000,000,000,000,000,000,000,000,000,000,000) visually distinct possibilities. Here are some of them, morphing through various possibilities:"
               ]
             ]
         , el
@@ -86,16 +86,17 @@ body dProfile model =
           <|
             viewMorphDemos model.morphModels
         , paragraphs dProfile
-            [ [ normalText "The Alpha Nyms have been airdropped today (2021.12.13) to any address that ever held FRY, the token for "
+            [ [ normalText "Nyms exhibit \"emergent rarity\": we expect some Nyms to be much more highly valued than others, not because this rarity was declared by protocol, but because a few of the Nyms will \"emerge\" looking a little like (for instance) the Metamask fox."]
+             , [ normalText "One Alpha Nym each was airdropped on 2021.12.15 to any address that ever held FRY, the token for "
               , newTabLink
                     { url = "https://foundrydao.com/"
                     , text = "the Foundry project"
                     }
-              , normalText ", as of Ethereum block 13727946 (2021.12.2)."
+              , normalText ", as of Ethereum block 13727946 (2021.12.2). This set, as with all future Nym sets, are generated randomly (technically, using block headers as an input). Combine this with the huge possibility space of the set, and you can be sure that no one will ever get a Nym that looks quite like another."
               ]
             , [ normalText "If this concept is validated by hype, we will move forward to produce a Beta Nym set, complete with a never-ending but rate-limited sale of a much more visually polished execution of the core Nym idea. A goal for this version is to consume a full 256 bits of entropy into visual features - this would make Nyms as uncollidable and \"effectively infinite\" as hashes."
               ]
-            , [ normalText "We will update this page regularly throughout the week following the airdrop, with more info on our plans and how we envision Nyms being used. In the meantime, come say hi on "
+            , [ normalText "We will be updating this page regularly after the airdrop, with more info on our plans and how we envision Nyms being used. In the meantime, come say hi on "
               , newTabLink
                     { url = "https://discord.gg/35eMjwmKXU"
                     , text = "Discord"
