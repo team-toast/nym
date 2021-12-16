@@ -4,6 +4,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
+// NOTE: These are not final. More brainstormy. We are currently only doing airdrops, so don't use the below code yet.
+
 struct OpenNymBid {
     uint nymData;
     uint currentBidAmount;
