@@ -87,7 +87,7 @@ body dProfile model =
             viewMorphDemos model.morphModels
         , paragraphs dProfile
             [ [ normalText "Nyms exhibit \"emergent rarity\": we expect some Nyms to be much more highly valued than others, not because this rarity was declared by protocol, but because a few of the Nyms will \"emerge\" looking a little like (for instance) the Metamask fox."]
-             , [ normalText "One Alpha Nym each was airdropped on 2021.12.15 to any address that ever held FRY, the token for "
+             , [ normalText "One Alpha Nym each was airdropped on 2021.12.16 to any address that ever held FRY, the token for "
               , newTabLink
                     { url = "https://foundrydao.com/"
                     , text = "the Foundry project"
