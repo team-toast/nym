@@ -3,50 +3,39 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-abstract contract AlphaNymAirdropSetInterface {
-    function updateUri(string memory) public virtual;
-}
-
-contract AlphaNymUriUpdater is Ownable {
-    function updateUri(AlphaNymAirdropSetInterface _airdropContract, string memory _uri)
-        public
-        onlyOwner()
-        {
-            _airdropContract.updateUri(_uri);
-        }
-}
-
 contract AlphaNymAirdropSet is ERC1155, Ownable {
-    // Here I use the Ownable mechanism to allow myself a window in which to mint Nyms in batches.
-    // After the airdrop is complete I will call renounceOwnership, ensuring the set is closed.
-
+    bool public mintingClosed;
     // OpenSea's shitty nonstandard ERC1155 support requires this to have a name displayed for the set.
     string public constant name = "Alpha Nyms Batch Drop Test";
 
-    // Need an ownable "updater" contract to be able to manage uri updating rights
-    // (separately from minting rights, which this._owner controls)
-    AlphaNymUriUpdater public uriUpdater;
-
-    constructor(AlphaNymUriUpdater _uriUpdater) ERC1155("https://etc.foundrydao.com/nym_metadata.php?id={id}") Ownable()
+    constructor() ERC1155("https://etc.foundrydao.com/nym_metadata.php?id={id}") Ownable()
         {
-            uriUpdater = _uriUpdater;
+            mintingClosed = false;
         }
     
-    function updateUri(string memory _uri)
-        public
-        {
-            require(msg.sender == address(uriUpdater), "msg.sender != uriUpdater");
-
-            _setURI(_uri);
-        }
-
     function mint(address who, uint nymId)
         external
         {
             require(tx.origin == owner(), "I only listen to my daddy!");
+            require(! mintingClosed, "Minting has been closed");
 
             _mint(who, nymId, 1, "");
         }
+    
+    function closeMinting()
+        external
+        onlyOwner()
+        {
+            mintingClosed = true;
+        }
+
+    function updateUri(string memory _uri)
+        external
+        onlyOwner()
+        {
+            _setURI(_uri);
+        }
+
 }
 
 contract dropTest {
