@@ -44,7 +44,7 @@ contract Batcher
     function _mint(AlphaNymAirdropSet airdropContract, address who, uint nymId)
         internal
     {
-        bytes memory data = abi.encodeWithSignature("mint(address,uint)", who, nymId);
+        bytes memory data = abi.encodeWithSignature("mint(address,uint256)", who, nymId);
         address(airdropContract).call(data);
     }
 }
@@ -556,7 +556,7 @@ _mint(airdropContract, 0x35bcf170a6DEaD190c82142d8E8a996F43334b39, uint256(0x631
     }
 }
 
-contract dropBatch2 {
+contract dropBatch2 is Batcher {
     constructor(AlphaNymAirdropSet airdropContract) {
 
 _mint(airdropContract, 0x35C308D488189CAD1bD1E3c9f65C5CCa7Ab2c1Eb, uint256(0xa932b4e9495e73e829f19f9687d76ab91f127ccedfffa6c8e0a406e35d099872));
@@ -1063,7 +1063,7 @@ _mint(airdropContract, 0x6d619C1bb0eE2772cD590b764bc0D91bA209d145, uint256(0xf7d
     }
 }
 
-contract dropBatch3 {
+contract dropBatch3 is Batcher {
     constructor(AlphaNymAirdropSet airdropContract) {
 
 _mint(airdropContract, 0x6D62F1d6b0D829F5bCF177Ef5C36EE4b53629CC0, uint256(0x0a8df7df4ef5b9ac951e78319ba535735185f490e1b2b34e9b30699c8b7a4243));
@@ -1570,7 +1570,7 @@ _mint(airdropContract, 0xa4C0344a323b88A98f88c54C13f8aaB5ae6CF5Eb, uint256(0x7bc
     }
 }
 
-contract dropBatch4 {
+contract dropBatch4 is Batcher {
     constructor(AlphaNymAirdropSet airdropContract) {
 
 _mint(airdropContract, 0xA4C2DEef2924769bda5E9e3c5F6AceBbBe8E8497, uint256(0x64c3d36beb2ec3999b5c1528b809f08205bef4b0831764f5adf5da6484282c1c));
@@ -2077,7 +2077,7 @@ _mint(airdropContract, 0xDD9Ec2Ac3777101A488827D2C8295bE6f6BE7352, uint256(0x634
     }
 }
 
-contract dropBatch5 {
+contract dropBatch5 is Batcher {
     constructor(AlphaNymAirdropSet airdropContract) {
 
 _mint(airdropContract, 0xDdb2725e6f6ee7742469F3aF6c0169E82464bB73, uint256(0x9a7e6fb5b0c196d3adfe0b81cedc8a0564e9c1dba9a11bf6d0645e4a8d04cc63));
