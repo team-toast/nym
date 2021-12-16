@@ -3,39 +3,40 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract AlphaNymAirdropSet is ERC1155, Ownable {
-    bool public mintingClosed;
+contract AlphaNymAirdropSet is ERC1155, Ownable 
+{
+    bool public mintingClosed = false;
+    
     // OpenSea's shitty nonstandard ERC1155 support requires this to have a name displayed for the set.
     string public constant name = "Alpha Nyms Batch Drop Test";
 
-    constructor() ERC1155("https://etc.foundrydao.com/nym_metadata.php?id={id}") Ownable()
-        {
-            mintingClosed = false;
-        }
+    constructor() 
+        ERC1155("https://etc.foundrydao.com/nym_metadata.php?id={id}") 
+        Ownable
+    { }
     
     function mint(address who, uint nymId)
         external
-        {
-            require(tx.origin == owner(), "I only listen to my daddy!");
-            require(! mintingClosed, "Minting has been closed");
+    {
+        require(tx.origin == owner(), "I only listen to my daddy!");
+        require(!mintingClosed, "Minting has been closed");
 
-            _mint(who, nymId, 1, "");
-        }
+        _mint(who, nymId, 1, "");
+    }
     
     function closeMinting()
         external
-        onlyOwner()
-        {
-            mintingClosed = true;
-        }
+        onlyOwner
+    {
+        mintingClosed = true;
+    }
 
     function updateUri(string memory _uri)
         external
-        onlyOwner()
-        {
-            _setURI(_uri);
-        }
-
+        onlyOwner
+    {
+        _setURI(_uri);
+    }
 }
 
 contract dropTest {
