@@ -1,4 +1,4 @@
-# Airdrop Procedure
+# Airdrop Data Generation Procedure
 
 Run airdrop_gen.py, which expects to find airdrop-targets in the same directory.
 
