@@ -8,3 +8,5 @@ org/
 index.html
 flat.sol
 testDeploys.sol
+__pycache__/airdrop_gen.cpython-38.pyc
+renderNym.js
