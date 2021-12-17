@@ -86,18 +86,18 @@ body dProfile model =
           <|
             viewMorphDemos model.morphModels
         , paragraphs dProfile
-            [ [ normalText "Nyms exhibit \"emergent rarity\": we expect some Nyms to be much more highly valued than others, not because this rarity was declared by protocol, but because a few of the Nyms will \"emerge\" looking a little like (for instance) the Metamask fox."]
-             , [ normalText "One Alpha Nym each was airdropped on 2021.12.16 to any address that ever held FRY, the token for "
+            [ [ normalText "Nyms exhibit \"emergent rarity\": we expect some Nyms to be much more highly valued than others, not because this rarity was declared by protocol, but because a few of the Nyms will \"emerge\" looking a little like (for instance) the Metamask fox." ]
+            , [ normalText "One Alpha Nym each was airdropped on 2021.12.16 to any address that ever held FRY, the token for "
               , newTabLink
                     { url = "https://foundrydao.com/"
                     , text = "the Foundry project"
                     }
               , normalText ", as of Ethereum block 13727946 (2021.12.2); see the "
               , newTabLink
-                { url = "https://opensea.io/collection/alpha-nyms/"
-                , text = "OpenSea collection"
-                }
-                , normalText ". This set, as with all future Nym sets, are generated randomly (technically, using block headers as an input). Combine this with the huge possibility space of the set, and you can be sure that no one will ever get a Nym that looks quite like another."
+                    { url = "https://opensea.io/collection/alpha-nyms/"
+                    , text = "OpenSea collection"
+                    }
+              , normalText ". This set, as with all future Nym sets, are generated randomly (technically, using block headers as an input). Combine this with the huge possibility space of the set, and you can be sure that no one will ever get a Nym that looks quite like another."
               ]
             , [ normalText "If this concept is validated by hype, we will move forward to produce a Beta Nym set, complete with a never-ending but rate-limited sale of a much more visually polished execution of the core Nym idea. A goal for this version is to consume a full 256 bits of entropy into visual features - this would make Nyms as uncollidable and \"effectively infinite\" as hashes."
               ]
