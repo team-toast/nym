@@ -92,7 +92,7 @@ body dProfile model =
                     { url = "https://foundrydao.com/"
                     , text = "the Foundry project"
                     }
-              , normalText ", as of Ethereum block 13727946 (2021.12.2). This set, as with all future Nym sets, are generated randomly (technically, using block headers as an input). Combine this with the huge possibility space of the set, and you can be sure that no one will ever get a Nym that looks quite like another."
+              , normalText ", as of Ethereum block 13727946 (2021.12.2); see the [OpenSea collection](https://opensea.io/collection/alpha-nyms/). This set, as with all future Nym sets, are generated randomly (technically, using block headers as an input). Combine this with the huge possibility space of the set, and you can be sure that no one will ever get a Nym that looks quite like another."
               ]
             , [ normalText "If this concept is validated by hype, we will move forward to produce a Beta Nym set, complete with a never-ending but rate-limited sale of a much more visually polished execution of the core Nym idea. A goal for this version is to consume a full 256 bits of entropy into visual features - this would make Nyms as uncollidable and \"effectively infinite\" as hashes."
               ]
