@@ -23903,7 +23903,10 @@ var $author$project$Demos$Landing$View$body = F2(
 								$author$project$Demos$Landing$Theme$normalText('One Alpha Nym each was airdropped on 2021.12.16 to any address that ever held FRY, the token for '),
 								$author$project$Demos$Landing$Theme$newTabLink(
 								{text: 'the Foundry project', url: 'https://foundrydao.com/'}),
-								$author$project$Demos$Landing$Theme$normalText(', as of Ethereum block 13727946 (2021.12.2); see the [OpenSea collection](https://opensea.io/collection/alpha-nyms/). This set, as with all future Nym sets, are generated randomly (technically, using block headers as an input). Combine this with the huge possibility space of the set, and you can be sure that no one will ever get a Nym that looks quite like another.')
+								$author$project$Demos$Landing$Theme$normalText(', as of Ethereum block 13727946 (2021.12.2); see the '),
+								$author$project$Demos$Landing$Theme$newTabLink(
+								{text: 'OpenSea collection', url: 'https://opensea.io/collection/alpha-nyms/'}),
+								$author$project$Demos$Landing$Theme$normalText('. This set, as with all future Nym sets, are generated randomly (technically, using block headers as an input). Combine this with the huge possibility space of the set, and you can be sure that no one will ever get a Nym that looks quite like another.')
 							]),
 							_List_fromArray(
 							[
